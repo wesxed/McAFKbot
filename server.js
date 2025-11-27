@@ -239,42 +239,103 @@ function startBotConnection(botId) {
     host: bot.host,
     port: bot.port,
     username: bot.nickname,
-    version: bot.version || false
+    version: bot.version || false,
+    hideErrors: false
   };
 
   const mineflayerBot = createBot(options);
   let moveInterval;
+  let isMoving = false;
 
   mineflayerBot.on('login', () => {
     bot.status = 'connected';
     saveBots();
     console.log(`🤖 Bot "${bot.nickname}" bağlandı: ${bot.host}:${bot.port}`);
+    console.log(`   📍 Konum: ${mineflayerBot.player.entity.position.x | 0}, ${mineflayerBot.player.entity.position.y | 0}, ${mineflayerBot.player.entity.position.z | 0}`);
 
-    moveInterval = setInterval(() => {
-      const moves = ['w', 'a', 's', 'd'];
-      const randomMove = moves[Math.floor(Math.random() * 4)];
-      try {
-        mineflayerBot.setControlState(randomMove, true);
-        setTimeout(() => {
-          try {
-            mineflayerBot.setControlState(randomMove, false);
-          } catch (e) {}
-        }, 100);
-      } catch (e) {}
-    }, 3000);
+    // Start AFK movement system
+    startAFKMovement();
   });
+
+  mineflayerBot.on('spawn', () => {
+    console.log(`✅ Bot "${bot.nickname}" spawn oldu`);
+  });
+
+  mineflayerBot.on('physicTick', () => {
+    if (!isMoving) return;
+    
+    // Rasgele yöne doğru hareket
+    const moveChance = Math.random();
+    if (moveChance < 0.25) {
+      mineflayerBot.setControlState('forward', true);
+    } else if (moveChance < 0.50) {
+      mineflayerBot.setControlState('forward', false);
+    } else if (moveChance < 0.75) {
+      mineflayerBot.setControlState('left', Math.random() > 0.5);
+    } else {
+      mineflayerBot.setControlState('right', Math.random() > 0.5);
+    }
+  });
+
+  function startAFKMovement() {
+    isMoving = true;
+    
+    // Her 3 saniyede rastgele hareket
+    moveInterval = setInterval(() => {
+      if (!mineflayerBot.entity) return;
+      
+      try {
+        // Rasgele yön seç
+        const actions = [
+          () => {
+            mineflayerBot.setControlState('forward', true);
+            setTimeout(() => mineflayerBot.setControlState('forward', false), 1500);
+          },
+          () => {
+            mineflayerBot.setControlState('left', true);
+            setTimeout(() => mineflayerBot.setControlState('left', false), 1500);
+          },
+          () => {
+            mineflayerBot.setControlState('right', true);
+            setTimeout(() => mineflayerBot.setControlState('right', false), 1500);
+          },
+          () => {
+            mineflayerBot.setControlState('back', true);
+            setTimeout(() => mineflayerBot.setControlState('back', false), 1500);
+          },
+          () => {
+            if (Math.random() > 0.5) {
+              mineflayerBot.jump();
+            }
+          }
+        ];
+        
+        const randomAction = actions[Math.floor(Math.random() * actions.length)];
+        randomAction();
+        
+        // Rasgele baş dönüşü
+        const yaw = Math.random() * Math.PI * 2;
+        const pitch = (Math.random() - 0.5) * 0.5;
+        mineflayerBot.look(yaw, pitch, false);
+      } catch (e) {
+        console.error(`Bot hareket hatası: ${e.message}`);
+      }
+    }, 3000);
+  }
 
   mineflayerBot.on('end', () => {
     bot.status = 'disconnected';
     saveBots();
     clearInterval(moveInterval);
+    isMoving = false;
     delete activeBots[botId];
-    console.log(`❌ Bot "${bot.nickname}" koptı, yeniden deneneceek...`);
+    console.log(`❌ Bot "${bot.nickname}" koptü, 5 saniye sonra yeniden bağlanacak...`);
 
     if (bot.autoStart) {
       setTimeout(() => {
         const updatedBot = bots.bots.find(b => b.id === botId);
         if (updatedBot && updatedBot.autoStart) {
+          console.log(`🔄 Bot "${bot.nickname}" yeniden bağlanılıyor...`);
           startBotConnection(botId);
         }
       }, 5000);
@@ -283,6 +344,10 @@ function startBotConnection(botId) {
 
   mineflayerBot.on('error', (err) => {
     console.error(`⚠️ Bot "${bot.nickname}" hatası:`, err.message);
+  });
+
+  mineflayerBot.on('kicked', (reason) => {
+    console.log(`🚫 Bot "${bot.nickname}" atıldı:`, reason);
   });
 
   activeBots[botId] = mineflayerBot;

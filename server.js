@@ -251,7 +251,6 @@ function startBotConnection(botId) {
     bot.status = 'connected';
     saveBots();
     console.log(`🤖 Bot "${bot.nickname}" bağlandı: ${bot.host}:${bot.port}`);
-    console.log(`   📍 Konum: ${mineflayerBot.player.entity.position.x | 0}, ${mineflayerBot.player.entity.position.y | 0}, ${mineflayerBot.player.entity.position.z | 0}`);
 
     // Start AFK movement system
     startAFKMovement();

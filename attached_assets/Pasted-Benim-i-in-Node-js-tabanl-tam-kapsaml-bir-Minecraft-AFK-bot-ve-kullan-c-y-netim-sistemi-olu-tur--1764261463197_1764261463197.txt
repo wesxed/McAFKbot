@@ -1,0 +1,19 @@
+Benim için Node.js tabanlı tam kapsamlı bir Minecraft AFK bot ve kullanıcı yönetim sistemi oluştur. Sistemde kullanıcı kayıt ve giriş sistemi olacak; kullanıcılar users.json dosyasına kaydedilecek. Kullanıcılar kayıt olurken kullanıcı adı ve şifre belirleyecek. Giriş yapan kullanıcıya token verilecek, secret veya JWT kullanılmayacak, token cookie veya localStorage üzerinden yönetilecek.
+
+Sistem ayrıca bir bulut depolama özelliği içerecek; kullanıcılar panel üzerinden kendi dosyalarını ekleyip silebilecek. Bulut verileri cloud.json veya /cloud/kullanıcı-id/ klasöründe tutulacak ve kullanıcıya özel olacak.
+
+AFK bot sistemi mineflayer kullanacak. Botlar tüm Minecraft sürümlerine ve tüm sunuculara bağlanabilecek. Kullanıcı panelinden bot eklenebilecek, başlatılabilecek, durdurulabilecek ve silinebilecek. Her bot RAM’de activeBots objesinde tutulacak ve 7/24 aktif olacak. Botlar her 3 saniyede rastgele W-A-S-D hareketleri yapacak ve disconnect olursa 5 saniye sonra otomatik yeniden bağlanacak. Çoklu bot desteği olacak ve panelde tüm botların durumu (online/offline) görülebilecek. Bot verileri bots.json içinde saklanacak.
+
+Web panelinde tüm sistem yönetilebilecek. Panelde:
+	•	Kayıt ve giriş formları
+	•	Kullanıcıya özel bot paneli
+	•	Bot ekleme, başlatma, durdurma, silme
+	•	Bot durumları (online/offline)
+	•	Bulut dosya yönetimi (ekle, sil, listele)
+	•	Tema seçimi (koyu, açık, mavi, kırmızı) ve anlık değişim, localStorage kaydı
+
+Tasarım modern, şık ve mobil uyumlu olacak. CSS ile tüm temalar tanımlanacak ve main.js ile tema değişimi yönetilecek.
+
+Projeyi çalıştırmak için gerekli npm paketleri: express, mineflayer, body-parser, cors, fs-extra. Replit’te node server.js ile sunucu çalışacak. Tüm dosyaları eksiksiz oluştur: server.js, users.json, bots.json, cloud.json, /public/index.html, /public/style.css, /public/main.js.
+
+Secret veya JWT kullanılmayacak, jvsecret hatası olmayacak. Tüm sistem tek proje içinde eksiksiz çalışacak ve Replit AI’ye verildiğinde otomatik olarak oluşturulabilir olacak. Botlar her sürüm ve her sunucuya katılabilecek şekilde yapılandırılacak.”

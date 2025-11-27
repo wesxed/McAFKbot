@@ -3,17 +3,68 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Minecraft AFK Bot Panel</title>
+  <title>Minecraft AFK Bot & Cloud Panel</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="theme-dark">
   <div class="container">
-    <header class="header">
-      <div class="header-content">
-        <h1>🎮 Minecraft AFK Bot Panel</h1>
-        <div class="header-controls">
+    <!-- Auth Section (Hidden when logged in) -->
+    <section id="authSection" class="section">
+      <header class="auth-header">
+        <h1>🎮 Minecraft AFK Bot</h1>
+      </header>
+
+      <div class="auth-container">
+        <div class="auth-tabs">
+          <button class="tab-btn active" data-tab="login">Giriş Yap</button>
+          <button class="tab-btn" data-tab="register">Kayıt Ol</button>
+        </div>
+
+        <div id="login" class="tab-content active">
+          <form id="loginForm">
+            <div class="form-group">
+              <label>Kullanıcı Adı</label>
+              <input type="text" id="loginUsername" placeholder="Kullanıcı adınız" required>
+            </div>
+            <div class="form-group">
+              <label>Şifre</label>
+              <input type="password" id="loginPassword" placeholder="Şifreniz" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Giriş Yap</button>
+          </form>
+        </div>
+
+        <div id="register" class="tab-content">
+          <form id="registerForm">
+            <div class="form-group">
+              <label>Kullanıcı Adı</label>
+              <input type="text" id="registerUsername" placeholder="Kullanıcı adı" required>
+            </div>
+            <div class="form-group">
+              <label>Şifre</label>
+              <input type="password" id="registerPassword" placeholder="Şifre" required>
+            </div>
+            <div class="form-group">
+              <label>Şifre Tekrar</label>
+              <input type="password" id="registerPasswordConfirm" placeholder="Şifre tekrar" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Kayıt Ol</button>
+          </form>
+        </div>
+
+        <div id="authMessage" class="message"></div>
+      </div>
+    </section>
+
+    <!-- Main Panel (Hidden when not logged in) -->
+    <section id="mainSection" class="section" style="display: none;">
+      <header class="header">
+        <div class="header-left">
+          <h1>🎮 Minecraft AFK Bot Panel</h1>
+          <p id="userGreeting">Hoşgeldiniz!</p>
+        </div>
+        <div class="header-right">
           <div class="theme-selector">
-            <label for="themeSelect">Tema:</label>
             <select id="themeSelect">
               <option value="theme-dark">🌙 Koyu</option>
               <option value="theme-light">☀️ Açık</option>
@@ -21,67 +72,82 @@
               <option value="theme-red">🔴 Kırmızı</option>
             </select>
           </div>
+          <button id="logoutBtn" class="btn btn-secondary">Çıkış</button>
         </div>
-      </div>
-    </header>
+      </header>
 
-    <main class="main-content">
-      <section class="panel">
-        <div class="panel-header">
-          <h2>Bot Yönetim Paneli</h2>
-          <button id="refreshBtn" class="btn btn-refresh" title="Yenile">🔄</button>
+      <nav class="nav">
+        <button class="nav-btn active" data-section="bots">🤖 Botlar</button>
+        <button class="nav-btn" data-section="cloud">☁️ Bulut</button>
+      </nav>
+
+      <!-- Bots Section -->
+      <section id="bots" class="content-section active">
+        <div class="section-header">
+          <h2>Bot Yönetimi</h2>
+          <button id="refreshBotsBtn" class="btn btn-secondary">🔄 Yenile</button>
         </div>
 
-        <!-- Add Bot Form -->
-        <div class="add-bot-section">
+        <div class="add-bot-form">
           <h3>Yeni Bot Ekle</h3>
-          <form id="addBotForm" class="bot-form">
-            <div class="form-group">
-              <label for="botNickname">Bot Adı</label>
-              <input 
-                type="text" 
-                id="botNickname" 
-                placeholder="Botunuza bir ad verin" 
-                required
-              >
-            </div>
-            <div class="form-group">
-              <label for="botHost">Sunucu IP/Host</label>
-              <input 
-                type="text" 
-                id="botHost" 
-                placeholder="play.example.com veya 127.0.0.1" 
-                required
-              >
-            </div>
-            <div class="form-group">
-              <label for="botPort">Port</label>
-              <input 
-                type="number" 
-                id="botPort" 
-                placeholder="25565" 
-                value="25565"
-                required
-              >
+          <form id="addBotForm">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Bot Adı</label>
+                <input type="text" id="botNickname" placeholder="Bot adı" required>
+              </div>
+              <div class="form-group">
+                <label>Host</label>
+                <input type="text" id="botHost" placeholder="play.example.com" required>
+              </div>
+              <div class="form-group">
+                <label>Port</label>
+                <input type="number" id="botPort" placeholder="25565" value="25565" required>
+              </div>
+              <div class="form-group">
+                <label>Versiyon (İsteğe Bağlı)</label>
+                <input type="text" id="botVersion" placeholder="1.20.1 (Boş = Otomatik)">
+              </div>
             </div>
             <button type="submit" class="btn btn-primary">➕ Bot Ekle</button>
           </form>
         </div>
 
-        <!-- Bots List -->
-        <div class="bots-list-section">
-          <h3>Aktif Botlar</h3>
-          <div id="botsList" class="bots-grid">
-            <p class="empty-message">Bot listesi yükleniyor...</p>
-          </div>
+        <div id="botsList" class="bots-grid">
+          <p class="empty-message">Botlar yükleniyor...</p>
         </div>
       </section>
-    </main>
 
-    <footer class="footer">
-      <p>Minecraft AFK Bot Panel v1.0</p>
-    </footer>
+      <!-- Cloud Section -->
+      <section id="cloud" class="content-section">
+        <div class="section-header">
+          <h2>Bulut Depolama</h2>
+          <button id="refreshCloudBtn" class="btn btn-secondary">🔄 Yenile</button>
+        </div>
+
+        <div class="upload-file-form">
+          <h3>Dosya Yükle</h3>
+          <form id="uploadFileForm">
+            <div class="form-group">
+              <label>Dosya Adı</label>
+              <input type="text" id="fileName" placeholder="config.txt" required>
+            </div>
+            <div class="form-group">
+              <label>İçerik</label>
+              <textarea id="fileContent" placeholder="Dosya içeriğini girin..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">☁️ Yükle</button>
+          </form>
+        </div>
+
+        <div id="filesList" class="files-grid">
+          <p class="empty-message">Dosyalar yükleniyor...</p>
+        </div>
+      </section>
+    </section>
   </div>
+
+  <div id="notification" class="notification"></div>
 
   <script src="main.js"></script>
 </body>

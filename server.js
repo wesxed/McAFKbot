@@ -507,9 +507,32 @@ app.delete('/api/cloud/file/:filename', async (req, res) => {
   res.json({ success: true, message: 'Dosya silindi' });
 });
 
+// Auto-start bots on server startup
+async function autoStartBots() {
+  console.log('\n⏳ Kaydedilmiş botlar kontrol ediliyor...');
+  
+  const autoStartBots = bots.bots.filter(bot => bot.autoStart);
+  
+  if (autoStartBots.length === 0) {
+    console.log('ℹ️ Auto-start için işaretlenen bot yok');
+    return;
+  }
+  
+  console.log(`🔄 ${autoStartBots.length} bot otomatik başlatılacak...\n`);
+  
+  for (const bot of autoStartBots) {
+    setTimeout(() => {
+      startBotConnection(bot.id);
+      console.log(`✅ Bot "${bot.nickname}" otomatik başlatıldı`);
+    }, 1000);
+  }
+}
+
 // Start server
 app.listen(PORT, '0.0.0.0', async () => {
   await initFiles();
-  console.log(`🚀 Server ${PORT} portunda çalışıyor`);
+  autoStartBots();
+  console.log(`\n🚀 Server ${PORT} portunda çalışıyor`);
   console.log(`📊 Panel: http://localhost:${PORT}`);
+  console.log(`🌐 Bot Paneli: http://localhost:${PORT}\n`);
 });

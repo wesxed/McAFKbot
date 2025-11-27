@@ -7,7 +7,7 @@
       "host": "karos1.aternos.me",
       "port": 35501,
       "version": "1.16.5",
-      "status": "connected",
+      "status": "disconnected",
       "autoStart": true,
       "createdAt": "2025-11-27T16:54:36.585Z"
     }

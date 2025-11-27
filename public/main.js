@@ -141,9 +141,12 @@ function showMainPanel() {
   document.getElementById('logoutBtn').addEventListener('click', logout);
   document.getElementById('refreshBotsBtn').addEventListener('click', loadBots);
   document.getElementById('refreshCloudBtn').addEventListener('click', loadCloudFiles);
+  document.getElementById('refreshStatsBtn').addEventListener('click', loadStats);
   document.getElementById('addBotForm').addEventListener('submit', handleAddBot);
   document.getElementById('uploadFileForm').addEventListener('submit', handleUploadFile);
 
+  loadStats();
+  setInterval(loadStats, 30000); // Refresh stats every 30 seconds
   loadBots();
 }
 
@@ -447,4 +450,43 @@ function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
+}
+
+// Stats & Activity
+async function loadStats() {
+  try {
+    const res = await fetch('/api/stats', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (res.ok) {
+      const stats = await res.json();
+      
+      // Update stat cards
+      document.getElementById('totalUsers').textContent = stats.totalUsers;
+      document.getElementById('activeBots').textContent = stats.activeBots;
+      document.getElementById('totalFiles').textContent = stats.totalFiles;
+      document.getElementById('uptime').textContent = stats.uptime;
+      
+      // Update activity feed
+      updateActivityFeed(stats.recentActivity);
+    }
+  } catch (err) {
+    console.error('Stats yükleme hatası:', err);
+  }
+}
+
+function updateActivityFeed(activities) {
+  const feed = document.getElementById('activityFeed');
+  
+  if (!activities || activities.length === 0) {
+    feed.innerHTML = '<div class="activity-item">✅ Platform aktif ve çalışıyor</div>';
+    return;
+  }
+  
+  const html = activities.map(activity => `
+    <div class="activity-item">${escapeHtml(activity)}</div>
+  `).join('');
+  
+  feed.innerHTML = html;
 }

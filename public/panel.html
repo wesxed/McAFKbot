@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kullanıcı Paneli - AFK Bot</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="logo">🎮 AFK Bot</div>
+      <div class="nav-links">
+        <a href="/" id="homeLink">Ana Sayfa</a>
+        <span id="username" style="color: var(--text-secondary);">Yükleniyor...</span>
+        <button id="logoutBtn" class="btn btn-secondary">Çıkış Yap</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container panel-container">
+    <aside class="sidebar">
+      <div class="sidebar-menu">
+        <a href="#dashboard" class="menu-item active" data-section="dashboard">
+          📊 Özet
+        </a>
+        <a href="#bots" class="menu-item" data-section="bots">
+          🤖 Bot Yönetimi
+        </a>
+        <a href="#cloud" class="menu-item" data-section="cloud">
+          ☁️ Bulut Alanım
+        </a>
+        <a href="#theme" class="menu-item" data-section="theme">
+          🎨 Tema Ayarları
+        </a>
+      </div>
+    </aside>
+
+    <main class="panel-content">
+      <!-- Dashboard Section -->
+      <section id="dashboard" class="section active">
+        <h1>Hoşgeldiniz!</h1>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="botCount">0</div>
+            <div class="stat-label">Aktif Bot</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="cloudFiles">0</div>
+            <div class="stat-label">Bulut Dosyası</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Bots Section -->
+      <section id="bots" class="section">
+        <h1>Bot Yönetimi</h1>
+        <div class="bots-header">
+          <button class="btn btn-primary" id="addBotBtn">+ Yeni Bot Ekle</button>
+        </div>
+
+        <div id="addBotForm" class="form-container" style="display: none;">
+          <h3>Yeni Bot Ekle</h3>
+          <form id="createBotForm">
+            <div class="form-group">
+              <label>Bot Adı</label>
+              <input type="text" id="botNickname" placeholder="Botunuza bir ad verin" required>
+            </div>
+            <div class="form-group">
+              <label>Sunucu IP</label>
+              <input type="text" id="botHost" placeholder="örn: play.example.com" required>
+            </div>
+            <div class="form-group">
+              <label>Port</label>
+              <input type="number" id="botPort" placeholder="Varsayılan: 25565" value="25565" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Bot Oluştur</button>
+            <button type="button" class="btn btn-secondary" onclick="document.getElementById('addBotForm').style.display = 'none'">İptal</button>
+          </form>
+        </div>
+
+        <div id="botsList" class="bots-list"></div>
+      </section>
+
+      <!-- Cloud Section -->
+      <section id="cloud" class="section">
+        <h1>Bulut Alanım</h1>
+        <div class="cloud-header">
+          <button class="btn btn-primary" id="uploadFileBtn">+ Dosya Yükle</button>
+        </div>
+
+        <div id="uploadFileForm" class="form-container" style="display: none;">
+          <h3>Dosya Yükle</h3>
+          <form id="uploadForm">
+            <div class="form-group">
+              <label>Dosya Adı</label>
+              <input type="text" id="fileName" placeholder="dosya.txt" required>
+            </div>
+            <div class="form-group">
+              <label>İçerik</label>
+              <textarea id="fileContent" placeholder="Dosya içeriğini girin" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Yükle</button>
+            <button type="button" class="btn btn-secondary" onclick="document.getElementById('uploadFileForm').style.display = 'none'">İptal</button>
+          </form>
+        </div>
+
+        <div id="filesList" class="files-list"></div>
+      </section>
+
+      <!-- Theme Section -->
+      <section id="theme" class="section">
+        <h1>Tema Ayarları</h1>
+        <div class="theme-grid">
+          <div class="theme-option" data-theme="dark">
+            <div class="theme-preview dark"></div>
+            <p>Koyu Tema</p>
+          </div>
+          <div class="theme-option" data-theme="light">
+            <div class="theme-preview light"></div>
+            <p>Açık Tema</p>
+          </div>
+          <div class="theme-option" data-theme="blue">
+            <div class="theme-preview blue"></div>
+            <p>Mavi Tema</p>
+          </div>
+          <div class="theme-option" data-theme="red">
+            <div class="theme-preview red"></div>
+            <p>Kırmızı Tema</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="auth.js"></script>
+  <script src="panel.js"></script>
+</body>
+</html>

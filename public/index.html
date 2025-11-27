@@ -3,62 +3,86 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Minecraft AFK Bot - Ana Sayfa</title>
-  <link rel="stylesheet" href="styles.css">
+  <title>Minecraft AFK Bot Panel</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-<body>
-  <nav class="navbar">
-    <div class="nav-container">
-      <div class="logo">🎮 AFK Bot</div>
-      <div class="nav-links">
-        <a href="/" class="active">Ana Sayfa</a>
-        <a href="/login.html" id="loginLink" style="display: none;">Giriş</a>
-        <a href="/register.html" id="registerLink" style="display: none;">Kayıt Ol</a>
-        <a href="/panel.html" id="panelLink" style="display: none;">Panel</a>
-        <button id="logoutBtn" style="display: none;">Çıkış Yap</button>
+<body class="theme-dark">
+  <div class="container">
+    <header class="header">
+      <div class="header-content">
+        <h1>🎮 Minecraft AFK Bot Panel</h1>
+        <div class="header-controls">
+          <div class="theme-selector">
+            <label for="themeSelect">Tema:</label>
+            <select id="themeSelect">
+              <option value="theme-dark">🌙 Koyu</option>
+              <option value="theme-light">☀️ Açık</option>
+              <option value="theme-blue">🔵 Mavi</option>
+              <option value="theme-red">🔴 Kırmızı</option>
+            </select>
+          </div>
+        </div>
       </div>
-    </div>
-  </nav>
+    </header>
 
-  <div class="hero">
-    <div class="hero-content">
-      <h1>Minecraft AFK Bot Sistemi</h1>
-      <p>24/7 otomatik bot yönetimi, bulut depolama ve tema sistemi</p>
-      <div class="hero-buttons">
-        <a href="/register.html" class="btn btn-primary">Hemen Başla</a>
-        <a href="/login.html" class="btn btn-secondary">Giriş Yap</a>
-      </div>
-    </div>
+    <main class="main-content">
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Bot Yönetim Paneli</h2>
+          <button id="refreshBtn" class="btn btn-refresh" title="Yenile">🔄</button>
+        </div>
+
+        <!-- Add Bot Form -->
+        <div class="add-bot-section">
+          <h3>Yeni Bot Ekle</h3>
+          <form id="addBotForm" class="bot-form">
+            <div class="form-group">
+              <label for="botNickname">Bot Adı</label>
+              <input 
+                type="text" 
+                id="botNickname" 
+                placeholder="Botunuza bir ad verin" 
+                required
+              >
+            </div>
+            <div class="form-group">
+              <label for="botHost">Sunucu IP/Host</label>
+              <input 
+                type="text" 
+                id="botHost" 
+                placeholder="play.example.com veya 127.0.0.1" 
+                required
+              >
+            </div>
+            <div class="form-group">
+              <label for="botPort">Port</label>
+              <input 
+                type="number" 
+                id="botPort" 
+                placeholder="25565" 
+                value="25565"
+                required
+              >
+            </div>
+            <button type="submit" class="btn btn-primary">➕ Bot Ekle</button>
+          </form>
+        </div>
+
+        <!-- Bots List -->
+        <div class="bots-list-section">
+          <h3>Aktif Botlar</h3>
+          <div id="botsList" class="bots-grid">
+            <p class="empty-message">Bot listesi yükleniyor...</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>Minecraft AFK Bot Panel v1.0</p>
+    </footer>
   </div>
 
-  <div class="features">
-    <div class="container">
-      <h2>Özellikler</h2>
-      <div class="feature-grid">
-        <div class="feature-card">
-          <div class="feature-icon">🤖</div>
-          <h3>AFK Bot</h3>
-          <p>24/7 otomatik sunucu botları çalıştırın</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">☁️</div>
-          <h3>Bulut Depolama</h3>
-          <p>Dosyalarınızı güvende saklayın</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">🎨</div>
-          <h3>Tema Sistemi</h3>
-          <p>4 farklı temada arayüzü özelleştirin</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">🔐</div>
-          <h3>Güvenli Giriş</h3>
-          <p>Token tabanlı güvenli oturum sistemi</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script src="app.js"></script>
+  <script src="main.js"></script>
 </body>
 </html>

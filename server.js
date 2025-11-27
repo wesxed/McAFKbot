@@ -259,6 +259,14 @@ function startBotConnection(botId) {
 
   mineflayerBot.on('spawn', () => {
     console.log(`✅ Bot "${bot.nickname}" spawn oldu`);
+    // Bot oyunda bir merhaba mesajı gönder
+    setTimeout(() => {
+      try {
+        mineflayerBot.chat('Merhaba, Ben afk botuyum.');
+      } catch (e) {
+        console.error(`Bot mesaj hatası: ${e.message}`);
+      }
+    }, 1000);
   });
 
   mineflayerBot.on('physicTick', () => {

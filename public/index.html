@@ -60,7 +60,13 @@
             <select id="newServerMap" required>
               <option value="">Harita Seç</option>
             </select>
-            <input type="number" id="newServerTickrate" placeholder="Tickrate (64-128)" value="128" min="64" max="128" required>
+            <select id="newServerTickrate" required>
+              <option value="">Tickrate Seç</option>
+              <option value="64" selected>64 Hz (Standart)</option>
+              <option value="128">128 Hz (İyi)</option>
+              <option value="256">256 Hz (Premium)</option>
+              <option value="512">512 Hz (Ultra Premium)</option>
+            </select>
             <input type="number" id="newServerMaxPlayers" placeholder="Max Oyuncu (5-32)" value="10" min="5" max="32" required>
             <div class="modal-buttons">
               <button type="submit" class="btn btn-primary">Oluştur</button>

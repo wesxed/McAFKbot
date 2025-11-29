@@ -50,7 +50,7 @@ async function initData() {
           id: 'server-2',
           name: 'Practice Sunucu',
           status: 'stopped',
-          map: 'awp_lego_2',
+          map: 'de_mirage',
           tickrate: 128,
           maxPlayers: 5,
           ip: 'play.practice-' + Math.floor(Math.random() * 9000 + 1000) + '.net',
@@ -66,7 +66,7 @@ async function initData() {
     if (await fs.pathExists(MAPS_FILE)) {
       maps = await fs.readJSON(MAPS_FILE);
     } else {
-      maps = ['de_dust2', 'de_inferno', 'de_mirage', 'awp_lego_2', 'awp_lego_3', 'cs_office', 'de_cache'];
+      maps = ['de_dust2', 'de_inferno', 'de_mirage', 'de_nuke', 'de_train', 'de_cache', 'de_vertigo', 'cs_office', 'de_cbble'];
       await fs.writeJSON(MAPS_FILE, maps, { spaces: 2 });
     }
   } catch (err) {

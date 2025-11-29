@@ -436,7 +436,7 @@ document.addEventListener('DOMContentLoaded', () => {
       e.preventDefault();
       const name = document.getElementById('newServerName').value;
       const map = document.getElementById('newServerMap').value;
-      const tickrate = parseInt(document.getElementById('newServerTickrate').value);
+      const tickrate = parseInt(document.getElementById('newServerTickrate').value) || 128;
       const maxPlayers = parseInt(document.getElementById('newServerMaxPlayers').value);
 
       try {

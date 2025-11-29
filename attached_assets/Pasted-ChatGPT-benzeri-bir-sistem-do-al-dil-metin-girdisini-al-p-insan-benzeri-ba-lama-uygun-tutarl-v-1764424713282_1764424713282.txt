@@ -1,0 +1,111 @@
+ChatGPT benzeri bir sistem, doğal dil (metin) girdisini alıp insan benzeri, bağlama uygun, tutarlı ve yararlı çıktılar üreten bir konuşma-asistanıdır. Ama tek başına “model”den daha fazlasıdır: üç ana katman vardır — (1) İnteraktif kullanıcı ara yüzü (UI/UX), (2) Sunucu / API katmanı (istek yönetimi, oturum, güvenlik, ön- ve son işlem), (3) Model katmanı (LLM + eklentiler, RAG, embeddingler). Bu üç katman birlikte çalışarak gerçek zamanlı sohbet, kod tamamlama, metin üretimi, özetleme, çeviri, içerik denetimi ve daha fazlasını sağlar.
+
+Temel Yetkinlikler (Kullanıcıya Görünen)
+	•	Doğal dil anlayışı: Soruları, komutları, belirsiz ifadeleri mantıksal biçimde çözümleme; anlamsal niyet çıkarımı.
+	•	Bağlama duyarlılığı: Konuşma boyunca önceki mesajları hatırlama, bağlama göre cevap üretme (oturum içi bağlam).
+	•	Yanıt çeşitleri: Açıklama, adım adım talimat, kod snippet, özet, soru-cevap, tavsiye, hikâye, yaratıcı yazı.
+	•	Kod üretme ve düzeltme: Birçok dilde (Python, JavaScript, Lua, C#, Java, HTML/CSS vb.) çalışan, hata tespiti ve test önerileri sunan kod yazma/düzeltme.
+	•	Uzun metin işlemleri: Uzun döküman özetleme, important extraction (anahtar bilgi çıkarımı), belgeye dayalı soru-cevap.
+	•	Çok-dilli destek: Birden fazla dilde giriş ve çıkış (otomatik dil algılama).
+	•	Kişiselleştirme: Ton, üslup veya rol (resmi, samimi, öğretici vb.) seçenekleri.
+	•	Dosya ve içerik yönetimi: Kullanıcıdan dosya yükleme (txt, pdf, md) ve içeriği anlama/özetleme (backend’e entegre edilirse).
+	•	Etkileşimli işlevler: Çok adımlı görevler (form doldurma, to-do list, planlama) ve diyalog akışı yönetimi.
+
+Girdi/Çıktı Davranışı ve Biçimlendirme
+	•	Mesaj tipleri: system (kural/kimlik), user (girdi), assistant (cevap), metadata (session id, user id).
+	•	Parametreler: temperature (yaratıcılık), top_p (nucleus), max_tokens, stop_sequences — bunları API katmanında konfigüre edebilirsin.
+	•	Streaming: Uzun yanıtlar için token-by-token streaming (WebSocket/SSE) — kullanıcı deneyimini hızlandırır.
+	•	Rich output: Kod blokları, listeler, tablolar, link önerileri, hata vurguları.
+	•	Cevap güvenilirliği: Modelin kendinden eminlik skorları veya “kaynak göster” (citations) mekanizması.
+
+Model & Bilgi Katmanı (Nasıl Çalışır)
+	•	Temel LLM: Büyük dil modeli (önceden eğitilmiş) — OpenAI API ya da açık kaynak alternatifleri (LLama, Mistral vb.) kullanılabilir.
+	•	Fine-tuning / Instruction tuning: Sistemi belirli davranışlara uyarlamak için ince ayar (opsiyonel).
+	•	Retrieval-Augmented Generation (RAG): Büyük/özelleştirilmiş doküman kümesiyle entegrasyon — embedding + vektör DB (Pinecone/Weaviate/FAISS) + kısıtlı bağlama ekleme.
+	•	Embeddings: Semantik arama, benzer içerik bulma ve kısa-kapsamlı cevaplar için kullanılır.
+	•	Context window yönetimi: Uzun konuşmalarda bağlam penceresini yönetmek için özetleme ve seçici geçmiş dahil etme.
+	•	Hallucination azaltma: RAG, kaynak gösterme, düşük sıcaklık, fact-checking modülleri ve çıktı sonrasında doğrulama.
+
+Bellek & Uzun Süreli Kullanıcı Durumu
+	•	Oturum belleği (session): Geçici, kısa süreli kontekst.
+	•	Uzun süreli bellek (user memory): Kullanıcı tercihleri, sık kullanılan bilgiler, isimler gibi kalıcı veriler — izinli ve güvenli saklanmalı.
+	•	Memory management: Önemli bilgileri vurgulayıp saklama; eskileri arşivleme veya silme politikaları.
+	•	Gizlilik: Kullanıcı talebiyle unutma / veri silme fonksiyonu.
+
+Güvenlik, İçerik Denetimi ve Uyumluluk
+	•	Yasal & etik filtreleme: Kişisel veri, yasaklı içerik, illegal talep tespiti ve reddi.
+	•	Toksisite / zararlı içerik denetimi: Toxicity, hate speech, self-harm, explicit content için classifier’lar.
+	•	Rate limiting & abuse detection: Kötüye kullanımı tespit eden kurallar ve otomatik engelleme.
+	•	Audit & logging: Hangi isteğin ne zaman ve nasıl işlendiği, cevapların saklanması (kullanıcı onayı ile).
+	•	GDPR/KVKK uyumu: Kişisel veri yönetimi, saklama süreleri, kullanıcı onayı/çıkarma mekanizmaları.
+
+Entegrasyonlar & Eklentiler
+	•	API: REST + WebSocket (streaming) endpoint’leri.
+	•	Veritabanı: Kullanıcı oturumları için Redis (cache), kalıcı veri için PostgreSQL.
+	•	Vektör DB: Semantic search / RAG için Pinecone / Weaviate / FAISS.
+	•	3rd-party: Google Drive, Slack, Discord, GitHub, Replit deploy entegrasyonları.
+	•	Tooling: Kod çalıştırma (sandboxed), hesaplama modülleri, takvim/hatırlatıcı, web-browsing (opsiyonel, güvenli şekilde).
+	•	Model switcher: Farklı görevler için farklı modelleri otomatik seçme (hızlı küçük model vs. güçlü büyük model).
+
+Geliştirici Kontrolleri & Konfigürasyon
+	•	Sistem mesajı düzenleme: Assistant’ın davranışını ayarlayan sabit prompt.
+	•	Parameter overrides: endpoint çağrısında temperature/top_p/max_tokens parametreleri.
+	•	Plugin yönetimi: Hangi dış servislerin aktif olduğu, izinler.
+	•	A/B testing: Farklı prompt’lar veya modeller ile kullanıcı tepkisini ölçme.
+	•	Observability: Latency, error rate, token usage, cost dashboards.
+
+UX / UI Özellikleri (Ön Uç)
+	•	Sohbet arayüzü: Mesaj balonları, rollere göre renk/ikon, okunabilir kod blokları.
+	•	Canlı typing / streaming: Kullanıcıya anlık geri dönüş.
+	•	Sürükle-bırak dosya yükleme: PDF/MD/txt/zip -> analiz & özetleme.
+	•	Tercihler: Dil, ton, cevap uzunluğu tercihi.
+	•	Undo / regenerate: Kullanıcının cevabı yeniden oluşturmasını sağlayan düğmeler.
+	•	Export: Sohbeti PDF/MD/JSON olarak indir.
+	•	Erişilebilirlik: Ekran okuyucu uyumu, klavye odakları, kontrast.
+
+Performans, Ölçek ve Maliyet Yönetimi
+	•	Önbellekleme: Sık sorulan sorular ve sabit cevaplar için cache.
+	•	Token optimizasyonu: Gereksiz bağlamı kırpma, uzun cevaplarda özet üretme stratejileri.
+	•	Model tiering: Basit sorgular için ucuz model, karmaşık sorgular için güçlü model.
+	•	Autoscaling: Trafiğe göre backend ve worker sayısını artırma.
+	•	Maliyet gözlemi: Token kullanımı, model çağrı sıklığı raporları.
+
+Geliştirme & Test Süreçleri
+	•	Unit / integration tests: Prompt çıktıları için beklenen kalıpları test etme.
+	•	Safety tests: Zararlı girişlerin reddedildiğini doğrulama testleri.
+	•	Human-in-the-loop: Kritik cevaplar için insan denetimi ve geri bildirim sistemi.
+	•	Continuous evaluation: Kalite metriksleri (coherence, factuality, helpfulness) üzerinde düzenli değerlendirme.
+
+Örnek Replit Mimarisi (Basit → Orta → İleri)
+	•	Basit (hızlı prototype):
+	•	Frontend: HTML/CSS + minimal JS (fetch).
+	•	Backend: Node.js / Express veya Python Flask, OpenAI API çağrıları.
+	•	Veritabanı: SQLite veya basit JSON dosyası (oturum için).
+	•	Orta (prod benzeri):
+	•	Frontend: React (hooks), streaming için WebSocket/Server-Sent Events.
+	•	Backend: FastAPI (Python) veya Express (Node) + auth layer (JWT).
+	•	DB: PostgreSQL + Redis + vektör DB (FAISS).
+	•	Deployment: Replit/Heroku/Railway + otomatik deploy via GitHub.
+	•	İleri (ölçeklenebilir):
+	•	Microservices: Auth, convo-store, model-proxy, embeddings-service ayrı servisler.
+	•	Queue system: Celery/RabbitMQ veya Cloud Tasks ile ağır görevler.
+	•	Observability: Prometheus + Grafana, centralized logging (ELK).
+	•	CI/CD: Test + lint + staging promotion.
+
+Hızlı Teknik Örnek (API akışı — kavramsal)
+	1.	Kullanıcı -> Frontend (soru)
+	2.	Frontend -> Backend /api/chat (session_id, user_message, user_id, params)
+	3.	Backend:
+	•	Input preprocessing (temizleme, spam filter)
+	•	Retrieve (RAG): embedding sorgu -> top-k doküman
+	•	Construct prompt: system + retrieved context + recent conversation
+	•	Call Model (streaming veya normal)
+	•	Postprocess (safety check, citation ekle)
+	•	Store message & response in DB
+	4.	Backend -> Frontend (stream / final cevap)
+	5.	(Opsiyonel) Kullanıcı feedback kaydı -> fine-tuning dataset
+
+Son Notlar / Öneriler
+	•	Replit’te başlarken önce basit bir prototype kur: React frontend + küçük backend + OpenAI (veya benzeri) API kullan. Özellikleri parça parça ekle: önce temel chat, sonra dosya yükleme, ardından RAG ve vektör DB.
+	•	Güvenlik ve kullanıcı gizliliğini en baştan tasarıma dahil et: açıkça bilgi saklama politikası, kullanıcı onayı, “unut” butonu.
+	•	Performans ve maliyet takibi için erken uyarı kur: token kullanımı ve beklenmedik çağrı artışları hesabı batırabilir.

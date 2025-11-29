@@ -8,6 +8,7 @@ app.use(express.static('public'));
 // OpenAI Client - the newest OpenAI model is "gpt-5" which was released August 7, 2025
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const chatHistories = {};
+const userSessions = {};
 
 // Redirect root to ChatGPT page
 app.get('/', (req, res) => {
@@ -148,7 +149,69 @@ When solving problems:
 }
 
 
-// AI Chat API Endpoint
+// Streaming Chat API Endpoint (SSE)
+app.post('/api/chat/stream', async (req, res) => {
+  const { message, username, language } = req.body;
+  if (!message || !username) return res.status(400).json({ error: 'Message required' });
+  
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+
+  try {
+    if (!chatHistories[username]) {
+      chatHistories[username] = [];
+    }
+    
+    chatHistories[username].push({ role: 'user', content: message });
+    if (chatHistories[username].length > 100) {
+      chatHistories[username] = chatHistories[username].slice(-100);
+    }
+    
+    if (!process.env.OPENAI_API_KEY) {
+      const mockResp = generateMockResponse(message, language);
+      chatHistories[username].push({ role: 'assistant', content: mockResp });
+      res.write(`data: ${JSON.stringify({ text: mockResp, done: true })}\n\n`);
+      return res.end();
+    }
+    
+    const messagesWithSystem = [
+      { role: 'system', content: getSystemPrompt(language || 'auto') },
+      ...chatHistories[username]
+    ];
+    
+    const stream = await openai.chat.completions.create({
+      model: 'gpt-5',
+      messages: messagesWithSystem,
+      max_completion_tokens: 4096,
+      temperature: 0.7,
+      stream: true
+    });
+
+    let fullResponse = '';
+    for await (const chunk of stream) {
+      const text = chunk.choices[0]?.delta?.content || '';
+      if (text) {
+        fullResponse += text;
+        res.write(`data: ${JSON.stringify({ text: text, done: false })}\n\n`);
+      }
+    }
+    
+    chatHistories[username].push({ role: 'assistant', content: fullResponse });
+    res.write(`data: ${JSON.stringify({ text: '', done: true })}\n\n`);
+    res.end();
+  } catch (error) {
+    console.error('Stream Error:', error.message);
+    if (error.status === 429 || error.message.includes('quota')) {
+      const mockResp = generateMockResponse(req.body.message, req.body.language);
+      chatHistories[req.body.username]?.push({ role: 'assistant', content: mockResp });
+      res.write(`data: ${JSON.stringify({ text: mockResp, done: true, demo: true })}\n\n`);
+    }
+    res.end();
+  }
+});
+
+// Non-streaming Chat API Endpoint (fallback)
 app.post('/api/chat', async (req, res) => {
   const { message, username, language } = req.body;
   if (!message || !username) return res.status(400).json({ error: 'Mesaj gerekli' });
@@ -224,6 +287,33 @@ app.post('/api/chat/clear', (req, res) => {
   const { username } = req.body;
   if (username) delete chatHistories[username];
   res.json({ success: true });
+});
+
+// Export chat history
+app.post('/api/chat/export', (req, res) => {
+  const { username, format } = req.body;
+  if (!username || !chatHistories[username]) return res.status(400).json({ error: 'No chat found' });
+  
+  const messages = chatHistories[username];
+  let content = '';
+  
+  if (format === 'json') {
+    content = JSON.stringify(messages, null, 2);
+    res.setHeader('Content-Type', 'application/json');
+  } else if (format === 'markdown') {
+    messages.forEach(msg => {
+      content += `**${msg.role === 'user' ? 'You' : 'AI'}:** ${msg.content}\n\n`;
+    });
+    res.setHeader('Content-Type', 'text/markdown');
+  } else {
+    messages.forEach(msg => {
+      content += `${msg.role === 'user' ? 'You' : 'AI'}:\n${msg.content}\n\n---\n\n`;
+    });
+    res.setHeader('Content-Type', 'text/plain');
+  }
+  
+  res.setHeader('Content-Disposition', `attachment; filename="chat-${Date.now()}.${format === 'json' ? 'json' : format === 'markdown' ? 'md' : 'txt'}"`);
+  res.send(content);
 });
 
 // Start

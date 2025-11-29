@@ -279,19 +279,7 @@ app.post('/api/chat/stream', async (req, res) => {
       chatHistories[username] = chatHistories[username].slice(-100);
     }
     
-    // Try Perplexity first (web search with current info)
-    let fullResponse = null;
-    if (process.env.PERPLEXITY_API_KEY && message.length > 3) {
-      fullResponse = await searchWithPerplexity(message, inputLanguage);
-      if (fullResponse) {
-        console.log('Using Perplexity web search for answer');
-        chatHistories[username].push({ role: 'assistant', content: fullResponse });
-        res.write(`data: ${JSON.stringify({ text: fullResponse, done: true, search: true })}\n\n`);
-        return res.end();
-      }
-    }
-    
-    // Fallback to OpenAI
+    // OpenAI for intelligent responses
     if (!process.env.OPENAI_API_KEY) {
       const mockResp = generateMockResponse(message, language, inputLanguage);
       chatHistories[username].push({ role: 'assistant', content: mockResp });
@@ -355,15 +343,6 @@ app.post('/api/chat', async (req, res) => {
     // Keep extended conversation history (up to 100 messages for deeper context)
     if (chatHistories[username].length > 100) {
       chatHistories[username] = chatHistories[username].slice(-100);
-    }
-    
-    // Try Perplexity first for web search
-    if (process.env.PERPLEXITY_API_KEY && message.length > 3) {
-      const webResult = await searchWithPerplexity(message, inputLanguage);
-      if (webResult) {
-        chatHistories[username].push({ role: 'assistant', content: webResult });
-        return res.json({ response: webResult, search: true });
-      }
     }
     
     // Check if API key exists

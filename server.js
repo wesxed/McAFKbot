@@ -10,19 +10,25 @@ app.use(express.static('public'));
 
 const SERVERS_FILE = path.join(__dirname, 'servers.json');
 const MAPS_FILE = path.join(__dirname, 'maps.json');
+const USERS_FILE = path.join(__dirname, 'users.json');
 
 let servers = [];
 let maps = [];
-
-// Admin credentials (demo)
-const admins = {
-  'admin': 'password123',
-  'root': 'admin'
-};
+let users = {};
 
 // Initialize data
 async function initData() {
   try {
+    if (await fs.pathExists(USERS_FILE)) {
+      users = await fs.readJSON(USERS_FILE);
+    } else {
+      users = {
+        'admin': 'password123',
+        'root': 'admin'
+      };
+      await fs.writeJSON(USERS_FILE, users, { spaces: 2 });
+    }
+
     if (await fs.pathExists(SERVERS_FILE)) {
       servers = await fs.readJSON(SERVERS_FILE);
     } else {
@@ -68,6 +74,10 @@ function saveServers() {
   fs.writeJSON(SERVERS_FILE, servers, { spaces: 2 }).catch(console.error);
 }
 
+function saveUsers() {
+  fs.writeJSON(USERS_FILE, users, { spaces: 2 }).catch(console.error);
+}
+
 function generateToken() {
   return Math.random().toString(36).substr(2) + Date.now().toString(36);
 }
@@ -78,13 +88,45 @@ const sessions = {};
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
   
-  if (admins[username] === password) {
+  if (!username || !password) {
+    return res.status(400).json({ error: 'Kullanıcı adı ve şifre gerekli' });
+  }
+  
+  if (users[username] === password) {
     const token = generateToken();
     sessions[token] = username;
     res.json({ token });
   } else {
-    res.status(401).json({ error: 'Geçersiz kimlik' });
+    res.status(401).json({ error: 'Yanlış kullanıcı adı veya şifre' });
   }
+});
+
+// Register
+app.post('/api/register', (req, res) => {
+  const { username, password } = req.body;
+  
+  if (!username || !password) {
+    return res.status(400).json({ error: 'Kullanıcı adı ve şifre gerekli' });
+  }
+  
+  if (username.length < 3) {
+    return res.status(400).json({ error: 'Kullanıcı adı en az 3 karakter olmalı' });
+  }
+  
+  if (password.length < 4) {
+    return res.status(400).json({ error: 'Şifre en az 4 karakter olmalı' });
+  }
+  
+  if (users[username]) {
+    return res.status(400).json({ error: 'Bu kullanıcı adı zaten var' });
+  }
+  
+  users[username] = password;
+  saveUsers();
+  
+  const token = generateToken();
+  sessions[token] = username;
+  res.json({ token, message: 'Kayıt başarılı!' });
 });
 
 function authenticate(req, res, next) {

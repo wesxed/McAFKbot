@@ -41,9 +41,42 @@ body {
 }
 
 .login-box h1 {
-  margin-bottom: 30px;
+  margin-bottom: 20px;
   text-align: center;
   font-size: 2rem;
+}
+
+.auth-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 25px;
+  border-bottom: 2px solid var(--bg);
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 10px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-weight: bold;
+  border-bottom: 2px solid transparent;
+  transition: all 0.3s;
+  margin-bottom: -2px;
+}
+
+.auth-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.auth-form {
+  display: none;
+}
+
+.auth-form.active {
+  display: block;
 }
 
 .login-box input {
@@ -57,10 +90,10 @@ body {
   font-size: 1rem;
 }
 
-.login-box button {
+.login-box button[type="submit"] {
   width: 100%;
   padding: 12px;
-  margin-top: 20px;
+  margin-top: 15px;
   background: var(--accent);
   color: white;
   border: none;
@@ -70,9 +103,20 @@ body {
   transition: all 0.3s;
 }
 
-.login-box button:hover {
+.login-box button[type="submit"]:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 20px rgba(124, 58, 237, 0.4);
+}
+
+.error-msg {
+  color: var(--danger);
+  font-size: 0.9rem;
+  margin-top: 10px;
+  display: none;
+}
+
+.error-msg.show {
+  display: block;
 }
 
 /* Dashboard */

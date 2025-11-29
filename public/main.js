@@ -12,12 +12,26 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// LOGIN
+// LOGIN & REGISTER
 function setupLogin() {
+  // Tab switching
+  document.querySelectorAll('.auth-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const tabName = tab.dataset.tab;
+      document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(tabName + 'Form').classList.add('active');
+    });
+  });
+
+  // Login form
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const username = document.getElementById('adminUsername').value;
     const password = document.getElementById('adminPassword').value;
+    const errorMsg = document.getElementById('loginError');
+    errorMsg.classList.remove('show');
 
     try {
       const res = await fetch('/api/login', {
@@ -33,10 +47,50 @@ function setupLogin() {
         showDashboard();
         loadServers();
       } else {
-        alert('Giriş başarısız: ' + data.error);
+        errorMsg.textContent = data.error;
+        errorMsg.classList.add('show');
       }
     } catch (err) {
-      alert('Hata: ' + err.message);
+      errorMsg.textContent = 'Hata: ' + err.message;
+      errorMsg.classList.add('show');
+    }
+  });
+
+  // Register form
+  document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const username = document.getElementById('regUsername').value;
+    const password = document.getElementById('regPassword').value;
+    const password2 = document.getElementById('regPassword2').value;
+    const errorMsg = document.getElementById('registerError');
+    errorMsg.classList.remove('show');
+
+    if (password !== password2) {
+      errorMsg.textContent = 'Şifreler eşleşmiyor';
+      errorMsg.classList.add('show');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        token = data.token;
+        localStorage.setItem('csToken', token);
+        showDashboard();
+        loadServers();
+      } else {
+        errorMsg.textContent = data.error;
+        errorMsg.classList.add('show');
+      }
+    } catch (err) {
+      errorMsg.textContent = 'Hata: ' + err.message;
+      errorMsg.classList.add('show');
     }
   });
 }

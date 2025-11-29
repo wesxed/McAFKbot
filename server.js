@@ -20,6 +20,15 @@ const gameSimulations = {};
 
 const playerNames = ['Oyuncu', 'Takım', 'Pilot', 'Ninja', 'Asker', 'Şef', 'Kahraman', 'Zirve', 'Phoenix', 'Sigma', 'Alpha', 'Delta', 'Echo', 'Falcon'];
 
+const serverPackages = [
+  { id: 'pkg-10', slots: 10, price: 855, features: ['Web FTP', 'RCON'] },
+  { id: 'pkg-12', slots: 12, price: 920, features: ['Web FTP', 'RCON'] },
+  { id: 'pkg-14', slots: 14, price: 980, features: ['Web FTP', 'RCON', 'MySQL'] },
+  { id: 'pkg-16', slots: 16, price: 1040, features: ['Web FTP', 'RCON', 'MySQL', 'Bot'] },
+  { id: 'pkg-20', slots: 20, price: 1160, features: ['Web FTP', 'RCON', 'MySQL', 'Bot', 'Retake'] },
+  { id: 'pkg-32', slots: 32, price: 1520, features: ['Web FTP', 'RCON', 'MySQL', 'Bot', 'Retake', 'Workshop'] }
+];
+
 function createGameState(serverId) {
   return {
     round: 1,
@@ -52,29 +61,35 @@ async function initData() {
         {
           id: 'server-1',
           name: 'Türkiye #1 - CS2 Sunucu',
+          package: 'pkg-32',
           status: 'running',
           map: 'de_dust2',
           tickrate: 128,
-          maxPlayers: 10,
+          maxPlayers: 32,
           ip: '127.0.0.1',
           port: 27015,
           players: [],
           logs: ['[✅] Sunucu başlatıldı', '[✅] Oyuncu bağlantıları aktif'],
           specs: { cpu: '4.0 GHz', ram: '12 GB', storage: '100 GB', lag: 'Yok' },
+          location: 'Türkiye',
+          uptime: '99.9%',
           config: { sv_gravity: 800, mp_freezetime: 15, mp_roundtime: 35 }
         },
         {
           id: 'server-2',
           name: 'Practice Sunucu',
+          package: 'pkg-16',
           status: 'running',
           map: 'de_mirage',
           tickrate: 128,
-          maxPlayers: 5,
+          maxPlayers: 16,
           ip: '127.0.0.2',
           port: 27016,
           players: [],
           logs: ['[✅] Sunucu başlatıldı'],
           specs: { cpu: '4.0 GHz', ram: '12 GB', storage: '100 GB', lag: 'Yok' },
+          location: 'Türkiye',
+          uptime: '99.9%',
           config: { sv_gravity: 800, mp_freezetime: 0, mp_roundtime: 20 }
         }
       ];
@@ -217,6 +232,11 @@ app.get('/api/server/:id', authenticate, (req, res) => {
 // Get maps
 app.get('/api/maps', authenticate, (req, res) => {
   res.json(maps);
+});
+
+// Get packages
+app.get('/api/packages', authenticate, (req, res) => {
+  res.json(serverPackages);
 });
 
 // Start game simulation

@@ -31,6 +31,16 @@ const serverPackages = [
   { id: 'pkg-32', slots: 32, price: 1520, features: ['Web FTP', 'RCON', 'MySQL', 'Bot', 'Retake', 'Workshop'] }
 ];
 
+const gameModes = {
+  'competitive': { name: 'Competitive', roundTime: 120, bombTime: 40, economyEnabled: true, teamBalance: true },
+  'casual': { name: 'Casual', roundTime: 120, bombTime: 40, economyEnabled: false, teamBalance: false },
+  'deathmatch': { name: 'Deathmatch', roundTime: 60, bombTime: 0, economyEnabled: false, teamBalance: false },
+  'awponly': { name: 'AWP Only', roundTime: 120, bombTime: 40, economyEnabled: true, restrictedWeapons: ['awp'] }
+};
+
+// Discord webhook - set via env or hardcode test
+const DISCORD_WEBHOOK = process.env.DISCORD_WEBHOOK || null;
+
 function createGameState(serverId) {
   return {
     round: 1,
@@ -286,63 +296,215 @@ app.get('/api/system-info', authenticate, (req, res) => {
   });
 });
 
-// Start game simulation
+// Game simulation object to manage loops per server
+const gameLoops = {};
+
+// Advanced game loop and physics simulation
 function startGameSimulation(serverId) {
   const server = servers.find(s => s.id === serverId);
   if (!server) return;
   
-  if (!gameSimulations[serverId]) {
-    gameSimulations[serverId] = createGameState(serverId);
+  // Stop any existing loop
+  if (gameLoops[serverId]) clearInterval(gameLoops[serverId]);
+  
+  // Initialize game state
+  if (!server.gameState) {
+    const mode = gameModes[server.gameMode || 'competitive'];
+    server.gameState = {
+      roundNum: 0,
+      matchState: 'WaitingForPlayers',
+      ticksInRound: 0,
+      gameMode: server.gameMode || 'competitive',
+      teamA: { name: 'Terrorists', score: 0, money: 2400, players: [] },
+      teamB: { name: 'Counter-Terrorists', score: 0, money: 2400, players: [] },
+      mapStartTime: Date.now(),
+      subtickRate: server.tickrate || 128,
+      bombPlanted: false,
+      bombPlantTime: 0,
+      modeSettings: mode,
+      configFile: `// ${server.name} Config\nsv_gravity 800\nbot_quota 0\ntv_enable 1`
+    };
   }
 
-  // Add initial players
-  for (let i = 0; i < 3; i++) {
-    const name = playerNames[Math.floor(Math.random() * playerNames.length)] + Math.floor(Math.random() * 999);
-    server.players.push({
-      id: 'player-' + Date.now() + '-' + i,
-      name: name,
-      score: Math.floor(Math.random() * 100),
-      kills: Math.floor(Math.random() * 30),
-      deaths: Math.floor(Math.random() * 20),
-      ping: Math.floor(Math.random() * 40) + 15
-    });
-  }
-
-  // Simulate ongoing player activity
-  setInterval(() => {
-    if (server.status === 'running') {
-      // Add new player randomly
-      if (server.players.length < server.maxPlayers && Math.random() > 0.75) {
-        const name = playerNames[Math.floor(Math.random() * playerNames.length)] + Math.floor(Math.random() * 999);
-        server.players.push({
-          id: 'player-' + Date.now(),
-          name: name,
-          score: 0,
-          kills: 0,
-          deaths: 0,
-          ping: Math.floor(Math.random() * 40) + 15
-        });
-        server.logs.push(`[${new Date().toLocaleTimeString()}] ✅ ${name} sunucuya katıldı`);
-      }
-
-      // Remove player randomly
-      if (server.players.length > 1 && Math.random() > 0.8) {
-        const idx = Math.floor(Math.random() * server.players.length);
-        const removed = server.players.splice(idx, 1)[0];
-        server.logs.push(`[${new Date().toLocaleTimeString()}] 🔴 ${removed.name} ayrıldı`);
-      }
-
-      // Update player stats
-      server.players.forEach(p => {
-        if (Math.random() > 0.7) p.kills += Math.floor(Math.random() * 3);
-        if (Math.random() > 0.8) p.deaths += 1;
-        p.score = p.kills * 25 - p.deaths * 10;
-        p.ping = Math.max(15, p.ping + Math.floor(Math.random() * 20) - 10);
+  // Add initial players to teams
+  if (server.players.length === 0) {
+    for (let i = 0; i < Math.min(server.maxPlayers / 2, 5); i++) {
+      const name = playerNames[Math.floor(Math.random() * playerNames.length)] + Math.floor(Math.random() * 999);
+      const team = i % 2 === 0 ? 'T' : 'CT';
+      const baseScore = Math.floor(Math.random() * 50);
+      server.players.push({
+        id: 'player-' + Date.now() + '-' + i,
+        name: name,
+        score: baseScore,
+        kills: 0,
+        deaths: 0,
+        ping: Math.floor(Math.random() * 40) + 15,
+        team: team,
+        health: 100,
+        armor: 100,
+        hasArmor: true,
+        money: 2400,
+        weapon: ['ak47', 'm4a4', 'awp'][Math.floor(Math.random() * 3)],
+        x: Math.random() * 1000 - 500,
+        y: Math.random() * 1000 - 500,
+        z: 0,
+        velocityX: 0,
+        velocityY: 0,
+        velocityZ: 0
       });
-
-      saveServers();
     }
-  }, 5000);
+    server.logs.push(`[${new Date().toLocaleTimeString()}] 🎮 Oyun başlatıldı - ${server.players.length} oyuncu`);
+  }
+
+  // Main game loop - runs at subtick rate
+  let tickCounter = 0;
+  const tickInterval = 1000 / (server.tickrate || 128); // Calculate tick time
+  
+  gameLoops[serverId] = setInterval(() => {
+    if (server.status !== 'running') return;
+
+    const state = server.gameState;
+    tickCounter++;
+
+    // === PLAYER MANAGEMENT ===
+    // Random player join
+    if (server.players.length < server.maxPlayers && Math.random() > 0.90) {
+      const name = playerNames[Math.floor(Math.random() * playerNames.length)] + Math.floor(Math.random() * 999);
+      const team = Math.random() > 0.5 ? 'T' : 'CT';
+      server.players.push({
+        id: 'player-' + Date.now(),
+        name: name,
+        score: 0,
+        kills: 0,
+        deaths: 0,
+        ping: Math.floor(Math.random() * 40) + 15,
+        team: team,
+        health: 100,
+        armor: 100,
+        hasArmor: true,
+        money: 2400,
+        weapon: ['ak47', 'm4a4', 'deagle'][Math.floor(Math.random() * 3)],
+        x: Math.random() * 1000 - 500,
+        y: Math.random() * 1000 - 500,
+        z: 0,
+        velocityX: 0,
+        velocityY: 0,
+        velocityZ: 0
+      });
+      server.logs.push(`[${new Date().toLocaleTimeString()}] ✅ ${name} (${team}) katıldı - Toplam: ${server.players.length}`);
+    }
+
+    // Random player leave
+    if (server.players.length > 2 && Math.random() > 0.92) {
+      const idx = Math.floor(Math.random() * server.players.length);
+      const removed = server.players.splice(idx, 1)[0];
+      server.logs.push(`[${new Date().toLocaleTimeString()}] 🔴 ${removed.name} ayrıldı`);
+    }
+
+    // === PHYSICS SIMULATION - SUBTICK BASED ===
+    server.players.forEach(p => {
+      // Movement simulation
+      p.velocityX += (Math.random() - 0.5) * 10; // Random direction
+      p.velocityY += (Math.random() - 0.5) * 10;
+      p.velocityX *= 0.95; // Friction
+      p.velocityY *= 0.95;
+      
+      // Clamp velocity
+      const maxVel = 250; // CS2 max player speed
+      const velMag = Math.sqrt(p.velocityX ** 2 + p.velocityY ** 2);
+      if (velMag > maxVel) {
+        p.velocityX = (p.velocityX / velMag) * maxVel;
+        p.velocityY = (p.velocityY / velMag) * maxVel;
+      }
+
+      // Update position
+      p.x += p.velocityX * (tickInterval / 1000);
+      p.y += p.velocityY * (tickInterval / 1000);
+
+      // Map boundaries
+      p.x = Math.max(-1024, Math.min(1024, p.x));
+      p.y = Math.max(-1024, Math.min(1024, p.y));
+
+      // === COMBAT SIMULATION ===
+      if (Math.random() > 0.98) { // 2% chance to fire
+        // Random hit
+        const enemies = server.players.filter(e => e.team !== p.team);
+        if (enemies.length > 0) {
+          const target = enemies[Math.floor(Math.random() * enemies.length)];
+          const damageRange = { 'ak47': [20, 35], 'awp': [90, 100], 'm4a4': [20, 30], 'deagle': [50, 70] };
+          const damage = damageRange[p.weapon] || [20, 30];
+          const dmg = Math.floor(Math.random() * (damage[1] - damage[0]) + damage[0]);
+          
+          target.health = Math.max(0, target.health - dmg);
+          
+          // Armor damage reduction
+          if (target.hasArmor && target.armor > 0) {
+            target.armor = Math.max(0, target.armor - dmg * 0.75);
+          }
+
+          if (p.health > 0) {
+            p.kills++;
+            p.score += 300;
+          }
+          if (target.health <= 0) {
+            target.deaths++;
+            target.health = 0;
+            server.logs.push(`[${new Date().toLocaleTimeString()}] 💥 ${p.name} tarafından ${target.name} öldürüldü`);
+            
+            // Respawn after 5 seconds
+            setTimeout(() => {
+              if (server.players.find(pl => pl.id === target.id)) {
+                target.health = 100;
+                target.armor = 100;
+                target.x = Math.random() * 1000 - 500;
+                target.y = Math.random() * 1000 - 500;
+              }
+            }, 5000);
+          }
+        }
+      }
+
+      // Ping fluctuation
+      p.ping = Math.max(5, p.ping + Math.floor(Math.random() * 10) - 5);
+      
+      // Score calculation
+      p.score = p.kills * 300 - p.deaths * 50 + Math.floor(p.health);
+    });
+
+    // === ROUND MANAGEMENT ===
+    state.ticksInRound++;
+    
+    if (state.matchState === 'WaitingForPlayers' && server.players.length >= 2) {
+      state.matchState = 'RoundStarted';
+      state.roundNum++;
+      state.ticksInRound = 0;
+      server.logs.push(`[${new Date().toLocaleTimeString()}] 🎬 Round ${state.roundNum} başladı!`);
+    }
+
+    // Round ends after 2 minutes (120 seconds / tickInterval)
+    if (state.matchState === 'RoundStarted' && state.ticksInRound > (120000 / tickInterval)) {
+      state.matchState = 'RoundEnded';
+      const tScore = server.players.filter(p => p.team === 'T').reduce((a, b) => a + b.kills, 0);
+      const ctScore = server.players.filter(p => p.team === 'CT').reduce((a, b) => a + b.kills, 0);
+      state.teamA.score = tScore;
+      state.teamB.score = ctScore;
+      server.logs.push(`[${new Date().toLocaleTimeString()}] ✅ Round Sonu - T: ${tScore} | CT: ${ctScore}`);
+      
+      // New round starts
+      setTimeout(() => {
+        state.matchState = 'RoundStarted';
+        state.ticksInRound = 0;
+      }, 3000);
+    }
+
+    // Match ends after 30 rounds
+    if (state.roundNum >= 30) {
+      state.matchState = 'MatchEnded';
+      server.logs.push(`[${new Date().toLocaleTimeString()}] 🏆 MATCH SONU - T: ${state.teamA.score} | CT: ${state.teamB.score}`);
+    }
+
+    saveServers();
+  }, tickInterval);
 }
 
 // Server controls

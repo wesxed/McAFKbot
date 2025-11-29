@@ -1,0 +1,111 @@
+1️⃣ Sunucunun Temel Görevleri
+
+Oyun döngüsünü çalıştırmak: Sunucu her “tick” veya CS2’deki “subtick” adımı ile oyunu günceller.
+
+Oyuncu pozisyonları
+
+Silah ateşleme ve mermi hesapları
+
+Çarpışma ve fizik hesaplamaları
+
+Oyuncu bağlantılarını yönetmek:
+
+Yeni oyuncular bağlanır
+
+Oyuncular ayrılır
+
+Ping ve ağ paketlerini işler
+
+Oyun modunu uygular: Competitive, Deathmatch, AWP-only gibi modlara göre kurallar çalışır.
+
+2️⃣ Tick / Subtick ve Fizik Simülasyonu
+
+Tickrate: Sunucunun 1 saniyede kaç kez güncellendiğini belirler (CS2’de subtick sistemi ile her tick içinde birden fazla update olur).
+
+Subtick hesaplamaları:
+
+Player hareketleri ve pozisyonu
+
+Mermi / hitbox hesaplamaları
+
+Çarpışmalar
+
+Gecikme (lag) toleransı
+
+Bu sayede atışlar ve hareketler çok daha hassas ve adil olur.
+
+3️⃣ Oyuncu Yönetimi
+
+Player listesi: Sunucu hangi oyuncuların bağlı olduğunu, Steam ID’lerini ve takımını tutar.
+
+Ceza / Admin komutları:
+
+Kick / Ban / Mute / Unmute
+
+RCON ile komut gönderme (changelevel, sv_gravity, say vb.)
+
+Takım dengesi ve round yönetimi: Competitive modda round başı/sonu, ekonomi sistemi çalışır.
+
+4️⃣ Harita ve Oyun Modu Yönetimi
+
+Harita yükleme: Server map dosyasını yükler, oyuncular için senkronize eder.
+
+Round yönetimi:
+
+Round başlatma / bitirme
+
+Bomb timer / hostages / objective kontrolü
+
+Custom modlar: AWP LEGO gibi özel oyun modlarını çalıştırabilir.
+
+5️⃣ Log ve Raporlama
+
+Sunucu, tüm oyun olaylarını loglar:
+
+Kim ne zaman bağlandı / ayrıldı
+
+Hangi oyuncu hangi komutu kullandı
+
+Round sonuçları ve skor
+
+Bu loglar hem panelde hem Discord gibi entegre araçlarda görüntülenebilir.
+
+6️⃣ Ağ ve Paket Yönetimi
+
+Sunucu UDP/TCP paketlerini işler:
+
+Oyuncuların hareket bilgileri gönderilir ve alınır
+
+Atış ve mermi bilgileri aktarılır
+
+Ping ve gecikme hesaplanır
+
+DDoS koruması ve bağlantı kontrolü: Sunucu, aşırı paket veya hatalı paketleri filtreler.
+
+7️⃣ Ekstra Özellikler
+
+Steam API ile oyuncu bilgisi ve profil çekme
+
+Plugin / mod sistemi ile sunucu özelliklerini genişletme
+
+Discord entegrasyonu: Log ve RCON komutları için bot
+
+⚡ Özet
+
+Bir tam çalışan CS2 sunucusunda şunlar oluyor:
+
+Oyunu ve fizik simülasyonunu sürekli çalıştırıyor
+
+Oyuncu bağlantılarını ve takım/round yönetimini yapıyor
+
+Harita ve modları yönetiyor
+
+Oyuncuların hareketlerini ve atışlarını subtick bazlı hesaplıyor
+
+Admin ve RCON komutlarını işliyor
+
+Log ve rapor oluşturuyor
+
+Ağ paketlerini gönderip alıyor
+
+Steam API ve Discord gibi ek entegrasyonları yönetiyor

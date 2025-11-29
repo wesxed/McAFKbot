@@ -1,0 +1,77 @@
+“Replit üzerinde tamamen çalışan bir CS2 tarzı sunucu simülasyonu oluştur. Bu sunucu gerçek CS2 oyun motorunu çalıştırmayacak, ancak oyunculara ve adminlere tamamen gerçek bir CS2 sunucusu deneyimi yaşatacak şekilde simüle edilecek. Tüm özellikler aşağıdaki gibi olacak:
+
+1) Sunucu çekirdeği (backend):
+
+Sunucu açılabilir, durdurulabilir ve yeniden başlatılabilir durumlarda olacak.
+
+Tickrate ve subtick tabanlı simülasyon ile oyuncu hareketleri, mermi hesaplamaları ve çarpışmalar simüle edilecek.
+
+Haritalar: Varsayılan olarak ‘awp_lego_2’, fakat config dosyası üzerinden değiştirilebilir; harita listesi JSON veya dosya sistemi ile yönetilecek.
+
+Round ve oyun modları yönetimi: Competitive, Casual, Deathmatch, AWP-only gibi modlar sahte olarak simüle edilecek; round süresi, bomba zamanı ve oyun kuralları kod ile çalışacak.
+
+Oyuncu yönetimi: Her oyuncu bir ID, isim, takım, score, kill/death gibi bilgileri içerecek; rastgele veya kullanıcı girişine göre bağlanıp ayrılabilecek.
+
+Ceza ve admin komutları: Mute, kick, ban simülasyonu; RCON komutları (changelevel, sv_gravity, say, kick, ban vb.) fonksiyonlarla işlenecek.
+
+Log sistemi: Tüm olaylar (oyuncu bağlanma/ayrılma, round sonuçları, RCON komutları) gerçek zamanlı olarak tutulacak.
+
+Çoklu sunucu desteği: Her sunucu bağımsız IP/port, harita, tickrate ve oyuncu listesi ile çalışacak; panel üzerinden seçilip yönetilebilecek.
+
+2) Web paneli:
+
+Modern dashboard tasarımı, admin login ve yetki sistemi.
+
+Sunucuyu başlat, durdur, yeniden başlat butonları.
+
+Harita değiştirme menüsü, round bilgileri ve oyuncu listesi görüntüleme.
+
+Gerçek zamanlı log akışı, AJAX veya WebSocket ile panelde gösterilecek.
+
+RCON komut terminali ile komutlar çalıştırılacak.
+
+Config ve harita dosyalarını düzenlemek için panel üzerinden dosya yöneticisi.
+
+Her sunucu için bağımsız yönetim arayüzü.
+
+3) Discord entegrasyonu:
+
+Sunucu loglarını ve oyuncu bilgilerini Discord kanallarına gönderecek bot.
+
+Panelden veya Discord’dan RCON komutlarını çalıştırabilme.
+
+Sunucu açıldığında/kapandığında Discord’a bildirim gönderecek.
+
+4) Steam API entegrasyonu:
+
+Panel üzerinden seçilen sunucunun oyuncu sayısı ve Steam bilgilerini çekebilecek.
+
+Oyuncu profili, avatar ve Steam ID panelde gösterilebilecek.
+
+5) Plugin sistemi:
+
+Panel ve sunucuya eklenti yüklenebilir olacak.
+
+Pluginler sunucu başlatıldığında aktif olacak ve yeni özellikler ekleyebilecek.
+
+6) Replit uyumluluğu:
+
+Sunucu arka planda servis olarak çalışacak.
+
+Web paneli, backend ve simülasyon aynı anda sorunsuz çalışacak.
+
+Tüm gerekli dosya ve klasörleri otomatik oluşturacak.
+
+Gerçek zamanlı log ve panel güncellemeleri çalışacak.
+
+7) Ekstra detaylar:
+
+Round başı/sonu, takım dengesi ve economy sistemi simüle edilecek.
+
+Oyuncular rastgele veya kullanıcı inputuna göre hareket edecek.
+
+Subtick mantığı her tick içinde birden fazla mini update ile simüle edilecek, mermi ve çarpışma hesapları buna göre yapılacak.
+
+Panel, Discord ve Steam API entegrasyonu ile kullanıcı gerçek bir CS2 sunucusunu yönetiyormuş gibi hissedecek.
+
+Sonuç: Tüm proje tamamen çalışır durumda olacak, kullanıcı Replit üzerinden paneli açıp sunucuları yönetebilecek, logları ve oyuncu bilgilerini görüntüleyebilecek, RCON komutlarını çalıştırabilecek ve Discord üzerinden bildirim alabilecek. Sunucu, panel ve entegrasyonlar bir arada çalışacak ve gerçek bir CS2 deneyimi simüle edilecek.”**

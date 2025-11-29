@@ -432,7 +432,7 @@ function copyIP() {
     return;
   }
   navigator.clipboard.writeText(ip).then(() => {
-    alert('✅ Kopyalandı!\n\nCS2 Koneksiyon: ' + ip + '\n\nKonektlı oyuncular sunucuya otomatik olarak katılacaktır!');
+    alert('✅ Kopyalandı!\n\nCS2\'de Server Bağlantı:\n' + ip + '\n\n📝 Adımlar:\n1. CS2\'yi aç\n2. Console (`) aç\n3. connect ' + ip + ' yaz\n4. Enter tuşuna bas');
   }).catch(() => {
     alert('CS2 Bağlantı Adresi:\n' + ip);
   });

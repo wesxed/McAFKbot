@@ -1,0 +1,116 @@
+
+[Networking] Summary of connection [#3032480907 UDP invalid@127.0.0.1:27015]:
+[Networking]     End-to-end connection: closed due to problem detected locally, reason code 5003.  (Timed out attempting to connect)
+[Networking]         Current rates:
+[Networking]             Sent:   0.0 pkts/sec   0.0 K/sec
+[Networking]             Recv:   0.0 pkts/sec   0.0 K/sec
+[Networking]             Est avail bandwidth: 256.0KB/s  
+[Networking]             Bytes buffered: 0
+[Networking]         Lifetime stats:
+[Networking]             Totals
+[Networking]                 Sent:         21 pkts          10,752 bytes
+[Networking]                 Recv:          0 pkts               0 bytes
+[Networking]             No ping distribution available.  (0 samples)
+[Networking]             No connection quality distribution available.  (0 measurement intervals)
+[Networking]             Latency variance histogram not available
+[Networking]         No rate stats received from remote host
+[Networking]         No lifetime stats received from remote host
+[Networking]     
+[NetSteamConn] Removing Steam Net Connection for 127.0.0.1:27015, handle #3032480907
+[Networking] Closing 'client' poll group
+[HostStateManager] CHostStateMgr::QueueNewRequest( Idle (levelload), 10 )
+[HostStateManager] Discarding pending request 'Remote Connect (localhost:27015), 9'
+[HostStateManager] HostStateRequest::Start(HSR_IDLE):  loop(levelload) id(10) addons() desc(Idle (levelload))
+[EngineServiceManager] SwitchToLoop levelload requested:  id [10] addons []
+[Console] Unknown command 'single_player_pause'!
+[HostStateManager] Host activate: Idle (levelload)
+[Client] CL:  CLoopModeLevelLoad::MaybeSwitchToGameLoop switching to "game" loopmode with addons ()
+[EngineServiceManager] SwitchToLoop game requested:  id [10] addons []
+[Server] CNetworkGameServerBase::SetServerState (ss_dead -> ss_waitingforgamesessionmanifest)
+[Server] SV:  maxplayers set to 1
+[VScript] Initializing CSGO VScript Game System
+[Server] SV:  Executing server defaults
+[Server] SV:  Executing listen server config file
+[Developer] GameTypes: could not find matching game mode value of "" in any game type.
+[Server] SV:  CGameRulesGameSystem::GameInit installed game rules
+CPlayerVoiceListener::GameInit()
+[InputService] execing gamemode_competitive.cfg
+[Console] Unknown command 'mp_weapons_glow_on_ground'!
+[InputService] exec: couldn't exec '{*}cfg/gamemode_competitive_server.cfg', unable to read file
+[InputService] execing server_default.cfg
+[Server] SV:  Spawn Server: <empty>
+[Server] CSource2Server::ApplyGameSettings game settings payload received:
+[Server]   ::ExecGameTypeCfg {
+[Server]     map {
+[Server]       mapname <empty>
+[Server]     }
+[Server]     launchoptions {
+[Server]       localonly int( 1 = 0x1 )
+[Server]       mode listenserver
+[Server]       loadmap int( 1 = 0x1 )
+[Server]       levelname <empty>
+[Server]       map_background int( 1 = 0x1 )
+[Server]       map <empty>
+[Server]       mapgroup 
+[Server]       requires_attr 
+[Server]       requires_attr_value int( -1 = 0xFFFFFFFF )
+[Server]       requires_attr_reward 
+[Server]       reward_drop_list int( -1 = 0xFFFFFFFF )
+[Server]       numSlots int( 10 = 0xA )
+[Server]       c_game_type int( 0 = 0x0 )
+[Server]       c_game_mode int( 1 = 0x1 )
+[Server]       default_game_type int( -1 = 0xFFFFFFFF )
+[Server]       default_game_mode int( -1 = 0xFFFFFFFF )
+[Server]       ct_arms 
+[Server]       t_arms 
+[Server]     }
+[Server]   }
+[Server] CNetworkGameServerBase::SetServerState (ss_waitingforgamesessionmanifest -> ss_loading)
+[Server] CNetworkGameServerBase::SetServerState (ss_loading -> ss_active)
+[Client] CL:  CWaitForGameServerStartupPrerequisite done waiting for server
+[Client] CL:  CCreateGameClientJob creating client connection to 'loopback'
+[SteamNetSockets] [#2779779698 pipe] connected
+[SteamNetSockets] [#3190483996 pipe] connected
+[Networking] Created poll group for socket 'client'
+[Networking] Created poll group for socket 'server'
+[Networking] Connected loopback client=a5b01272@loopback:1 <-> server=be2aec1c@loopback:0
+[Client] Tick packet desired receive margin now 36.2ms.  cl_tickpacket_recvmargin_desired=5  cl_tickpacket_desired_queuelength=2.  engine_frametime_warnings_enable=1, cl_async_usercmd_send=1
+[NetSteamConn] Associating NetChan ｋａｒｏ @ loopback:0 (loopback:0) with Steam Net Connection handle #3190483996 (userdata 0)
+[NetSteamConn] Associating NetChan server @ loopback:1 (loopback:1) with Steam Net Connection handle #2779779698 (userdata 1)
+[Client] CL:  Connected to 'loopback:1'
+ClientPutInServer create new player controller [ｋａｒｏｓ]
+[Server] Client 0 'ｋａｒｏｓ' setting rate to 1000000
+[Server] [ｋａｒｏｓ] cl_interp_ratio='0', LerpTime=0
+[Server] SV: 1(ｋａｒｏｓ) changed min command queue size to 2
+[Client] Game: "Counter-Strike 2"
+[Client] Map: "<empty>"
+[Client] Players: 1 (0 bots) / 1 humans
+[Client] Build: 10603 (revision 10266417)
+[Client] Server Number: 5
+[SignonState] CL:  CNetworkGameClient::ProcessServerInfo
+[VScript] Initializing CSGO VScript Game System
+[Client] CL:  CGameRulesGameSystem::GameInit installed game rules
+ReadSteamRemoteStorageFile( bufOut, "voice_ban.dt" ) -> 0.000277 seconds
+[Client] CNetworkGameClient::ProcessClassInfo: create on client true
+[Client] CNetworkGameClient::ProcessClassInfo: creating client serializers from local server serializers (crc 0, server api exists)
+[Client] CNetworkGameClientBase::LinkClasses took 15.171 msec
+[Client] CL:  CGameClientConnectPrerequisite connection succeeded
+[Server] SV:  IGameSystem::LoopActivateAllSystems {
+[Host] HO:  IGameSystem::LoopActivateAllSystems {
+[Host] HO:  } IGameSystem::LoopActivateAllSystems done
+[Server] SV:  } IGameSystem::LoopActivateAllSystems done
+[Server] SV:  1 player server started
+[Client] CL:  IGameSystem::LoopActivateAllSystems {
+[Client] CL:  } IGameSystem::LoopActivateAllSystems done
+[SignonState] CL:  CNetworkGameClient::OnSwitchLoopModeFinished( game : success )
+[Server] SV:  Sending full update to client ｋａｒｏｓ (reason:  initial update)
+[Client] CNetworkGameClientBase::OnReceivedUncompressedPacket(), received full update
+[Prediction] Resetting prediction state because we received a full update
+[Client] Receiving 0.5K non-incremental update from server
+ｋａｒｏｓ bağlandı.
+[Networking] server @ loopback:1:  NetChan Setting Timeout to 30.00 seconds
+[Client] CL:  Signon traffic "server":  incoming 15.370 KB [12 netframes], outgoing 1.291 KB [11 netframes]
+[Prediction] Added prediction for player slot 0 (ｋａｒｏｓ)
+[Prediction] Scanned 43 entities, activated prediction for 1, total predictable entities now 1
+[Networking] ｋａｒｏ @ loopback:0:  NetChan Setting Timeout to 20.00 seconds
+Named camera 'cam_default' not found in map 'ui/xpshop_item'

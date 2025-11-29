@@ -2,6 +2,7 @@ import express from 'express';
 import fs from 'fs-extra';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import dgram from 'dgram';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -393,11 +394,62 @@ app.post('/api/server/:id/player/:playerId/ban', authenticate, (req, res) => {
   res.json({ success: true });
 });
 
+// UDP Game Server Simulator for each game server
+function createGameServerListener(serverId, port) {
+  const server = dgram.createSocket('udp4');
+  
+  server.on('message', (msg, rinfo) => {
+    try {
+      const msgStr = msg.toString();
+      
+      // Handle Source engine A2A_PING
+      if (msgStr.includes('\xFF\xFF\xFF\xFFA2A_PING')) {
+        const response = Buffer.from('\xFF\xFF\xFF\xFFA2A_ACK');
+        server.send(response, rinfo.port, rinfo.address);
+      }
+      
+      // Handle server info request
+      if (msgStr.includes('\xFF\xFF\xFF\xFFTSource')) {
+        const gameServer = servers.find(s => s.id === serverId);
+        if (gameServer && gameServer.status === 'running') {
+          const response = Buffer.from('\xFF\xFF\xFF\xFFI');
+          server.send(response, rinfo.port, rinfo.address);
+          gameServer.logs.push(`[${new Date().toLocaleTimeString()}] ✅ Bağlantı isteği alındı`);
+        }
+      }
+    } catch (e) {
+      console.error('UDP Hata:', e);
+    }
+  });
+
+  server.on('error', (err) => {
+    console.error(`UDP Sunucu Hatası (Port ${port}):`, err.message);
+  });
+
+  try {
+    server.bind(port, '127.0.0.1');
+    console.log(`🎮 UDP Oyun Sunucusu Port ${port} dinlemede`);
+  } catch (err) {
+    console.error(`Port ${port} bağlanılamadı:`, err.message);
+  }
+
+  return server;
+}
+
 // Start
 const PORT = 5000;
 app.listen(PORT, '0.0.0.0', async () => {
   await initData();
+  
+  // Start UDP game servers for each server
+  servers.forEach(server => {
+    if (server.status === 'running') {
+      createGameServerListener(server.id, server.port);
+    }
+  });
+  
   console.log(`🎮 CS Server Manager ${PORT} portunda çalışıyor`);
   console.log(`📊 Panel: http://localhost:${PORT}`);
   console.log(`📝 Giriş: admin / password123`);
+  console.log(`🎮 Oyun Sunucuları UDP portlarında dinlemede`);
 });

@@ -12,6 +12,11 @@ const app = express();
 app.use(express.json());
 app.use(express.static('public'));
 
+// Redirect root to ChatGPT page
+app.get('/', (req, res) => {
+  res.redirect('/chatgpt.html');
+});
+
 const SERVERS_FILE = path.join(__dirname, 'servers.json');
 const MAPS_FILE = path.join(__dirname, 'maps.json');
 const USERS_FILE = path.join(__dirname, 'users.json');

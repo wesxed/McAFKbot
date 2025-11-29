@@ -1,3 +1,48 @@
-{
-  "servers": []
-}
+[
+  {
+    "id": "server-1",
+    "name": "Türkiye #1 - CS2 Sunucu",
+    "status": "running",
+    "map": "de_dust2",
+    "tickrate": 128,
+    "maxPlayers": 10,
+    "ip": "play.tr-5234.net",
+    "port": 27015,
+    "players": [],
+    "logs": ["[Sunucu başlatıldı]"],
+    "specs": {
+      "cpu": "4.0 GHz",
+      "ram": "12 GB",
+      "storage": "100 GB",
+      "lag": "Yok"
+    },
+    "config": {
+      "sv_gravity": 800,
+      "mp_freezetime": 15,
+      "mp_roundtime": 35
+    }
+  },
+  {
+    "id": "server-2",
+    "name": "Practice Sunucu",
+    "status": "stopped",
+    "map": "de_mirage",
+    "tickrate": 128,
+    "maxPlayers": 5,
+    "ip": "play.practice-6789.net",
+    "port": 27016,
+    "players": [],
+    "logs": ["[Sunucu başlatıldı]"],
+    "specs": {
+      "cpu": "4.0 GHz",
+      "ram": "12 GB",
+      "storage": "100 GB",
+      "lag": "Yok"
+    },
+    "config": {
+      "sv_gravity": 800,
+      "mp_freezetime": 0,
+      "mp_roundtime": 20
+    }
+  }
+]

@@ -30,7 +30,8 @@ async function initData() {
     }
 
     if (await fs.pathExists(SERVERS_FILE)) {
-      servers = await fs.readJSON(SERVERS_FILE);
+      const data = await fs.readJSON(SERVERS_FILE);
+      servers = Array.isArray(data) ? data : (data.servers || []);
     } else {
       servers = [
         {

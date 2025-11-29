@@ -26,6 +26,10 @@ externalPort = 3000
 localPort = 43809
 externalPort = 3001
 
+[[ports]]
+localPort = 46129
+externalPort = 3003
+
 [env]
 PORT = "5000"
 
@@ -56,4 +60,4 @@ waitForPort = 5000
 JWT_SECRET = "minecraft-bot-manager-secret-jwt-key-2024-change-in-production-d8f7a9b6c4e2"
 
 [agent]
-integrations = ["github:1.0.0"]
+integrations = ["github:1.0.0", "javascript_openai:1.0.0"]

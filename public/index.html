@@ -82,6 +82,7 @@
           <button class="tab-btn" data-tab="logs">📝 Loglar</button>
           <button class="tab-btn" data-tab="console">⌨️ Konsol</button>
           <button class="tab-btn" data-tab="system">🖥️ Sistem</button>
+          <button class="tab-btn" data-tab="chat">🤖 AI Chat</button>
           <button class="tab-btn" data-tab="settings">⚙️ Ayarlar</button>
         </nav>
 
@@ -198,6 +199,21 @@
               <button id="executeBtn" class="btn btn-primary">Çalıştır</button>
             </div>
             <div class="console-output" id="consoleOutput"></div>
+          </div>
+        </div>
+
+        <!-- AI Chat Tab -->
+        <div id="chat-tab" class="tab-content">
+          <div class="panel">
+            <h2>🤖 AI Chat - ChatGPT</h2>
+            <div class="chat-container">
+              <div id="chatMessages" class="chat-messages"></div>
+              <div class="chat-input-area">
+                <input type="text" id="chatInput" placeholder="AI'ye bir soru sor..." class="chat-input">
+                <button id="sendChatBtn" class="btn btn-primary">Gönder</button>
+                <button id="clearChatBtn" class="btn btn-secondary">Geçmişi Sil</button>
+              </div>
+            </div>
           </div>
         </div>
 

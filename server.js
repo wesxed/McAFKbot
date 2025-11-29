@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import dgram from 'dgram';
 import os from 'os';
 import { execSync } from 'child_process';
+import OpenAI from 'openai';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -40,6 +41,10 @@ const gameModes = {
 
 // Discord webhook - set via env or hardcode test
 const DISCORD_WEBHOOK = process.env.DISCORD_WEBHOOK || null;
+
+// OpenAI Client - the newest OpenAI model is "gpt-5" which was released August 7, 2025
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const chatHistories = {}; // Store chat histories per user
 
 function createGameState(serverId) {
   return {
@@ -845,6 +850,51 @@ function createGameServerListener(serverId, port) {
 
   return socket;
 }
+
+// AI Chat API Endpoint
+app.post('/api/chat', async (req, res) => {
+  const { message, username } = req.body;
+  if (!message || !username) return res.status(400).json({ error: 'Mesaj gerekli' });
+  
+  try {
+    // Initialize chat history for user
+    if (!chatHistories[username]) {
+      chatHistories[username] = [];
+    }
+    
+    // Add user message to history
+    chatHistories[username].push({ role: 'user', content: message });
+    
+    // Keep only last 20 messages for context
+    if (chatHistories[username].length > 20) {
+      chatHistories[username] = chatHistories[username].slice(-20);
+    }
+    
+    // Call OpenAI - the newest OpenAI model is "gpt-5" which was released August 7, 2025
+    const response = await openai.chat.completions.create({
+      model: 'gpt-5',
+      messages: chatHistories[username],
+      max_completion_tokens: 1024
+    });
+    
+    const assistantMessage = response.choices[0].message.content;
+    
+    // Add assistant response to history
+    chatHistories[username].push({ role: 'assistant', content: assistantMessage });
+    
+    res.json({ response: assistantMessage });
+  } catch (error) {
+    console.error('AI Hata:', error);
+    res.status(500).json({ error: 'AI yanıt verilemedi: ' + error.message });
+  }
+});
+
+// Clear chat history
+app.post('/api/chat/clear', (req, res) => {
+  const { username } = req.body;
+  if (username) delete chatHistories[username];
+  res.json({ success: true });
+});
 
 // Start
 const PORT = 5000;

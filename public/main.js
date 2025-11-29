@@ -479,7 +479,82 @@ function hideCreateServerForm() {
   document.getElementById('createServerModal').style.display = 'none';
 }
 
+// Chat Functions
+async function sendChatMessage() {
+  const input = document.getElementById('chatInput');
+  const message = input.value.trim();
+  if (!message) return;
+  
+  const messagesDiv = document.getElementById('chatMessages');
+  
+  // Add user message
+  const userMsg = document.createElement('div');
+  userMsg.className = 'chat-message user';
+  userMsg.innerHTML = `<div class="chat-bubble">${escapeHtml(message)}</div>`;
+  messagesDiv.appendChild(userMsg);
+  input.value = '';
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message, username: currentUser || 'user' })
+    });
+    
+    const data = await res.json();
+    
+    // Add AI response
+    const aiMsg = document.createElement('div');
+    aiMsg.className = 'chat-message assistant';
+    aiMsg.innerHTML = `<div class="chat-bubble">${escapeHtml(data.response || 'Hata: ' + data.error)}</div>`;
+    messagesDiv.appendChild(aiMsg);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  } catch (err) {
+    const errMsg = document.createElement('div');
+    errMsg.className = 'chat-message assistant';
+    errMsg.innerHTML = `<div class="chat-bubble">Hata: ${err.message}</div>`;
+    messagesDiv.appendChild(errMsg);
+  }
+}
+
+async function clearChatHistory() {
+  try {
+    await fetch('/api/chat/clear', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: currentUser || 'user' })
+    });
+    document.getElementById('chatMessages').innerHTML = '';
+  } catch (err) {
+    alert('Hata: ' + err.message);
+  }
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+let currentUser = null;
+
 document.addEventListener('DOMContentLoaded', () => {
+  // Chat listeners
+  const sendBtn = document.getElementById('sendChatBtn');
+  const clearBtn = document.getElementById('clearChatBtn');
+  const chatInput = document.getElementById('chatInput');
+  
+  if (sendBtn) sendBtn.addEventListener('click', sendChatMessage);
+  if (clearBtn) clearBtn.addEventListener('click', clearChatHistory);
+  if (chatInput) chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendChatMessage();
+  });
+  
+  // Set current user from login
+  const stored = localStorage.getItem('adminUser');
+  if (stored) currentUser = JSON.parse(stored).username;
+  
   const createForm = document.getElementById('createServerForm');
   if (createForm) {
     createForm.addEventListener('submit', async (e) => {

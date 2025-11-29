@@ -8,14 +8,12 @@ const app = express();
 app.use(express.json());
 app.use(express.static('public'));
 
-// Instagram Bot Storage
 const DATA_FILE = 'instagram_bot_data.json';
 
-// Gerçekçi Türkçe adlar
 const TURKISH_FIRST_NAMES = [
   'Elif', 'Aylin', 'Seda', 'Zeynep', 'Merve', 'Leyla', 'Gül', 'Nur', 'Ayşe', 'Fatma',
   'Şule', 'Neşe', 'Demet', 'Deniz', 'İris', 'Hande', 'Ceren', 'Buse', 'Yasemin', 'Ece',
-  'Buğra', 'Cem', 'Deniz', 'Emre', 'Ercüment', 'Erkan', 'Ersin', 'Ertuğrul', 'Ferit', 'Fırat',
+  'Buğra', 'Cem', 'Emre', 'Ercüment', 'Erkan', 'Ersin', 'Ertuğrul', 'Ferit', 'Fırat',
   'Gökay', 'Gökhan', 'Gürkan', 'Halil', 'Hasan', 'Hüseyin', 'İbrahim', 'İlker', 'İsmail', 'İvan',
   'Kadir', 'Kamil', 'Kemal', 'Kerem', 'Kılıç', 'Kürşat', 'Levent', 'Lütfi', 'Mahmut', 'Maliş',
   'Mehmet', 'Metin', 'Murat', 'Naci', 'Nazım', 'Necip', 'Nedim', 'Nergin', 'Nevzat', 'Nihat'
@@ -31,19 +29,11 @@ const TURKISH_LAST_NAMES = [
 ];
 
 const BIO_TEMPLATES = [
-  'Yaşam sevmeyi seviyorum 🌟',
-  'Moda ve seyahat tutkunu ✈️',
-  'Fotoğraf ve doğa severim 📸',
-  'Müzik benim dilim 🎵',
-  'Spor ve sağlık 💪',
-  'Yemek ve kültür 🍜',
-  'Yazı ve edebiyat 📚',
-  'Tasarım ve sanat 🎨',
-  'Teknoloji meraklısı 💻',
-  'Doğa rehberi 🏕️'
+  'Yaşam sevmeyi seviyorum 🌟', 'Moda ve seyahat tutkunu ✈️', 'Fotoğraf ve doğa severim 📸',
+  'Müzik benim dilim 🎵', 'Spor ve sağlık 💪', 'Yemek ve kültür 🍜', 'Yazı ve edebiyat 📚',
+  'Tasarım ve sanat 🎨', 'Teknoloji meraklısı 💻', 'Doğa rehberi 🏕️'
 ];
 
-// Gerçekçi profil oluştur
 function generateRealisticProfile() {
   const firstName = TURKISH_FIRST_NAMES[Math.floor(Math.random() * TURKISH_FIRST_NAMES.length)];
   const lastName = TURKISH_LAST_NAMES[Math.floor(Math.random() * TURKISH_LAST_NAMES.length)];
@@ -64,7 +54,6 @@ function generateRealisticProfile() {
   };
 }
 
-// Veri yükle/kaydet
 function loadData() {
   try {
     if (fs.existsSync(DATA_FILE)) {
@@ -73,43 +62,77 @@ function loadData() {
   } catch (error) {
     console.error('Veri yükleme hatası:', error.message);
   }
-  return { followers: [], stats: { totalAdded: 0, lastUpdated: new Date() } };
+  return { accounts: {}, stats: { totalAdded: 0, lastUpdated: new Date() } };
 }
 
 function saveData(data) {
   fs.writeJsonSync(DATA_FILE, data, { spaces: 2 });
 }
 
-// API Endpoints
+function getOrCreateAccount(accountName) {
+  const data = loadData();
+  if (!data.accounts) data.accounts = {};
+  
+  if (!data.accounts[accountName]) {
+    data.accounts[accountName] = {
+      name: accountName,
+      followers: [],
+      stats: { totalAdded: 0, createdAt: new Date() }
+    };
+    saveData(data);
+  }
+  return data.accounts[accountName];
+}
 
-// Ana sayfa
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Takipçileri getir
-app.get('/api/followers', (req, res) => {
+app.get('/api/accounts', (req, res) => {
   const data = loadData();
+  const accounts = Object.keys(data.accounts || {}).map(name => ({
+    name,
+    followerCount: (data.accounts[name].followers || []).length
+  }));
+  res.json({ accounts });
+});
+
+app.get('/api/followers', (req, res) => {
+  const { account } = req.query;
   const limit = parseInt(req.query.limit) || 50;
+  
+  if (!account) {
+    return res.status(400).json({ error: 'Hesap adı gerekli' });
+  }
+  
+  const accountData = getOrCreateAccount(account);
+  const followers = accountData.followers || [];
+  
   res.json({
-    followers: data.followers.slice(0, limit),
-    total: data.followers.length,
-    stats: data.stats
+    followers: followers.slice(0, limit),
+    total: followers.length,
+    stats: accountData.stats
   });
 });
 
-// Rastgele takipçi ekle
 app.post('/api/followers/add', (req, res) => {
-  const { count = 1 } = req.body;
+  const { account, count = 1 } = req.body;
+  
+  if (!account) {
+    return res.status(400).json({ error: 'Hesap adı gerekli' });
+  }
+  
   const data = loadData();
+  const accountData = getOrCreateAccount(account);
   
   const newFollowers = [];
   for (let i = 0; i < Math.min(count, 1000); i++) {
     newFollowers.push(generateRealisticProfile());
   }
   
-  data.followers = [...newFollowers, ...data.followers];
-  data.stats.totalAdded += count;
+  accountData.followers = [...newFollowers, ...accountData.followers];
+  accountData.stats.totalAdded = (accountData.stats.totalAdded || 0) + count;
+  data.stats.totalAdded = (data.stats.totalAdded || 0) + count;
   data.stats.lastUpdated = new Date();
   
   saveData(data);
@@ -117,15 +140,20 @@ app.post('/api/followers/add', (req, res) => {
   res.json({
     success: true,
     addedCount: count,
-    totalFollowers: data.followers.length,
+    totalFollowers: accountData.followers.length,
     newFollowers: newFollowers.slice(0, 10)
   });
 });
 
-// Toplu takipçi ekle (sınırsız)
 app.post('/api/followers/bulk-add', (req, res) => {
-  const { count = 100 } = req.body;
+  const { account, count = 100 } = req.body;
+  
+  if (!account) {
+    return res.status(400).json({ error: 'Hesap adı gerekli' });
+  }
+  
   const data = loadData();
+  const accountData = getOrCreateAccount(account);
   
   const batchSize = Math.min(parseInt(count), 50000);
   const newFollowers = [];
@@ -134,8 +162,9 @@ app.post('/api/followers/bulk-add', (req, res) => {
     newFollowers.push(generateRealisticProfile());
   }
   
-  data.followers = [...newFollowers, ...data.followers];
-  data.stats.totalAdded += batchSize;
+  accountData.followers = [...newFollowers, ...accountData.followers];
+  accountData.stats.totalAdded = (accountData.stats.totalAdded || 0) + batchSize;
+  data.stats.totalAdded = (data.stats.totalAdded || 0) + batchSize;
   data.stats.lastUpdated = new Date();
   
   saveData(data);
@@ -143,58 +172,62 @@ app.post('/api/followers/bulk-add', (req, res) => {
   res.json({
     success: true,
     addedCount: batchSize,
-    totalFollowers: data.followers.length,
+    totalFollowers: accountData.followers.length,
     preview: newFollowers.slice(0, 5)
   });
 });
 
-// İstatistikler
 app.get('/api/stats', (req, res) => {
-  const data = loadData();
-  const totalFollowers = data.followers.length;
-  const verifiedFollowers = data.followers.filter(f => f.isVerified).length;
-  const avgFollowerCount = data.followers.length > 0 
-    ? Math.round(data.followers.reduce((sum, f) => sum + f.followers, 0) / data.followers.length)
+  const { account } = req.query;
+  
+  if (!account) {
+    return res.status(400).json({ error: 'Hesap adı gerekli' });
+  }
+  
+  const accountData = getOrCreateAccount(account);
+  const totalFollowers = (accountData.followers || []).length;
+  const verifiedFollowers = (accountData.followers || []).filter(f => f.isVerified).length;
+  const avgFollowerCount = totalFollowers > 0 
+    ? Math.round(accountData.followers.reduce((sum, f) => sum + f.followers, 0) / totalFollowers)
     : 0;
   
   res.json({
     totalFollowers,
     verifiedFollowers,
     avgFollowerCount,
-    totalAdded: data.stats.totalAdded,
-    lastUpdated: data.stats.lastUpdated
+    totalAdded: accountData.stats.totalAdded || 0,
+    lastUpdated: accountData.stats.createdAt
   });
 });
 
-// Takipçileri sıfırla
 app.post('/api/followers/reset', (req, res) => {
-  saveData({ followers: [], stats: { totalAdded: 0, lastUpdated: new Date() } });
-  res.json({ success: true, message: 'Tüm takipçiler silindi' });
-});
-
-// Takipçi arama
-app.get('/api/followers/search', (req, res) => {
-  const { q } = req.query;
-  const data = loadData();
+  const { account } = req.body;
   
-  if (!q) {
-    return res.json({ followers: [] });
+  if (!account) {
+    return res.status(400).json({ error: 'Hesap adı gerekli' });
   }
   
-  const results = data.followers.filter(f => 
-    f.fullName.toLowerCase().includes(q.toLowerCase()) ||
-    f.username.toLowerCase().includes(q.toLowerCase())
-  ).slice(0, 20);
+  const data = loadData();
+  if (data.accounts && data.accounts[account]) {
+    data.accounts[account].followers = [];
+    data.accounts[account].stats.totalAdded = 0;
+    saveData(data);
+  }
   
-  res.json({ followers: results });
+  res.json({ success: true, message: 'Hesap takipçileri silindi' });
 });
 
-// Export takipçiler (JSON)
 app.get('/api/followers/export', (req, res) => {
-  const data = loadData();
+  const { account } = req.query;
+  
+  if (!account) {
+    return res.status(400).json({ error: 'Hesap adı gerekli' });
+  }
+  
+  const accountData = getOrCreateAccount(account);
   res.setHeader('Content-Type', 'application/json');
-  res.setHeader('Content-Disposition', 'attachment; filename="followers.json"');
-  res.send(JSON.stringify(data.followers, null, 2));
+  res.setHeader('Content-Disposition', `attachment; filename="${account}_followers.json"`);
+  res.send(JSON.stringify(accountData.followers || [], null, 2));
 });
 
 const PORT = 5000;

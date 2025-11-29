@@ -3,14 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Instagram Takipçi Botu - Sınırsız Takipçi Ekle</title>
+  <title>Instagram Takipçi Botu - Hesap Yönetimi</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -20,7 +15,6 @@
       justify-content: center;
       padding: 20px;
     }
-
     .container {
       background: white;
       border-radius: 20px;
@@ -32,7 +26,6 @@
       gap: 0;
       overflow: hidden;
     }
-
     .left-panel {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
@@ -41,67 +34,23 @@
       flex-direction: column;
       justify-content: center;
     }
-
-    .left-panel h1 {
-      font-size: 32px;
-      margin-bottom: 20px;
-      font-weight: bold;
-    }
-
-    .left-panel p {
-      font-size: 16px;
-      line-height: 1.8;
-      opacity: 0.95;
-      margin-bottom: 30px;
-    }
-
-    .features {
-      list-style: none;
-    }
-
-    .features li {
-      padding: 12px 0;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .features li:before {
-      content: '✓';
-      font-weight: bold;
-      font-size: 20px;
-    }
-
+    .left-panel h1 { font-size: 32px; margin-bottom: 20px; font-weight: bold; }
+    .left-panel p { font-size: 16px; line-height: 1.8; opacity: 0.95; margin-bottom: 30px; }
+    .features { list-style: none; }
+    .features li { padding: 12px 0; display: flex; align-items: center; gap: 12px; }
+    .features li:before { content: '✓'; font-weight: bold; font-size: 20px; }
     .right-panel {
       padding: 60px 40px;
       overflow-y: auto;
       max-height: 100vh;
     }
-
-    .right-panel h2 {
-      font-size: 24px;
-      margin-bottom: 30px;
-      color: #333;
-    }
-
-    .control-section {
-      margin-bottom: 40px;
-    }
-
-    .control-section h3 {
-      font-size: 16px;
-      color: #666;
-      margin-bottom: 15px;
-      font-weight: 600;
-    }
-
-    .input-group {
+    .right-panel h2 { font-size: 24px; margin-bottom: 30px; color: #333; }
+    .account-selector {
       display: flex;
       gap: 10px;
-      margin-bottom: 15px;
+      margin-bottom: 30px;
     }
-
-    input[type="number"] {
+    input[type="text"], input[type="number"], select {
       flex: 1;
       padding: 12px 15px;
       border: 2px solid #e0e0e0;
@@ -109,12 +58,10 @@
       font-size: 14px;
       transition: border-color 0.3s;
     }
-
-    input[type="number"]:focus {
+    input[type="text"]:focus, input[type="number"]:focus, select:focus {
       outline: none;
       border-color: #667eea;
     }
-
     button {
       padding: 12px 25px;
       border: none;
@@ -125,82 +72,36 @@
       transition: all 0.3s;
       white-space: nowrap;
     }
-
     .btn-primary {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
     }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
-    }
-
-    .btn-secondary {
-      background: #f0f0f0;
-      color: #333;
-    }
-
-    .btn-secondary:hover {
-      background: #e0e0e0;
-    }
-
-    .btn-danger {
-      background: #ff6b6b;
-      color: white;
-    }
-
-    .btn-danger:hover {
-      background: #ff5252;
-    }
-
-    .btn-export {
-      background: #4caf50;
-      color: white;
-    }
-
-    .btn-export:hover {
-      background: #45a049;
-    }
-
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4); }
+    .btn-secondary { background: #f0f0f0; color: #333; }
+    .btn-secondary:hover { background: #e0e0e0; }
+    .btn-danger { background: #ff6b6b; color: white; }
+    .btn-danger:hover { background: #ff5252; }
+    .btn-export { background: #4caf50; color: white; }
+    .btn-export:hover { background: #45a049; }
+    .control-section { margin-bottom: 40px; }
+    .control-section h3 { font-size: 16px; color: #666; margin-bottom: 15px; font-weight: 600; }
+    .input-group { display: flex; gap: 10px; margin-bottom: 15px; }
     .stats {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 15px;
       margin-bottom: 30px;
     }
-
     .stat-card {
       background: #f8f9fa;
       padding: 20px;
       border-radius: 12px;
       border-left: 4px solid #667eea;
     }
-
-    .stat-label {
-      font-size: 12px;
-      color: #999;
-      text-transform: uppercase;
-      margin-bottom: 8px;
-    }
-
-    .stat-value {
-      font-size: 24px;
-      font-weight: bold;
-      color: #333;
-    }
-
-    .followers-list {
-      margin-top: 30px;
-    }
-
-    .followers-list h3 {
-      font-size: 16px;
-      color: #666;
-      margin-bottom: 15px;
-      font-weight: 600;
-    }
-
+    .stat-label { font-size: 12px; color: #999; text-transform: uppercase; margin-bottom: 8px; }
+    .stat-value { font-size: 24px; font-weight: bold; color: #333; }
+    .followers-list { margin-top: 30px; }
+    .followers-list h3 { font-size: 16px; color: #666; margin-bottom: 15px; font-weight: 600; }
     .follower-card {
       display: flex;
       align-items: center;
@@ -211,12 +112,7 @@
       margin-bottom: 10px;
       transition: all 0.3s;
     }
-
-    .follower-card:hover {
-      background: #f0f0f0;
-      transform: translateX(5px);
-    }
-
+    .follower-card:hover { background: #f0f0f0; transform: translateX(5px); }
     .follower-avatar {
       width: 50px;
       height: 50px;
@@ -231,94 +127,43 @@
       background-size: cover;
       background-position: center;
     }
-
-    .follower-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .follower-name {
-      font-weight: 600;
-      color: #333;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .verified-badge {
-      color: #667eea;
-      font-size: 12px;
-    }
-
-    .follower-username {
-      font-size: 13px;
-      color: #999;
-      margin-top: 2px;
-    }
-
-    .follower-bio {
-      font-size: 12px;
-      color: #666;
-      margin-top: 3px;
-    }
-
-    .follower-stats {
-      font-size: 12px;
-      color: #999;
-      margin-top: 5px;
-    }
-
-    .loading {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid #f3f3f3;
-      border-top: 3px solid #667eea;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin: 0 10px;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
+    .follower-info { flex: 1; min-width: 0; }
+    .follower-name { font-weight: 600; color: #333; display: flex; align-items: center; gap: 5px; }
+    .verified-badge { color: #667eea; font-size: 12px; }
+    .follower-username { font-size: 13px; color: #999; margin-top: 2px; }
+    .follower-bio { font-size: 12px; color: #666; margin-top: 3px; }
+    .follower-stats { font-size: 12px; color: #999; margin-top: 5px; }
     .message {
       padding: 12px 15px;
       border-radius: 8px;
       margin-bottom: 15px;
       font-size: 14px;
     }
-
-    .message.success {
-      background: #d4edda;
-      color: #155724;
-      border: 1px solid #c3e6cb;
+    .message.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .message.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .accounts-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
     }
-
-    .message.error {
-      background: #f8d7da;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
+    .account-btn {
+      padding: 15px;
+      background: #f0f0f0;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.3s;
+      font-weight: 600;
     }
-
+    .account-btn:hover { background: #e0e0e0; }
+    .account-btn.active { background: #667eea; color: white; border-color: #667eea; }
     @media (max-width: 768px) {
-      .container {
-        grid-template-columns: 1fr;
-      }
-
-      .left-panel {
-        padding: 40px 30px;
-      }
-
-      .right-panel {
-        padding: 40px 30px;
-      }
-
-      .left-panel h1 {
-        font-size: 24px;
-      }
+      .container { grid-template-columns: 1fr; }
+      .left-panel { padding: 40px 30px; }
+      .right-panel { padding: 40px 30px; }
+      .left-panel h1 { font-size: 24px; }
     }
   </style>
 </head>
@@ -326,76 +171,140 @@
   <div class="container">
     <div class="left-panel">
       <h1>📱 Instagram Takipçi Botu</h1>
-      <p>Gerçekçi profillere sahip sınırsız takipçi ekleyin. Tüm profiller otomatik olarak oluşturulur ve tamamen gerçekçi görünür.</p>
+      <p>Birden fazla hesabı yönetin. Her hesaba sınırsız gerçekçi Türkçe profiller ekleyin.</p>
       <ul class="features">
+        <li>Çoklu hesap yönetimi</li>
         <li>Sınırsız takipçi ekleyin</li>
         <li>Gerçekçi Türkçe profiller</li>
         <li>Doğrulanmış hesaplar</li>
-        <li>Hızlı ve güvenli</li>
         <li>Toplu ekleme desteği</li>
         <li>Verileri dışa aktarın</li>
       </ul>
     </div>
 
     <div class="right-panel">
-      <h2>Takipçi Yönetimi</h2>
+      <h2>Hesap Yönetimi</h2>
       
       <div id="message"></div>
 
-      <div class="stats">
-        <div class="stat-card">
-          <div class="stat-label">Toplam Takipçi</div>
-          <div class="stat-value" id="totalFollowers">0</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Doğrulanmış</div>
-          <div class="stat-value" id="verifiedFollowers">0</div>
+      <div class="control-section">
+        <h3>Yeni Hesap Oluştur</h3>
+        <div class="input-group">
+          <input type="text" id="newAccountName" placeholder="Hesap adını girin (örn: @kullaniciadi)">
+          <button class="btn-primary" onclick="createAccount()">Oluştur</button>
         </div>
       </div>
 
       <div class="control-section">
-        <h3>Takipçi Ekle</h3>
-        <div class="input-group">
-          <input type="number" id="addCount" min="1" max="1000" value="10" placeholder="Kaç takipçi eklensin?">
-          <button class="btn-primary" onclick="addFollowers()">Ekle</button>
-        </div>
+        <h3>Hesaplarım</h3>
+        <div class="accounts-list" id="accountsList"></div>
       </div>
 
-      <div class="control-section">
-        <h3>Toplu Ekleme (Sınırsız)</h3>
-        <div class="input-group">
-          <input type="number" id="bulkCount" min="100" max="50000" value="1000" placeholder="Kaç takipçi eklensin?">
-          <button class="btn-primary" onclick="bulkAddFollowers()">Toplu Ekle</button>
+      <div id="accountPanel" style="display: none;">
+        <div class="stats">
+          <div class="stat-card">
+            <div class="stat-label">Toplam Takipçi</div>
+            <div class="stat-value" id="totalFollowers">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Doğrulanmış</div>
+            <div class="stat-value" id="verifiedFollowers">0</div>
+          </div>
         </div>
-      </div>
 
-      <div class="control-section">
-        <h3>İşlemler</h3>
-        <div class="input-group">
-          <button class="btn-export" onclick="exportFollowers()">💾 Dışa Aktar (JSON)</button>
-          <button class="btn-secondary" onclick="refreshStats()">🔄 Yenile</button>
-          <button class="btn-danger" onclick="resetFollowers()">🗑️ Sıfırla</button>
+        <div class="control-section">
+          <h3>Takipçi Ekle</h3>
+          <div class="input-group">
+            <input type="number" id="addCount" min="1" max="1000" value="10">
+            <button class="btn-primary" onclick="addFollowers()">Ekle</button>
+          </div>
         </div>
-      </div>
 
-      <div class="followers-list">
-        <h3>Son Takipçiler</h3>
-        <div id="followersList"></div>
+        <div class="control-section">
+          <h3>Toplu Ekleme (Sınırsız)</h3>
+          <div class="input-group">
+            <input type="number" id="bulkCount" min="100" max="50000" value="1000">
+            <button class="btn-primary" onclick="bulkAddFollowers()">Toplu Ekle</button>
+          </div>
+        </div>
+
+        <div class="control-section">
+          <h3>İşlemler</h3>
+          <div class="input-group">
+            <button class="btn-export" onclick="exportFollowers()">💾 Dışa Aktar</button>
+            <button class="btn-secondary" onclick="refreshStats()">🔄 Yenile</button>
+            <button class="btn-danger" onclick="resetFollowers()">🗑️ Sıfırla</button>
+          </div>
+        </div>
+
+        <div class="followers-list">
+          <h3>Son Takipçiler</h3>
+          <div id="followersList"></div>
+        </div>
       </div>
     </div>
   </div>
 
   <script>
-    async function loadFollowers() {
+    let currentAccount = null;
+
+    async function loadAccounts() {
       try {
-        const res = await fetch('/api/followers?limit=100');
+        const res = await fetch('/api/accounts');
+        const data = await res.json();
+        
+        const list = document.getElementById('accountsList');
+        list.innerHTML = '';
+
+        if (!data.accounts || data.accounts.length === 0) {
+          list.innerHTML = '<p style="color: #999; grid-column: 1/-1;">Henüz hesap yok. Yukarıda oluşturun.</p>';
+          return;
+        }
+
+        data.accounts.forEach(acc => {
+          const btn = document.createElement('button');
+          btn.className = `account-btn ${currentAccount === acc.name ? 'active' : ''}`;
+          btn.textContent = `${acc.name}\n(${acc.followerCount})`;
+          btn.onclick = () => selectAccount(acc.name);
+          list.appendChild(btn);
+        });
+      } catch (error) {
+        console.error('Hesapları yükleme hatası:', error);
+      }
+    }
+
+    async function createAccount() {
+      const name = document.getElementById('newAccountName').value.trim();
+      if (!name) {
+        showMessage('Hesap adı girin', 'error');
+        return;
+      }
+
+      currentAccount = name;
+      document.getElementById('newAccountName').value = '';
+      await loadAccounts();
+      await selectAccount(name);
+    }
+
+    async function selectAccount(name) {
+      currentAccount = name;
+      await loadAccounts();
+      document.getElementById('accountPanel').style.display = 'block';
+      await loadStats();
+      await loadFollowers();
+    }
+
+    async function loadFollowers() {
+      if (!currentAccount) return;
+      try {
+        const res = await fetch(`/api/followers?account=${encodeURIComponent(currentAccount)}&limit=100`);
         const data = await res.json();
         
         const list = document.getElementById('followersList');
         list.innerHTML = '';
 
-        if (data.followers.length === 0) {
-          list.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">Henüz takipçi yok. Eklemek için yukarıdaki formu kullanın.</p>';
+        if (!data.followers || data.followers.length === 0) {
+          list.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">Henüz takipçi yok.</p>';
           return;
         }
 
@@ -413,19 +322,20 @@
               </div>
               <div class="follower-username">@${follower.username}</div>
               <div class="follower-bio">${follower.bio}</div>
-              <div class="follower-stats">👥 ${follower.followers} takipçi • 📸 ${follower.posts} gönderi</div>
+              <div class="follower-stats">👥 ${follower.followers} • 📸 ${follower.posts}</div>
             </div>
           `;
           list.appendChild(card);
         });
       } catch (error) {
-        console.error('Hata:', error);
+        console.error('Takipçileri yükleme hatası:', error);
       }
     }
 
     async function loadStats() {
+      if (!currentAccount) return;
       try {
-        const res = await fetch('/api/stats');
+        const res = await fetch(`/api/stats?account=${encodeURIComponent(currentAccount)}`);
         const data = await res.json();
         
         document.getElementById('totalFollowers').textContent = data.totalFollowers.toLocaleString('tr-TR');
@@ -438,80 +348,97 @@
     function showMessage(text, type = 'success') {
       const msgEl = document.getElementById('message');
       msgEl.innerHTML = `<div class="message ${type}">${text}</div>`;
-      setTimeout(() => {
-        msgEl.innerHTML = '';
-      }, 3000);
+      setTimeout(() => { msgEl.innerHTML = ''; }, 3000);
     }
 
     async function addFollowers() {
       const count = parseInt(document.getElementById('addCount').value) || 10;
+      if (!currentAccount) {
+        showMessage('Önce hesap seçin', 'error');
+        return;
+      }
       try {
         const res = await fetch('/api/followers/add', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ count })
+          body: JSON.stringify({ account: currentAccount, count })
         });
         const data = await res.json();
         showMessage(`✅ ${data.addedCount} takipçi eklendi!`);
         loadFollowers();
         loadStats();
+        loadAccounts();
       } catch (error) {
-        showMessage('Hata oluştu: ' + error.message, 'error');
+        showMessage('Hata: ' + error.message, 'error');
       }
     }
 
     async function bulkAddFollowers() {
       const count = parseInt(document.getElementById('bulkCount').value) || 1000;
+      if (!currentAccount) {
+        showMessage('Önce hesap seçin', 'error');
+        return;
+      }
       try {
         const res = await fetch('/api/followers/bulk-add', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ count })
+          body: JSON.stringify({ account: currentAccount, count })
         });
         const data = await res.json();
-        showMessage(`✅ ${data.addedCount} takipçi toplu olarak eklendi!`);
+        showMessage(`✅ ${data.addedCount} takipçi toplu eklendi!`);
         loadFollowers();
         loadStats();
+        loadAccounts();
       } catch (error) {
-        showMessage('Hata oluştu: ' + error.message, 'error');
+        showMessage('Hata: ' + error.message, 'error');
       }
     }
 
     async function exportFollowers() {
+      if (!currentAccount) {
+        showMessage('Önce hesap seçin', 'error');
+        return;
+      }
       try {
-        window.location.href = '/api/followers/export';
-        showMessage('📥 Takipçiler dışa aktarılıyor...');
+        window.location.href = `/api/followers/export?account=${encodeURIComponent(currentAccount)}`;
+        showMessage('📥 Dışa aktarılıyor...');
       } catch (error) {
-        showMessage('Hata oluştu: ' + error.message, 'error');
+        showMessage('Hata: ' + error.message, 'error');
       }
     }
 
     async function resetFollowers() {
-      if (!confirm('Tüm takipçileri silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!')) {
+      if (!currentAccount) {
+        showMessage('Önce hesap seçin', 'error');
         return;
       }
+      if (!confirm('Tüm takipçileri silmek istediğinizden emin misiniz?')) return;
       
       try {
-        const res = await fetch('/api/followers/reset', { method: 'POST' });
-        const data = await res.json();
-        showMessage('🗑️ Tüm takipçiler silindi.');
+        const res = await fetch('/api/followers/reset', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ account: currentAccount })
+        });
+        showMessage('🗑️ Takipçiler silindi.');
         loadFollowers();
         loadStats();
+        loadAccounts();
       } catch (error) {
-        showMessage('Hata oluştu: ' + error.message, 'error');
+        showMessage('Hata: ' + error.message, 'error');
       }
     }
 
     function refreshStats() {
       loadStats();
       loadFollowers();
+      loadAccounts();
       showMessage('🔄 Yenilendi');
     }
 
-    // İlk yükleme
     document.addEventListener('DOMContentLoaded', () => {
-      loadStats();
-      loadFollowers();
+      loadAccounts();
     });
   </script>
 </body>

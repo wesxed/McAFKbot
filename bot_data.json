@@ -4,6 +4,106 @@
       "name": "@omer_ylmaz071",
       "followers": [
         {
+          "id": "uid_1764454209817_kxmxzuqru",
+          "name": "Zeynep Çan",
+          "username": "zeynep_çan_6488",
+          "bio": "Seyahat blogu",
+          "avatar": "https://ui-avatars.com/api/?name=Zeynep+Çan&background=667eea&color=fff&bold=true&size=128",
+          "verified": false,
+          "followers": 25389,
+          "posts": 144
+        },
+        {
+          "id": "uid_1764454209817_2bpk3x5hn",
+          "name": "Ahmet Aksoy",
+          "username": "ahmet_aksoy_4117",
+          "bio": "Yazılımcı • Startup",
+          "avatar": "https://ui-avatars.com/api/?name=Ahmet+Aksoy&background=667eea&color=fff&bold=true&size=128",
+          "verified": true,
+          "followers": 46953,
+          "posts": 492
+        },
+        {
+          "id": "uid_1764454209817_xybsc4v2g",
+          "name": "Seda Çelik",
+          "username": "seda_çelik_3627",
+          "bio": "İç mimar",
+          "avatar": "https://ui-avatars.com/api/?name=Seda+Çelik&background=667eea&color=fff&bold=true&size=128",
+          "verified": true,
+          "followers": 1631,
+          "posts": 924
+        },
+        {
+          "id": "uid_1764454209817_vuaxnvrzi",
+          "name": "Ahmet Çan",
+          "username": "ahmet_çan_3719",
+          "bio": "Spor tutkunu",
+          "avatar": "https://ui-avatars.com/api/?name=Ahmet+Çan&background=667eea&color=fff&bold=true&size=128",
+          "verified": false,
+          "followers": 44566,
+          "posts": 196
+        },
+        {
+          "id": "uid_1764454209817_sa5u9qiiu",
+          "name": "Ahmet Demirkaya",
+          "username": "ahmet_demirkaya_8465",
+          "bio": "Müzisyen",
+          "avatar": "https://ui-avatars.com/api/?name=Ahmet+Demirkaya&background=667eea&color=fff&bold=true&size=128",
+          "verified": true,
+          "followers": 25143,
+          "posts": 520
+        },
+        {
+          "id": "uid_1764454209817_mkckbw1uz",
+          "name": "Zeynep Demir",
+          "username": "zeynep_demir_5674",
+          "bio": "Seyahat blogu",
+          "avatar": "https://ui-avatars.com/api/?name=Zeynep+Demir&background=667eea&color=fff&bold=true&size=128",
+          "verified": false,
+          "followers": 33076,
+          "posts": 866
+        },
+        {
+          "id": "uid_1764454209817_oj0tz040n",
+          "name": "Zeynep Demir",
+          "username": "zeynep_demir_8057",
+          "bio": "İç mimar",
+          "avatar": "https://ui-avatars.com/api/?name=Zeynep+Demir&background=667eea&color=fff&bold=true&size=128",
+          "verified": false,
+          "followers": 20359,
+          "posts": 528
+        },
+        {
+          "id": "uid_1764454209817_qlyyr9tjm",
+          "name": "Ahmet Çan",
+          "username": "ahmet_çan_1290",
+          "bio": "Yoga öğretmeni",
+          "avatar": "https://ui-avatars.com/api/?name=Ahmet+Çan&background=667eea&color=fff&bold=true&size=128",
+          "verified": false,
+          "followers": 29728,
+          "posts": 285
+        },
+        {
+          "id": "uid_1764454209817_pkuipyqu2",
+          "name": "Seda Şahin",
+          "username": "seda_şahin_5840",
+          "bio": "Spor tutkunu",
+          "avatar": "https://ui-avatars.com/api/?name=Seda+Şahin&background=667eea&color=fff&bold=true&size=128",
+          "verified": true,
+          "followers": 47578,
+          "posts": 77
+        },
+        {
+          "id": "uid_1764454209817_uzbeld2xi",
+          "name": "Ahmet Demirkaya",
+          "username": "ahmet_demirkaya_6535",
+          "bio": "Moda blogger",
+          "avatar": "https://ui-avatars.com/api/?name=Ahmet+Demirkaya&background=667eea&color=fff&bold=true&size=128",
+          "verified": false,
+          "followers": 21779,
+          "posts": 958
+        },
+        {
           "id": "uid_1764453861725_ugxthiyxs",
           "name": "Gül Çan",
           "username": "gül_çan_2649",

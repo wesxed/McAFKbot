@@ -461,46 +461,187 @@ app.post('/api/server/:id/player/:playerId/ban', authenticate, (req, res) => {
   res.json({ success: true });
 });
 
+// A2S Protocol Buffer helpers
+function writeString(str) {
+  const buf = Buffer.alloc(str.length + 1);
+  buf.write(str, 0, str.length, 'utf8');
+  buf[str.length] = 0;
+  return buf;
+}
+
+function buildA2SInfoResponse(gameServer) {
+  const serverName = gameServer.name || 'CS2 Server';
+  const mapName = gameServer.map || 'de_dust2';
+  const protocol = 17; // CS2 protocol version
+  const playerCount = gameServer.players?.length || 0;
+  const maxPlayers = gameServer.maxPlayers || 32;
+  const serverType = 'd'; // Dedicated server
+  const environment = 'l'; // Linux
+  const visibility = 0; // Public
+  const vac = 1; // VAC enabled
+  const version = '1.0.0.0';
+  
+  let buf = Buffer.alloc(1024);
+  let offset = 0;
+  
+  // Header
+  buf.writeUInt32LE(0xFFFFFFFF, offset);
+  offset += 4;
+  
+  // Type (I for info)
+  buf.writeUInt8(0x49, offset); // 'I'
+  offset += 1;
+  
+  // Protocol version
+  buf.writeUInt8(protocol, offset);
+  offset += 1;
+  
+  // Server name
+  const nameBuf = Buffer.from(serverName + '\0');
+  nameBuf.copy(buf, offset);
+  offset += nameBuf.length;
+  
+  // Map
+  const mapBuf = Buffer.from(mapName + '\0');
+  mapBuf.copy(buf, offset);
+  offset += mapBuf.length;
+  
+  // Game dir
+  const gameBuf = Buffer.from('csgo\0');
+  gameBuf.copy(buf, offset);
+  offset += gameBuf.length;
+  
+  // Game description
+  const descBuf = Buffer.from('Counter-Strike 2\0');
+  descBuf.copy(buf, offset);
+  offset += descBuf.length;
+  
+  // App ID (730 for CS2)
+  buf.writeUInt16LE(730, offset);
+  offset += 2;
+  
+  // Player count
+  buf.writeUInt8(playerCount, offset);
+  offset += 1;
+  
+  // Max players
+  buf.writeUInt8(maxPlayers, offset);
+  offset += 1;
+  
+  // Bot count
+  buf.writeUInt8(0, offset);
+  offset += 1;
+  
+  // Server type
+  buf.writeUInt8(serverType.charCodeAt(0), offset);
+  offset += 1;
+  
+  // Environment
+  buf.writeUInt8(environment.charCodeAt(0), offset);
+  offset += 1;
+  
+  // Visibility
+  buf.writeUInt8(visibility, offset);
+  offset += 1;
+  
+  // VAC
+  buf.writeUInt8(vac, offset);
+  offset += 1;
+  
+  // Version
+  const verBuf = Buffer.from(version + '\0');
+  verBuf.copy(buf, offset);
+  offset += verBuf.length;
+  
+  return buf.slice(0, offset);
+}
+
 // UDP Game Server Simulator for each game server
 function createGameServerListener(serverId, port) {
-  const server = dgram.createSocket('udp4');
+  const socket = dgram.createSocket('udp4');
+  let connectionAttempts = 0;
   
-  server.on('message', (msg, rinfo) => {
+  socket.on('message', (msg, rinfo) => {
     try {
-      const msgStr = msg.toString();
+      if (msg.length < 4) return;
       
-      // Handle Source engine A2A_PING
-      if (msgStr.includes('\xFF\xFF\xFF\xFFA2A_PING')) {
-        const response = Buffer.from('\xFF\xFF\xFF\xFFA2A_ACK');
-        server.send(response, rinfo.port, rinfo.address);
+      const header = msg.readUInt32BE(0);
+      if (header !== 0xFFFFFFFF) return;
+      
+      if (msg.length < 5) return;
+      const type = msg[4];
+      const gameServer = servers.find(s => s.id === serverId);
+      
+      if (!gameServer || gameServer.status !== 'running') return;
+      
+      // A2A_PING (0x69)
+      if (type === 0x69) {
+        const response = Buffer.alloc(5);
+        response.writeUInt32BE(0xFFFFFFFF, 0);
+        response[4] = 0x6A; // A2A_ACK
+        socket.send(response, rinfo.port, rinfo.address);
       }
       
-      // Handle server info request
-      if (msgStr.includes('\xFF\xFF\xFF\xFFTSource')) {
-        const gameServer = servers.find(s => s.id === serverId);
-        if (gameServer && gameServer.status === 'running') {
-          const response = Buffer.from('\xFF\xFF\xFF\xFFI');
-          server.send(response, rinfo.port, rinfo.address);
-          gameServer.logs.push(`[${new Date().toLocaleTimeString()}] ✅ Bağlantı isteği alındı`);
-        }
+      // A2S_INFO (0x54)
+      else if (type === 0x54) {
+        connectionAttempts++;
+        const response = buildA2SInfoResponse(gameServer);
+        socket.send(response, rinfo.port, rinfo.address);
+        gameServer.logs.push(`[${new Date().toLocaleTimeString()}] ✅ A2S_INFO İsteği (${connectionAttempts})`);
+      }
+      
+      // A2S_PLAYER (0x55)
+      else if (type === 0x55) {
+        let buf = Buffer.alloc(1024);
+        let offset = 0;
+        buf.writeUInt32BE(0xFFFFFFFF, offset);
+        offset += 4;
+        buf[offset++] = 0x44; // 'D'
+        buf.writeUInt8(gameServer.players?.length || 0, offset);
+        offset += 1;
+        
+        (gameServer.players || []).forEach(p => {
+          const name = p.name.substring(0, 31) + '\0';
+          const nameBuf = Buffer.from(name);
+          nameBuf.copy(buf, offset);
+          offset += nameBuf.length;
+          buf.writeUInt32LE(p.score || 0, offset);
+          offset += 4;
+          buf.writeFloatLE(Math.random() * 60, offset);
+          offset += 4;
+        });
+        
+        socket.send(buf.slice(0, offset), rinfo.port, rinfo.address);
+      }
+      
+      // A2S_RULES (0x56)
+      else if (type === 0x56) {
+        let buf = Buffer.alloc(2048);
+        let offset = 0;
+        buf.writeUInt32BE(0xFFFFFFFF, offset);
+        offset += 4;
+        buf[offset++] = 0x45; // 'E'
+        buf.writeUInt16LE(0, offset); // No rules
+        offset += 2;
+        socket.send(buf.slice(0, offset), rinfo.port, rinfo.address);
       }
     } catch (e) {
       console.error('UDP Hata:', e);
     }
   });
 
-  server.on('error', (err) => {
-    console.error(`UDP Sunucu Hatası (Port ${port}):`, err.message);
+  socket.on('error', (err) => {
+    console.error(`Port ${port} UDP Hata:`, err.message);
   });
 
   try {
-    server.bind(port, '127.0.0.1');
-    console.log(`🎮 UDP Oyun Sunucusu Port ${port} dinlemede`);
+    socket.bind(port, '0.0.0.0');
+    console.log(`🎮 UDP Sunucu Port ${port} açıldı (A2S protokol)`);
   } catch (err) {
-    console.error(`Port ${port} bağlanılamadı:`, err.message);
+    console.error(`Port ${port} açılamadı:`, err.message);
   }
 
-  return server;
+  return socket;
 }
 
 // Start

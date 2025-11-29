@@ -11,11 +11,12 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const chatHistories = {};
 const userSessions = {};
 
-// Perplexity web search - research on the internet
+// Perplexity web search - research on the internet (Chrome browser like search)
 async function searchWithPerplexity(query, inputLanguage = 'en') {
   if (!process.env.PERPLEXITY_API_KEY) return null;
   
   try {
+    console.log('🔍 Searching web with Perplexity for:', query.substring(0, 50));
     const response = await fetch('https://api.perplexity.ai/chat/completions', {
       method: 'POST',
       headers: {
@@ -28,30 +29,36 @@ async function searchWithPerplexity(query, inputLanguage = 'en') {
           {
             role: 'system',
             content: inputLanguage === 'tr' 
-              ? 'Kısa, net ve doğru cevaplar ver. Güncel bilgi sağla.'
-              : 'Be precise, concise, and provide current information.'
+              ? 'Kısa, net ve güncel bilgi sağla. Web araştırması yap.'
+              : 'Provide current, accurate information from web search. Be concise.'
           },
           {
             role: 'user',
             content: query
           }
         ],
-        max_tokens: 1024,
+        max_tokens: 1500,
         temperature: 0.7,
         top_p: 0.9,
-        stream: false
+        stream: false,
+        return_images: false,
+        return_related_questions: false
       })
     });
 
     if (!response.ok) {
-      console.error('Perplexity API error:', response.status);
+      console.error('❌ Perplexity API error:', response.status, response.statusText);
       return null;
     }
 
     const data = await response.json();
-    return data.choices?.[0]?.message?.content || null;
+    const result = data.choices?.[0]?.message?.content || null;
+    if (result) {
+      console.log('✅ Web search successful - found answer');
+    }
+    return result;
   } catch (error) {
-    console.error('Web search error:', error.message);
+    console.error('❌ Web search error:', error.message);
     return null;
   }
 }

@@ -15,6 +15,20 @@ const USERS_FILE = path.join(__dirname, 'users.json');
 let servers = [];
 let maps = [];
 let users = {};
+const gameSimulations = {};
+
+const playerNames = ['Oyuncu', 'Takım', 'Pilot', 'Ninja', 'Asker', 'Şef', 'Kahraman', 'Zirve', 'Phoenix', 'Sigma', 'Alpha', 'Delta', 'Echo', 'Falcon'];
+
+function createGameState(serverId) {
+  return {
+    round: 1,
+    tScore: 0,
+    ctScore: 0,
+    inRound: true,
+    roundTime: 35 * 60,
+    players: []
+  };
+}
 
 // Initialize data
 async function initData() {
@@ -41,28 +55,38 @@ async function initData() {
           map: 'de_dust2',
           tickrate: 128,
           maxPlayers: 10,
-          ip: 'play.tr-' + Math.floor(Math.random() * 9000 + 1000) + '.net',
+          ip: '127.0.0.1',
           port: 27015,
           players: [],
-          logs: ['[Sunucu başlatıldı]'],
+          logs: ['[✅] Sunucu başlatıldı', '[✅] Oyuncu bağlantıları aktif'],
+          specs: { cpu: '4.0 GHz', ram: '12 GB', storage: '100 GB', lag: 'Yok' },
           config: { sv_gravity: 800, mp_freezetime: 15, mp_roundtime: 35 }
         },
         {
           id: 'server-2',
           name: 'Practice Sunucu',
-          status: 'stopped',
+          status: 'running',
           map: 'de_mirage',
           tickrate: 128,
           maxPlayers: 5,
-          ip: 'play.practice-' + Math.floor(Math.random() * 9000 + 1000) + '.net',
+          ip: '127.0.0.2',
           port: 27016,
           players: [],
-          logs: ['[Sunucu başlatıldı]'],
+          logs: ['[✅] Sunucu başlatıldı'],
+          specs: { cpu: '4.0 GHz', ram: '12 GB', storage: '100 GB', lag: 'Yok' },
           config: { sv_gravity: 800, mp_freezetime: 0, mp_roundtime: 20 }
         }
       ];
       await fs.writeJSON(SERVERS_FILE, servers, { spaces: 2 });
     }
+
+    // Initialize game simulations for running servers
+    servers.forEach(server => {
+      if (server.status === 'running') {
+        gameSimulations[server.id] = createGameState(server.id);
+        startGameSimulation(server.id);
+      }
+    });
 
     if (await fs.pathExists(MAPS_FILE)) {
       maps = await fs.readJSON(MAPS_FILE);
@@ -186,27 +210,6 @@ app.get('/api/server/:id', authenticate, (req, res) => {
   const server = servers.find(s => s.id === req.params.id);
   if (!server) return res.status(404).json({ error: 'Sunucu bulunamadı' });
   
-  // Simulate player activity
-  if (server.status === 'running' && Math.random() > 0.7) {
-    if (server.players.length < server.maxPlayers && Math.random() > 0.5) {
-      server.players.push({
-        id: 'player-' + Date.now(),
-        name: `Oyuncu${Math.floor(Math.random() * 9999)}`,
-        score: Math.floor(Math.random() * 100),
-        kills: Math.floor(Math.random() * 50),
-        deaths: Math.floor(Math.random() * 30),
-        ping: Math.floor(Math.random() * 100) + 20
-      });
-      server.logs.push(`[${new Date().toLocaleTimeString()}] Oyuncu katıldı`);
-    } else if (server.players.length > 0 && Math.random() > 0.6) {
-      server.players.splice(Math.floor(Math.random() * server.players.length), 1);
-      server.logs.push(`[${new Date().toLocaleTimeString()}] Oyuncu ayrıldı`);
-    }
-  }
-
-  // Keep only last 50 logs
-  if (server.logs.length > 50) server.logs = server.logs.slice(-50);
-  saveServers();
   res.json(server);
 });
 
@@ -215,6 +218,65 @@ app.get('/api/maps', authenticate, (req, res) => {
   res.json(maps);
 });
 
+// Start game simulation
+function startGameSimulation(serverId) {
+  const server = servers.find(s => s.id === serverId);
+  if (!server) return;
+  
+  if (!gameSimulations[serverId]) {
+    gameSimulations[serverId] = createGameState(serverId);
+  }
+
+  // Add initial players
+  for (let i = 0; i < 3; i++) {
+    const name = playerNames[Math.floor(Math.random() * playerNames.length)] + Math.floor(Math.random() * 999);
+    server.players.push({
+      id: 'player-' + Date.now() + '-' + i,
+      name: name,
+      score: Math.floor(Math.random() * 100),
+      kills: Math.floor(Math.random() * 30),
+      deaths: Math.floor(Math.random() * 20),
+      ping: Math.floor(Math.random() * 40) + 15
+    });
+  }
+
+  // Simulate ongoing player activity
+  setInterval(() => {
+    if (server.status === 'running') {
+      // Add new player randomly
+      if (server.players.length < server.maxPlayers && Math.random() > 0.75) {
+        const name = playerNames[Math.floor(Math.random() * playerNames.length)] + Math.floor(Math.random() * 999);
+        server.players.push({
+          id: 'player-' + Date.now(),
+          name: name,
+          score: 0,
+          kills: 0,
+          deaths: 0,
+          ping: Math.floor(Math.random() * 40) + 15
+        });
+        server.logs.push(`[${new Date().toLocaleTimeString()}] ✅ ${name} sunucuya katıldı`);
+      }
+
+      // Remove player randomly
+      if (server.players.length > 1 && Math.random() > 0.8) {
+        const idx = Math.floor(Math.random() * server.players.length);
+        const removed = server.players.splice(idx, 1)[0];
+        server.logs.push(`[${new Date().toLocaleTimeString()}] 🔴 ${removed.name} ayrıldı`);
+      }
+
+      // Update player stats
+      server.players.forEach(p => {
+        if (Math.random() > 0.7) p.kills += Math.floor(Math.random() * 3);
+        if (Math.random() > 0.8) p.deaths += 1;
+        p.score = p.kills * 25 - p.deaths * 10;
+        p.ping = Math.max(15, p.ping + Math.floor(Math.random() * 20) - 10);
+      });
+
+      saveServers();
+    }
+  }, 5000);
+}
+
 // Server controls
 app.post('/api/server/:id/start', authenticate, (req, res) => {
   const server = servers.find(s => s.id === req.params.id);
@@ -222,6 +284,7 @@ app.post('/api/server/:id/start', authenticate, (req, res) => {
   
   server.status = 'running';
   server.logs.push(`[${new Date().toLocaleTimeString()}] ✅ Sunucu başlatıldı`);
+  startGameSimulation(server.id);
   saveServers();
   res.json({ success: true });
 });
@@ -233,6 +296,7 @@ app.post('/api/server/:id/stop', authenticate, (req, res) => {
   server.status = 'stopped';
   server.players = [];
   server.logs.push(`[${new Date().toLocaleTimeString()}] 🛑 Sunucu durduruldu`);
+  delete gameSimulations[server.id];
   saveServers();
   res.json({ success: true });
 });

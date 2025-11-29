@@ -206,9 +206,11 @@ async function refreshServers() {
     servers = await res.json();
     renderServerList();
     if (currentServer) {
-      updateServerDisplay();
+      await updateServerDisplay();
     }
-  } catch (err) {}
+  } catch (err) {
+    console.error('Refresh hatası:', err);
+  }
 }
 
 function renderServerList() {
@@ -251,12 +253,13 @@ async function updateServerDisplay() {
     document.getElementById('statusValue').textContent = server.status === 'running' ? '🟢 Çalışıyor' : '🔴 Durmuş';
     document.getElementById('playerCount').textContent = `${server.players.length}/${server.maxPlayers}`;
     document.getElementById('mapValue').textContent = server.map;
-    document.getElementById('tickrateValue').textContent = server.tickrate + ' Hz';
+    document.getElementById('tickrateValue').textContent = server.tickrate + ' Subtick';
     
-    // Update connection info
-    serverIP = server.ip || 'play.server' + Math.floor(Math.random() * 9000 + 1000) + '.com';
-    serverPort = server.port || (25000 + Math.floor(Math.random() * 5000));
-    document.getElementById('connectionIP').textContent = `${serverIP}:${serverPort}`;
+    // Update connection info - Show real IP:Port for connection
+    serverIP = server.ip || '127.0.0.1';
+    serverPort = server.port || 27015;
+    const displayIP = serverIP === '127.0.0.1' ? 'localhost' : serverIP;
+    document.getElementById('connectionIP').textContent = `${displayIP}:${serverPort}`;
 
     // Update players table
     const tbody = document.getElementById('playersBody');
@@ -424,10 +427,14 @@ async function banPlayer(playerId) {
 
 function copyIP() {
   const ip = document.getElementById('connectionIP').textContent;
+  if (ip === '-') {
+    alert('❌ Sunucu IP adresi henüz hazır değil');
+    return;
+  }
   navigator.clipboard.writeText(ip).then(() => {
-    alert('✅ Kopyalandı: ' + ip);
+    alert('✅ Kopyalandı!\n\nCS2 Koneksiyon: ' + ip + '\n\nKonektlı oyuncular sunucuya otomatik olarak katılacaktır!');
   }).catch(() => {
-    alert('IP: ' + ip);
+    alert('CS2 Bağlantı Adresi:\n' + ip);
   });
 }
 

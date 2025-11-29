@@ -2,31 +2,85 @@
   {
     "id": "server-1",
     "name": "Türkiye #1 - CS2 Sunucu",
-    "status": "stopped",
+    "status": "running",
     "map": "de_dust2",
     "tickrate": 128,
     "maxPlayers": 10,
-    "ip": "play.tr-5234.net",
+    "ip": "127.0.0.1",
     "port": 27015,
-    "players": [],
+    "players": [
+      {
+        "id": "player-1764418302988-0",
+        "name": "Sigma527",
+        "score": 675,
+        "kills": 31,
+        "deaths": 10,
+        "ping": 32
+      },
+      {
+        "id": "player-1764418302988-2",
+        "name": "Echo35",
+        "score": 265,
+        "kills": 11,
+        "deaths": 1,
+        "ping": 15
+      },
+      {
+        "id": "player-1764418307992",
+        "name": "Asker48",
+        "score": 55,
+        "kills": 3,
+        "deaths": 2,
+        "ping": 30
+      },
+      {
+        "id": "player-1764418312992",
+        "name": "Kahraman731",
+        "score": 15,
+        "kills": 1,
+        "deaths": 1,
+        "ping": 28
+      },
+      {
+        "id": "player-1764418317997",
+        "name": "Oyuncu959",
+        "score": 75,
+        "kills": 3,
+        "deaths": 0,
+        "ping": 43
+      },
+      {
+        "id": "player-1764418320603-0",
+        "name": "Kahraman743",
+        "score": -25,
+        "kills": 5,
+        "deaths": 15,
+        "ping": 44
+      },
+      {
+        "id": "player-1764418320603-1",
+        "name": "Delta746",
+        "score": 305,
+        "kills": 19,
+        "deaths": 17,
+        "ping": 20
+      },
+      {
+        "id": "player-1764418320603-2",
+        "name": "Ninja573",
+        "score": 55,
+        "kills": 5,
+        "deaths": 7,
+        "ping": 23
+      }
+    ],
     "logs": [
-      "[Sunucu başlatıldı]",
-      "[12:07:31 PM] Oyuncu katıldı",
-      "[12:07:35 PM] ✅ Sunucu başlatıldı",
-      "[12:07:35 PM] Oyuncu katıldı",
-      "[12:07:36 PM] ✅ Sunucu başlatıldı",
-      "[12:07:45 PM] Oyuncu katıldı",
-      "[12:07:51 PM] Oyuncu katıldı",
-      "[12:07:54 PM] Oyuncu katıldı",
-      "[12:08:03 PM] Oyuncu ayrıldı",
-      "[12:08:14 PM] Oyuncu ayrıldı",
-      "[12:08:32 PM] Oyuncu ayrıldı",
-      "[12:08:54 PM] 🛑 Sunucu durduruldu",
-      "[12:08:55 PM] 🔄 Sunucu yeniden başlatılıyor...",
-      "[12:08:56 PM] ✅ Sunucu başlatıldı",
-      "[12:08:57 PM] ✅ Sunucu başladı",
-      "[12:08:58 PM] Oyuncu katıldı",
-      "[12:08:59 PM] 🛑 Sunucu durduruldu"
+      "[✅] Sunucu başlatıldı",
+      "[✅] Oyuncu bağlantıları aktif",
+      "[12:11:47 PM] ✅ Asker48 sunucuya katıldı",
+      "[12:11:48 PM] 🔴 Kahraman568 ayrıldı",
+      "[12:11:52 PM] ✅ Kahraman731 sunucuya katıldı",
+      "[12:11:57 PM] ✅ Oyuncu959 sunucuya katıldı"
     ],
     "specs": {
       "cpu": "4.0 GHz",
@@ -43,21 +97,67 @@
   {
     "id": "server-2",
     "name": "Practice Sunucu",
-    "status": "stopped",
+    "status": "running",
     "map": "de_mirage",
     "tickrate": 128,
     "maxPlayers": 5,
-    "ip": "play.practice-6789.net",
+    "ip": "127.0.0.2",
     "port": 27016,
-    "players": [],
+    "players": [
+      {
+        "id": "player-1764418302989-1",
+        "name": "Şef768",
+        "score": 450,
+        "kills": 26,
+        "deaths": 20,
+        "ping": 55
+      },
+      {
+        "id": "player-1764418320603-1",
+        "name": "Şef590",
+        "score": 370,
+        "kills": 16,
+        "deaths": 3,
+        "ping": 20
+      },
+      {
+        "id": "player-1764418320603-2",
+        "name": "Kahraman666",
+        "score": 305,
+        "kills": 17,
+        "deaths": 12,
+        "ping": 35
+      },
+      {
+        "id": "player-1764418340612",
+        "name": "Pilot846",
+        "score": 0,
+        "kills": 0,
+        "deaths": 0,
+        "ping": 33
+      }
+    ],
     "logs": [
-      "[Sunucu başlatıldı]"
+      "[✅] Sunucu başlatıldı",
+      "[12:11:48 PM] 🔴 Phoenix468 ayrıldı",
+      "[12:11:58 PM] 🔴 Takım949 ayrıldı",
+      "[12:12:20 PM] ✅ Pilot846 sunucuya katıldı",
+      "[12:12:25 PM] 🔴 Oyuncu375 ayrıldı"
     ],
     "specs": {
       "cpu": "4.0 GHz",
       "ram": "12 GB",
       "storage": "100 GB",
       "lag": "Yok"
+    },
+    "config": {
+      "sv_gravity": 800,
+      "mp_freezetime": 0,
+      "mp_roundtime": 20
+    }
+  }
+]
+: "Yok"
     },
     "config": {
       "sv_gravity": 800,

@@ -191,7 +191,6 @@
       <div class="content">
         <div id="msg"></div>
         
-        <!-- Hesap oluştur -->
         <div class="section">
           <h2>Yeni Hesap Oluştur</h2>
           <div class="input-row">
@@ -200,13 +199,11 @@
           </div>
         </div>
         
-        <!-- Hesaplar -->
         <div class="section">
           <h2>Hesaplarım</h2>
           <div class="accounts" id="accountsList"></div>
         </div>
         
-        <!-- Hesap paneli -->
         <div id="accountPanel" class="hidden">
           <div class="stats" id="stats"></div>
           
@@ -253,42 +250,61 @@
     }
 
     async function loadAccounts() {
-      const res = await fetch('/api/accounts');
-      const data = await res.json();
-      
-      const list = document.getElementById('accountsList');
-      list.innerHTML = '';
-      
-      if (!data.accounts.length) {
-        list.innerHTML = '<p style="color: #999;">Hesap yok</p>';
-        return;
+      try {
+        const res = await fetch('/api/accounts');
+        const data = await res.json();
+        
+        const list = document.getElementById('accountsList');
+        list.innerHTML = '';
+        
+        if (!data.accounts || !data.accounts.length) {
+          list.innerHTML = '<p style="color: #999;">Hesap yok. Yeni hesap oluşturun!</p>';
+          return;
+        }
+        
+        data.accounts.forEach(acc => {
+          const btn = document.createElement('button');
+          btn.className = `account-btn ${selected === acc.name ? 'active' : ''}`;
+          btn.innerHTML = `<strong>${acc.name}</strong><br>(${acc.count})`;
+          btn.onclick = () => selectAccount(acc.name);
+          list.appendChild(btn);
+        });
+        
+        // İlk hesabı otomatik seç
+        if (!selected && data.accounts.length > 0) {
+          await selectAccount(data.accounts[0].name);
+        }
+      } catch (e) {
+        console.error('Hesapları yükleme hatası:', e);
+        showMsg('Hata: Hesapları yükleme başarısız', 'error');
       }
-      
-      data.accounts.forEach(acc => {
-        const btn = document.createElement('button');
-        btn.className = `account-btn ${selected === acc.name ? 'active' : ''}`;
-        btn.textContent = `${acc.name}\n(${acc.count})`;
-        btn.onclick = () => selectAccount(acc.name);
-        list.appendChild(btn);
-      });
     }
 
     async function createAccount() {
       const name = document.getElementById('newAccName').value.trim();
-      if (!name) { showMsg('Ad girin', 'error'); return; }
+      if (!name) { 
+        showMsg('Ad girin', 'error'); 
+        return; 
+      }
       
-      const res = await fetch('/api/account', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name })
-      });
-      
-      if (res.ok) {
-        document.getElementById('newAccName').value = '';
-        selected = name;
-        await loadAccounts();
-        await selectAccount(name);
-        showMsg(`✅ ${name} oluşturuldu!`);
+      try {
+        const res = await fetch('/api/account', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name })
+        });
+        
+        if (res.ok) {
+          document.getElementById('newAccName').value = '';
+          selected = name;
+          await loadAccounts();
+          showMsg(`✅ ${name} oluşturuldu!`);
+        } else {
+          showMsg('Hata: Hesap oluşturulamadı', 'error');
+        }
+      } catch (e) {
+        console.error('Hesap oluşturma hatası:', e);
+        showMsg('Hata: ' + e.message, 'error');
       }
     }
 
@@ -302,85 +318,126 @@
     async function loadData() {
       if (!selected) return;
       
-      const res = await fetch(`/api/followers/${selected}`);
-      const data = await res.json();
-      
-      const followers = data.followers || [];
-      const total = data.total || 0;
-      
-      document.getElementById('followerCount').textContent = total;
-      document.getElementById('stats').innerHTML = `
-        <div class="stat">
-          <div class="stat-label">Toplam</div>
-          <div class="stat-value">${total}</div>
-        </div>
-      `;
-      
-      const list = document.getElementById('followersList');
-      list.innerHTML = '';
-      
-      if (!followers.length) {
-        list.innerHTML = '<p style="color: #999;">Henüz takipçi yok</p>';
-        return;
-      }
-      
-      followers.forEach(f => {
-        const el = document.createElement('div');
-        el.className = 'follower';
-        el.innerHTML = `
-          <div class="avatar"></div>
-          <div class="follower-info">
-            <div class="follower-name">${f.name} ${f.verified ? '<span class="verified">✓</span>' : ''}</div>
-            <div class="follower-user">@${f.username}</div>
+      try {
+        const res = await fetch(`/api/followers/${selected}`);
+        
+        if (!res.ok) {
+          showMsg('Hesap yüklenemedi', 'error');
+          return;
+        }
+        
+        const data = await res.json();
+        const followers = data.followers || [];
+        const total = data.total || 0;
+        
+        document.getElementById('followerCount').textContent = total.toLocaleString('tr-TR');
+        document.getElementById('stats').innerHTML = `
+          <div class="stat">
+            <div class="stat-label">Toplam Takipçi</div>
+            <div class="stat-value">${total.toLocaleString('tr-TR')}</div>
           </div>
         `;
-        list.appendChild(el);
-      });
+        
+        const list = document.getElementById('followersList');
+        list.innerHTML = '';
+        
+        if (!followers || followers.length === 0) {
+          list.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">Henüz takipçi yok. Ekleyin!</p>';
+          return;
+        }
+        
+        followers.forEach(f => {
+          const el = document.createElement('div');
+          el.className = 'follower';
+          el.innerHTML = `
+            <div class="avatar"></div>
+            <div class="follower-info">
+              <div class="follower-name">${f.name || 'Kullanıcı'} ${f.verified ? '<span class="verified">✓</span>' : ''}</div>
+              <div class="follower-user">@${f.username || 'unknown'}</div>
+            </div>
+          `;
+          list.appendChild(el);
+        });
+      } catch (e) {
+        console.error('Veri yükleme hatası:', e);
+        showMsg('Hata: Veri yüklenemedi', 'error');
+      }
     }
 
     async function addNormal() {
-      if (!selected) { showMsg('Hesap seçin', 'error'); return; }
+      if (!selected) { 
+        showMsg('Hesap seçin', 'error'); 
+        return; 
+      }
+      
       const count = parseInt(document.getElementById('normalCount').value) || 10;
       
-      const res = await fetch(`/api/followers/${selected}/add`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ count })
-      });
-      
-      const data = await res.json();
-      showMsg(`✅ ${data.added} takipçi eklendi!`);
-      await loadAccounts();
-      await loadData();
+      try {
+        const res = await fetch(`/api/followers/${selected}/add`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ count })
+        });
+        
+        const data = await res.json();
+        showMsg(`✅ ${data.added || count} takipçi eklendi! (Toplam: ${data.total})`);
+        await loadAccounts();
+        await loadData();
+      } catch (e) {
+        console.error('Takipçi ekleme hatası:', e);
+        showMsg('Hata: ' + e.message, 'error');
+      }
     }
 
     async function addBulk() {
-      if (!selected) { showMsg('Hesap seçin', 'error'); return; }
+      if (!selected) { 
+        showMsg('Hesap seçin', 'error'); 
+        return; 
+      }
+      
       const count = parseInt(document.getElementById('bulkCount').value) || 1000;
       
-      const res = await fetch(`/api/followers/${selected}/bulk`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ count })
-      });
-      
-      const data = await res.json();
-      showMsg(`✅ ${data.added} takipçi toplu eklendi!`);
-      await loadAccounts();
-      await loadData();
+      try {
+        const res = await fetch(`/api/followers/${selected}/bulk`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ count })
+        });
+        
+        const data = await res.json();
+        showMsg(`✅ ${data.added || count} takipçi toplu eklendi! (Toplam: ${data.total})`);
+        await loadAccounts();
+        await loadData();
+      } catch (e) {
+        console.error('Toplu ekleme hatası:', e);
+        showMsg('Hata: ' + e.message, 'error');
+      }
     }
 
     async function deleteFollowers() {
-      if (!selected) { showMsg('Hesap seçin', 'error'); return; }
-      if (!confirm('Tüm takipçileri silelim?')) return;
+      if (!selected) { 
+        showMsg('Hesap seçin', 'error'); 
+        return; 
+      }
       
-      await fetch(`/api/followers/${selected}`, { method: 'DELETE' });
-      showMsg('🗑️ Silindi');
-      await loadAccounts();
-      await loadData();
+      if (!confirm(`${selected} hesabının tüm takipçilerini silelim?`)) return;
+      
+      try {
+        await fetch(`/api/followers/${selected}`, { method: 'DELETE' });
+        showMsg('🗑️ Silindi');
+        await loadAccounts();
+        await loadData();
+      } catch (e) {
+        console.error('Silme hatası:', e);
+        showMsg('Hata: ' + e.message, 'error');
+      }
     }
 
-    window.addEventListener('load', loadAccounts);
+    // Sayfa yüklendiğinde hesapları yükle
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('Sayfa yüklendi, hesapları yüklüyorum...');
+      loadAccounts();
+    });
   </script>
 </body>
 </html>

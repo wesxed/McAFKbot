@@ -141,6 +141,34 @@ function authenticate(req, res, next) {
   next();
 }
 
+// Create server
+app.post('/api/server/create', authenticate, (req, res) => {
+  const { name, map, tickrate, maxPlayers } = req.body;
+  
+  if (!name || !map) {
+    return res.status(400).json({ error: 'Sunucu adı ve harita gerekli' });
+  }
+  
+  const serverId = 'server-' + Date.now();
+  const newServer = {
+    id: serverId,
+    name,
+    status: 'stopped',
+    map,
+    tickrate: tickrate || 128,
+    maxPlayers: maxPlayers || 10,
+    ip: 'play.custom-' + Math.floor(Math.random() * 9000 + 1000) + '.net',
+    port: 27000 + servers.length,
+    players: [],
+    logs: [`[${new Date().toLocaleTimeString()}] Sunucu oluşturuldu`],
+    config: { sv_gravity: 800, mp_freezetime: 15, mp_roundtime: 35 }
+  };
+  
+  servers.push(newServer);
+  saveServers();
+  res.json({ server: newServer });
+});
+
 // Get all servers
 app.get('/api/servers', authenticate, (req, res) => {
   res.json(servers);

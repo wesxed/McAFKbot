@@ -174,12 +174,18 @@ async function loadServers() {
     servers = await res.json();
     renderServerList();
     
-    if (servers.length > 0 && !currentServer) {
-      selectServer(servers[0].id);
+    if (servers.length > 0) {
+      if (!currentServer || !servers.find(s => s.id === currentServer)) {
+        selectServer(servers[0].id);
+      } else {
+        updateServerDisplay();
+      }
     }
 
     // Auto-refresh every 3 seconds
-    setInterval(refreshServers, 3000);
+    if (!window.refreshInterval) {
+      window.refreshInterval = setInterval(refreshServers, 3000);
+    }
   } catch (err) {
     console.error(err);
   }
@@ -200,18 +206,26 @@ async function refreshServers() {
 
 function renderServerList() {
   const list = document.getElementById('serversList');
-  const server = servers.find(s => s.id === currentServer);
-  if (server) {
-    list.innerHTML = `
-      <div class="server-item active">
-        <span class="server-status ${server.status === 'running' ? 'running' : 'stopped'}"></span>
-        <strong>${server.name}</strong>
-        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">
-          ${server.players.length}/${server.maxPlayers} oyuncu
-        </div>
-      </div>
-    `;
+  if (servers.length === 0) {
+    list.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 20px;">Sunucu yok. Yeni sunucu oluştur.</p>';
+    return;
   }
+  
+  list.innerHTML = servers.map(server => `
+    <div class="server-item ${currentServer === server.id ? 'active' : ''}" onclick="selectServer('${server.id}')">
+      <span class="server-status ${server.status === 'running' ? 'running' : 'stopped'}"></span>
+      <strong>${server.name}</strong>
+      <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">
+        ${server.players.length}/${server.maxPlayers} oyuncu
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectServer(serverId) {
+  currentServer = serverId;
+  renderServerList();
+  updateServerDisplay();
 }
 
 async function updateServerDisplay() {
@@ -390,3 +404,64 @@ function copyIP() {
     alert('IP: ' + ip);
   });
 }
+
+// Create Server Functions
+function showCreateServerForm() {
+  document.getElementById('createServerModal').style.display = 'flex';
+  
+  // Populate map options
+  const mapSelect = document.getElementById('newServerMap');
+  if (mapSelect.options.length <= 1) {
+    fetch('/api/maps', { headers: { 'Authorization': `Bearer ${token}` } })
+      .then(res => res.json())
+      .then(maps => {
+        maps.forEach(map => {
+          const opt = document.createElement('option');
+          opt.value = map;
+          opt.textContent = map;
+          mapSelect.appendChild(opt);
+        });
+      });
+  }
+}
+
+function hideCreateServerForm() {
+  document.getElementById('createServerModal').style.display = 'none';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const createForm = document.getElementById('createServerForm');
+  if (createForm) {
+    createForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('newServerName').value;
+      const map = document.getElementById('newServerMap').value;
+      const tickrate = parseInt(document.getElementById('newServerTickrate').value);
+      const maxPlayers = parseInt(document.getElementById('newServerMaxPlayers').value);
+
+      try {
+        const res = await fetch('/api/server/create', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ name, map, tickrate, maxPlayers })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          hideCreateServerForm();
+          document.getElementById('createServerForm').reset();
+          await loadServers();
+          selectServer(data.server.id);
+          alert('✅ Sunucu oluşturuldu!');
+        } else {
+          alert('Hata: ' + data.error);
+        }
+      } catch (err) {
+        alert('Hata: ' + err.message);
+      }
+    });
+  }
+});

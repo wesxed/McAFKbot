@@ -1,492 +1,288 @@
-// State
-let token = localStorage.getItem('token');
-let username = localStorage.getItem('username');
-let currentTheme = localStorage.getItem('theme') || 'theme-dark';
+let token = localStorage.getItem('csToken');
+let currentServer = null;
+let servers = [];
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-  applyTheme(currentTheme);
-  document.getElementById('themeSelect').value = currentTheme;
-
   if (token) {
-    showMainPanel();
-    loadUserData();
+    showDashboard();
+    loadServers();
   } else {
-    setupAuthListeners();
+    setupLogin();
   }
 });
 
-// Theme Management
-function applyTheme(theme) {
-  document.body.classList.remove('theme-dark', 'theme-light', 'theme-blue', 'theme-red');
-  document.body.classList.add(theme);
-  localStorage.setItem('theme', theme);
+// LOGIN
+function setupLogin() {
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const username = document.getElementById('adminUsername').value;
+    const password = document.getElementById('adminPassword').value;
+
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        token = data.token;
+        localStorage.setItem('csToken', token);
+        showDashboard();
+        loadServers();
+      } else {
+        alert('Giriş başarısız: ' + data.error);
+      }
+    } catch (err) {
+      alert('Hata: ' + err.message);
+    }
+  });
 }
 
-document.addEventListener('change', (e) => {
-  if (e.target.id === 'themeSelect') {
-    const theme = e.target.value;
-    applyTheme(theme);
-    if (token) {
-      fetch('/api/theme', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ theme })
-      }).catch(err => console.error(err));
-    }
-  }
-});
+function showDashboard() {
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  setupDashboard();
+}
 
-// Auth Listeners
-function setupAuthListeners() {
+// DASHBOARD
+function setupDashboard() {
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    localStorage.removeItem('csToken');
+    token = null;
+    location.reload();
+  });
+
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const tab = btn.dataset.tab;
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
       btn.classList.add('active');
-      document.getElementById(tab).classList.add('active');
+      document.getElementById(tab + '-tab').classList.add('active');
     });
   });
 
-  document.getElementById('loginForm').addEventListener('submit', handleLogin);
-  document.getElementById('registerForm').addEventListener('submit', handleRegister);
+  document.getElementById('startBtn').addEventListener('click', () => startServer());
+  document.getElementById('stopBtn').addEventListener('click', () => stopServer());
+  document.getElementById('restartBtn').addEventListener('click', () => restartServer());
+  document.getElementById('changeMapBtn').addEventListener('click', () => changeMap());
+  document.getElementById('executeBtn').addEventListener('click', () => executeRCON());
 }
 
-async function handleLogin(e) {
-  e.preventDefault();
-  const username = document.getElementById('loginUsername').value;
-  const password = document.getElementById('loginPassword').value;
-
+async function loadServers() {
   try {
-    const res = await fetch('/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
-    });
-
-    const data = await res.json();
-    if (res.ok) {
-      token = data.token;
-      window.username = username;
-      localStorage.setItem('token', token);
-      localStorage.setItem('username', username);
-      showMainPanel();
-      loadUserData();
-      showNotification('✅ Giriş başarılı!', 'success');
-    } else {
-      showMessage(data.error, 'error');
-    }
-  } catch (err) {
-    showMessage('Hata: ' + err.message, 'error');
-  }
-}
-
-async function handleRegister(e) {
-  e.preventDefault();
-  const username = document.getElementById('registerUsername').value;
-  const password = document.getElementById('registerPassword').value;
-  const confirm = document.getElementById('registerPasswordConfirm').value;
-
-  if (password !== confirm) {
-    showMessage('Şifreler eşleşmiyor!', 'error');
-    return;
-  }
-
-  try {
-    const res = await fetch('/api/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
-    });
-
-    const data = await res.json();
-    if (res.ok) {
-      token = data.token;
-      window.username = username;
-      localStorage.setItem('token', token);
-      localStorage.setItem('username', username);
-      showMainPanel();
-      loadUserData();
-      showNotification('✅ Kayıt başarılı!', 'success');
-    } else {
-      showMessage(data.error, 'error');
-    }
-  } catch (err) {
-    showMessage('Hata: ' + err.message, 'error');
-  }
-}
-
-function showMainPanel() {
-  document.getElementById('authSection').style.display = 'none';
-  document.getElementById('mainSection').style.display = 'block';
-  document.getElementById('userGreeting').textContent = `Hoşgeldiniz, ${window.username}!`;
-
-  document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const section = btn.dataset.section;
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById(section).classList.add('active');
-
-      if (section === 'bots') loadBots();
-      if (section === 'cloud') loadCloudFiles();
-    });
-  });
-
-  document.getElementById('logoutBtn').addEventListener('click', logout);
-  document.getElementById('refreshBotsBtn').addEventListener('click', loadBots);
-  document.getElementById('refreshCloudBtn').addEventListener('click', loadCloudFiles);
-  document.getElementById('refreshStatsBtn').addEventListener('click', loadStats);
-  document.getElementById('addBotForm').addEventListener('submit', handleAddBot);
-  document.getElementById('uploadFileForm').addEventListener('submit', handleUploadFile);
-
-  loadStats();
-  setInterval(loadStats, 30000); // Refresh stats every 30 seconds
-  loadBots();
-}
-
-async function loadUserData() {
-  try {
-    const res = await fetch('/api/me', {
+    const res = await fetch('/api/servers', {
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    const data = await res.json();
-    if (res.ok) {
-      applyTheme(data.theme);
-      document.getElementById('themeSelect').value = data.theme;
+
+    servers = await res.json();
+    renderServerList();
+    
+    if (servers.length > 0 && !currentServer) {
+      selectServer(servers[0].id);
     }
+
+    // Auto-refresh every 3 seconds
+    setInterval(refreshServers, 3000);
   } catch (err) {
     console.error(err);
   }
 }
 
-// Bot Management
-async function loadBots() {
-  const botsList = document.getElementById('botsList');
-  botsList.innerHTML = '<p class="empty-message">Botlar yükleniyor...</p>';
-
+async function refreshServers() {
   try {
-    const res = await fetch('/api/bots', {
+    const res = await fetch('/api/servers', {
       headers: { 'Authorization': `Bearer ${token}` }
     });
-
-    if (res.status === 401) {
-      logout();
-      return;
+    servers = await res.json();
+    renderServerList();
+    if (currentServer) {
+      updateServerDisplay();
     }
+  } catch (err) {}
+}
 
-    const bots = await res.json();
-
-    if (bots.length === 0) {
-      botsList.innerHTML = '<p class="empty-message">📭 Henüz bot eklenmemiş</p>';
-      return;
-    }
-
-    botsList.innerHTML = bots.map(bot => `
-      <div class="bot-card">
-        <div class="card-header">
-          <div class="card-title">${escapeHtml(bot.nickname)}</div>
-          <span class="status-badge ${bot.status === 'connected' ? 'status-connected' : 'status-disconnected'}">
-            ${bot.status === 'connected' ? '🟢 Bağlı' : '🔴 Bağlı Değil'}
-          </span>
-        </div>
-        <div class="card-info">
-          <p><strong>Host:</strong> ${escapeHtml(bot.host)}:${bot.port}</p>
-          <p><strong>Versiyon:</strong> ${bot.version || 'Otomatik'}</p>
-          <p><strong>Durum:</strong> ${bot.autoStart ? '⚙️ Otomatik' : '⏸️ Manuel'}</p>
-        </div>
-        <div class="card-actions">
-          ${bot.status === 'disconnected'
-            ? `<button class="btn btn-success btn-sm" onclick="startBot('${bot.id}')">▶️ Başlat</button>`
-            : `<button class="btn btn-secondary btn-sm" onclick="stopBot('${bot.id}')">⏹️ Durdur</button>`
-          }
-          <button class="btn btn-danger btn-sm" onclick="deleteBot('${bot.id}')">🗑️ Sil</button>
-        </div>
+function renderServerList() {
+  const list = document.getElementById('serversList');
+  list.innerHTML = servers.map(server => `
+    <div class="server-item ${currentServer === server.id ? 'active' : ''}" onclick="selectServer('${server.id}')">
+      <span class="server-status ${server.status === 'running' ? 'running' : 'stopped'}"></span>
+      <strong>${server.name}</strong>
+      <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">
+        ${server.players.length}/${server.maxPlayers} oyuncu
       </div>
-    `).join('');
-  } catch (err) {
-    botsList.innerHTML = '<p class="empty-message">❌ Hata: Botlar yüklenemedi</p>';
-    console.error(err);
-  }
-}
-
-async function handleAddBot(e) {
-  e.preventDefault();
-  const nickname = document.getElementById('botNickname').value;
-  const host = document.getElementById('botHost').value;
-  const port = document.getElementById('botPort').value;
-  const version = document.getElementById('botVersion').value || null;
-
-  try {
-    const res = await fetch('/api/bots/add', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ nickname, host, port: parseInt(port), version })
-    });
-
-    const data = await res.json();
-    if (res.ok) {
-      document.getElementById('addBotForm').reset();
-      loadBots();
-      showNotification('✅ Bot eklendi!', 'success');
-    } else {
-      showNotification(data.error, 'error');
-    }
-  } catch (err) {
-    showNotification('Hata: ' + err.message, 'error');
-  }
-}
-
-async function startBot(botId) {
-  try {
-    const res = await fetch('/api/bots/start', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ botId })
-    });
-
-    if (res.ok) {
-      showNotification('✅ Bot başlatılıyor...', 'success');
-      setTimeout(loadBots, 1000);
-    } else {
-      const data = await res.json();
-      showNotification(data.error, 'error');
-    }
-  } catch (err) {
-    showNotification('Hata: ' + err.message, 'error');
-  }
-}
-
-async function stopBot(botId) {
-  try {
-    const res = await fetch('/api/bots/stop', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ botId })
-    });
-
-    if (res.ok) {
-      showNotification('✅ Bot durduruldu', 'success');
-      loadBots();
-    } else {
-      const data = await res.json();
-      showNotification(data.error, 'error');
-    }
-  } catch (err) {
-    showNotification('Hata: ' + err.message, 'error');
-  }
-}
-
-async function deleteBot(botId) {
-  if (!confirm('Botu silmek istediğinize emin misiniz?')) return;
-
-  try {
-    const res = await fetch('/api/bots/delete', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ botId })
-    });
-
-    if (res.ok) {
-      showNotification('✅ Bot silindi', 'success');
-      loadBots();
-    } else {
-      const data = await res.json();
-      showNotification(data.error, 'error');
-    }
-  } catch (err) {
-    showNotification('Hata: ' + err.message, 'error');
-  }
-}
-
-// Cloud Management
-async function loadCloudFiles() {
-  const filesList = document.getElementById('filesList');
-  filesList.innerHTML = '<p class="empty-message">Dosyalar yükleniyor...</p>';
-
-  try {
-    const res = await fetch('/api/cloud/files', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-
-    if (res.status === 401) {
-      logout();
-      return;
-    }
-
-    const files = await res.json();
-
-    if (files.length === 0) {
-      filesList.innerHTML = '<p class="empty-message">📭 Henüz dosya yüklememisiniz</p>';
-      return;
-    }
-
-    filesList.innerHTML = files.map(file => `
-      <div class="file-card">
-        <div class="card-header">
-          <div class="card-title">${escapeHtml(file.filename)}</div>
-        </div>
-        <div class="card-info">
-          <p><strong>Yüklenme:</strong> ${new Date(file.uploadedAt).toLocaleDateString('tr-TR')}</p>
-        </div>
-        <div class="card-actions">
-          <button class="btn btn-secondary btn-sm" onclick="viewFile('${escapeHtml(file.filename)}')">👁️ Görüntüle</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteFile('${escapeHtml(file.filename)}')">🗑️ Sil</button>
-        </div>
-      </div>
-    `).join('');
-  } catch (err) {
-    filesList.innerHTML = '<p class="empty-message">❌ Hata: Dosyalar yüklenemedi</p>';
-    console.error(err);
-  }
-}
-
-async function handleUploadFile(e) {
-  e.preventDefault();
-  const filename = document.getElementById('fileName').value;
-  const content = document.getElementById('fileContent').value;
-
-  try {
-    const res = await fetch('/api/cloud/upload', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ filename, content })
-    });
-
-    const data = await res.json();
-    if (res.ok) {
-      document.getElementById('uploadFileForm').reset();
-      loadCloudFiles();
-      showNotification('✅ Dosya yüklendi!', 'success');
-    } else {
-      showNotification(data.error, 'error');
-    }
-  } catch (err) {
-    showNotification('Hata: ' + err.message, 'error');
-  }
-}
-
-async function viewFile(filename) {
-  try {
-    const res = await fetch(`/api/cloud/files`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const files = await res.json();
-    const file = files.find(f => f.filename === filename);
-    if (file) {
-      alert(`${filename}:\n\n${file.content}`);
-    }
-  } catch (err) {
-    showNotification('Hata: ' + err.message, 'error');
-  }
-}
-
-async function deleteFile(filename) {
-  if (!confirm('Dosyayı silmek istediğinize emin misiniz?')) return;
-
-  try {
-    const res = await fetch(`/api/cloud/file/${encodeURIComponent(filename)}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-
-    if (res.ok) {
-      showNotification('✅ Dosya silindi', 'success');
-      loadCloudFiles();
-    } else {
-      const data = await res.json();
-      showNotification(data.error, 'error');
-    }
-  } catch (err) {
-    showNotification('Hata: ' + err.message, 'error');
-  }
-}
-
-// Logout
-function logout() {
-  localStorage.removeItem('token');
-  localStorage.removeItem('username');
-  token = null;
-  window.username = null;
-  location.reload();
-}
-
-// Utilities
-function showMessage(message, type) {
-  const msg = document.getElementById('authMessage');
-  msg.textContent = message;
-  msg.className = `message show ${type}`;
-  setTimeout(() => msg.classList.remove('show'), 5000);
-}
-
-function showNotification(message, type) {
-  const notif = document.getElementById('notification');
-  notif.textContent = message;
-  notif.className = `notification show ${type}`;
-  setTimeout(() => notif.classList.remove('show'), 3000);
-}
-
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
-
-// Stats & Activity
-async function loadStats() {
-  try {
-    const res = await fetch('/api/stats', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-
-    if (res.ok) {
-      const stats = await res.json();
-      
-      // Update stat cards
-      document.getElementById('totalUsers').textContent = stats.totalUsers;
-      document.getElementById('activeBots').textContent = stats.activeBots;
-      document.getElementById('totalFiles').textContent = stats.totalFiles;
-      document.getElementById('uptime').textContent = stats.uptime;
-      
-      // Update activity feed
-      updateActivityFeed(stats.recentActivity);
-    }
-  } catch (err) {
-    console.error('Stats yükleme hatası:', err);
-  }
-}
-
-function updateActivityFeed(activities) {
-  const feed = document.getElementById('activityFeed');
-  
-  if (!activities || activities.length === 0) {
-    feed.innerHTML = '<div class="activity-item">✅ Platform aktif ve çalışıyor</div>';
-    return;
-  }
-  
-  const html = activities.map(activity => `
-    <div class="activity-item">${escapeHtml(activity)}</div>
+    </div>
   `).join('');
-  
-  feed.innerHTML = html;
+}
+
+function selectServer(serverId) {
+  currentServer = serverId;
+  renderServerList();
+  updateServerDisplay();
+}
+
+async function updateServerDisplay() {
+  try {
+    const res = await fetch(`/api/server/${currentServer}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const server = await res.json();
+
+    document.getElementById('serverTitle').textContent = server.name;
+    document.getElementById('statusValue').textContent = server.status === 'running' ? '🟢 Çalışıyor' : '🔴 Durmuş';
+    document.getElementById('playerCount').textContent = `${server.players.length}/${server.maxPlayers}`;
+    document.getElementById('mapValue').textContent = server.map;
+    document.getElementById('tickrateValue').textContent = server.tickrate + ' Hz';
+
+    // Update players table
+    const tbody = document.getElementById('playersBody');
+    if (server.players.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center">Oyuncu yok</td></tr>';
+    } else {
+      tbody.innerHTML = server.players.map(player => `
+        <tr>
+          <td>${player.name}</td>
+          <td>${player.score}</td>
+          <td>${player.kills}</td>
+          <td>${player.deaths}</td>
+          <td>${player.ping}ms</td>
+          <td>
+            <button class="btn btn-danger action-btn" onclick="kickPlayer('${player.id}')">Kick</button>
+            <button class="btn btn-danger action-btn" onclick="banPlayer('${player.id}')">Ban</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Update logs
+    const logsContainer = document.getElementById('logsContainer');
+    logsContainer.innerHTML = server.logs.reverse().map(log => `
+      <div class="log-entry">${log}</div>
+    `).join('');
+    logsContainer.scrollTop = logsContainer.scrollHeight;
+
+    // Update map selector
+    const mapSelect = document.getElementById('mapSelect');
+    if (mapSelect.options.length === 0) {
+      const mapsRes = await fetch('/api/maps', { headers: { 'Authorization': `Bearer ${token}` } });
+      const maps = await mapsRes.json();
+      mapSelect.innerHTML = maps.map(map => `<option value="${map}" ${server.map === map ? 'selected' : ''}>${map}</option>`).join('');
+    }
+
+    // Update config
+    document.getElementById('configEditor').value = JSON.stringify(server.config, null, 2);
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+async function startServer() {
+  if (!currentServer) return;
+  try {
+    await fetch(`/api/server/${currentServer}/start`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    await new Promise(r => setTimeout(r, 500));
+    updateServerDisplay();
+  } catch (err) {
+    alert('Hata: ' + err.message);
+  }
+}
+
+async function stopServer() {
+  if (!currentServer) return;
+  try {
+    await fetch(`/api/server/${currentServer}/stop`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    await new Promise(r => setTimeout(r, 500));
+    updateServerDisplay();
+  } catch (err) {
+    alert('Hata: ' + err.message);
+  }
+}
+
+async function restartServer() {
+  if (!currentServer) return;
+  try {
+    await fetch(`/api/server/${currentServer}/restart`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    await new Promise(r => setTimeout(r, 2500));
+    updateServerDisplay();
+  } catch (err) {
+    alert('Hata: ' + err.message);
+  }
+}
+
+async function changeMap() {
+  if (!currentServer) return;
+  const map = document.getElementById('mapSelect').value;
+  try {
+    await fetch(`/api/server/${currentServer}/changemap`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ map })
+    });
+    updateServerDisplay();
+  } catch (err) {
+    alert('Hata: ' + err.message);
+  }
+}
+
+async function executeRCON() {
+  if (!currentServer) return;
+  const command = document.getElementById('rconInput').value;
+  if (!command) return;
+
+  try {
+    await fetch(`/api/server/${currentServer}/rcon`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ command })
+    });
+    document.getElementById('rconInput').value = '';
+    await new Promise(r => setTimeout(r, 500));
+    updateServerDisplay();
+  } catch (err) {
+    alert('Hata: ' + err.message);
+  }
+}
+
+async function kickPlayer(playerId) {
+  if (!currentServer) return;
+  try {
+    await fetch(`/api/server/${currentServer}/player/${playerId}/kick`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    updateServerDisplay();
+  } catch (err) {
+    alert('Hata: ' + err.message);
+  }
+}
+
+async function banPlayer(playerId) {
+  if (!currentServer) return;
+  try {
+    await fetch(`/api/server/${currentServer}/player/${playerId}/ban`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    updateServerDisplay();
+  } catch (err) {
+    alert('Hata: ' + err.message);
+  }
 }

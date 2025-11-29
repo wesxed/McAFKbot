@@ -3,186 +3,138 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Minecraft AFK Bot & Cloud Panel</title>
+  <title>CS Server Management</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="theme-dark">
-  <div class="container">
-    <!-- Auth Section (Hidden when logged in) -->
-    <section id="authSection" class="section">
-      <header class="auth-header">
-        <h1>🎮 Minecraft AFK Bot</h1>
-      </header>
-
-      <div class="auth-container">
-        <div class="auth-tabs">
-          <button class="tab-btn active" data-tab="login">Giriş Yap</button>
-          <button class="tab-btn" data-tab="register">Kayıt Ol</button>
-        </div>
-
-        <div id="login" class="tab-content active">
-          <form id="loginForm">
-            <div class="form-group">
-              <label>Kullanıcı Adı</label>
-              <input type="text" id="loginUsername" placeholder="Kullanıcı adınız" required>
-            </div>
-            <div class="form-group">
-              <label>Şifre</label>
-              <input type="password" id="loginPassword" placeholder="Şifreniz" required>
-            </div>
-            <button type="submit" class="btn btn-primary btn-block">Giriş Yap</button>
-          </form>
-        </div>
-
-        <div id="register" class="tab-content">
-          <form id="registerForm">
-            <div class="form-group">
-              <label>Kullanıcı Adı</label>
-              <input type="text" id="registerUsername" placeholder="Kullanıcı adı" required>
-            </div>
-            <div class="form-group">
-              <label>Şifre</label>
-              <input type="password" id="registerPassword" placeholder="Şifre" required>
-            </div>
-            <div class="form-group">
-              <label>Şifre Tekrar</label>
-              <input type="password" id="registerPasswordConfirm" placeholder="Şifre tekrar" required>
-            </div>
-            <button type="submit" class="btn btn-primary btn-block">Kayıt Ol</button>
-          </form>
-        </div>
-
-        <div id="authMessage" class="message"></div>
-      </div>
-    </section>
-
-    <!-- Main Panel (Hidden when not logged in) -->
-    <section id="mainSection" class="section" style="display: none;">
-      <header class="header">
-        <div class="header-left">
-          <h1>🎮 Minecraft AFK Bot Panel</h1>
-          <p id="userGreeting">Hoşgeldiniz!</p>
-        </div>
-        <div class="header-right">
-          <div class="theme-selector">
-            <select id="themeSelect">
-              <option value="theme-dark">🌙 Koyu</option>
-              <option value="theme-light">☀️ Açık</option>
-              <option value="theme-blue">🔵 Mavi</option>
-              <option value="theme-red">🔴 Kırmızı</option>
-            </select>
-          </div>
-          <button id="logoutBtn" class="btn btn-secondary">Çıkış</button>
-        </div>
-      </header>
-
-      <nav class="nav">
-        <button class="nav-btn active" data-section="dashboard">📊 Panel</button>
-        <button class="nav-btn" data-section="bots">🤖 Botlar</button>
-        <button class="nav-btn" data-section="cloud">☁️ Bulut</button>
-      </nav>
-
-      <!-- Dashboard Section -->
-      <section id="dashboard" class="content-section active">
-        <div class="section-header">
-          <h2>Platform İstatistikleri</h2>
-          <button id="refreshStatsBtn" class="btn btn-secondary">🔄 Yenile</button>
-        </div>
-
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-value" id="totalUsers">0</div>
-            <div class="stat-label">Toplam Kullanıcı</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value" id="activeBots">0</div>
-            <div class="stat-label">Aktif Bot</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value" id="totalFiles">0</div>
-            <div class="stat-label">Bulut Dosyaları</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value" id="uptime">99.9%</div>
-            <div class="stat-label">Sistem Çalışma Süresi</div>
-          </div>
-        </div>
-
-        <div class="activity-section">
-          <h3>⚡ Canlı Aktivite</h3>
-          <div id="activityFeed" class="activity-feed">
-            <div class="activity-item">✅ Platform aktif ve çalışıyor</div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Bots Section -->
-      <section id="bots" class="content-section active">
-        <div class="section-header">
-          <h2>Bot Yönetimi</h2>
-          <button id="refreshBotsBtn" class="btn btn-secondary">🔄 Yenile</button>
-        </div>
-
-        <div class="add-bot-form">
-          <h3>Yeni Bot Ekle</h3>
-          <form id="addBotForm">
-            <div class="form-grid">
-              <div class="form-group">
-                <label>Bot Adı</label>
-                <input type="text" id="botNickname" placeholder="Bot adı" required>
-              </div>
-              <div class="form-group">
-                <label>Host</label>
-                <input type="text" id="botHost" placeholder="play.example.com" required>
-              </div>
-              <div class="form-group">
-                <label>Port</label>
-                <input type="number" id="botPort" placeholder="25565" value="25565" required>
-              </div>
-              <div class="form-group">
-                <label>Versiyon (İsteğe Bağlı)</label>
-                <input type="text" id="botVersion" placeholder="1.20.1 (Boş = Otomatik)">
-              </div>
-            </div>
-            <button type="submit" class="btn btn-primary">➕ Bot Ekle</button>
-          </form>
-        </div>
-
-        <div id="botsList" class="bots-grid">
-          <p class="empty-message">Botlar yükleniyor...</p>
-        </div>
-      </section>
-
-      <!-- Cloud Section -->
-      <section id="cloud" class="content-section">
-        <div class="section-header">
-          <h2>Bulut Depolama</h2>
-          <button id="refreshCloudBtn" class="btn btn-secondary">🔄 Yenile</button>
-        </div>
-
-        <div class="upload-file-form">
-          <h3>Dosya Yükle</h3>
-          <form id="uploadFileForm">
-            <div class="form-group">
-              <label>Dosya Adı</label>
-              <input type="text" id="fileName" placeholder="config.txt" required>
-            </div>
-            <div class="form-group">
-              <label>İçerik</label>
-              <textarea id="fileContent" placeholder="Dosya içeriğini girin..." required></textarea>
-            </div>
-            <button type="submit" class="btn btn-primary">☁️ Yükle</button>
-          </form>
-        </div>
-
-        <div id="filesList" class="files-grid">
-          <p class="empty-message">Dosyalar yükleniyor...</p>
-        </div>
-      </section>
-    </section>
+<body>
+  <!-- Login Page -->
+  <div id="loginPage" class="login-container">
+    <div class="login-box">
+      <h1>⚔️ CS Server Manager</h1>
+      <form id="loginForm">
+        <input type="text" id="adminUsername" placeholder="Admin Adı" required>
+        <input type="password" id="adminPassword" placeholder="Şifre" required>
+        <button type="submit">Giriş</button>
+      </form>
+    </div>
   </div>
 
-  <div id="notification" class="notification"></div>
+  <!-- Dashboard -->
+  <div id="dashboard" style="display: none;">
+    <header class="header">
+      <h1>⚔️ CS Server Manager</h1>
+      <button id="logoutBtn" class="logout-btn">Çıkış</button>
+    </header>
+
+    <div class="container">
+      <aside class="sidebar">
+        <h3>Sunucular</h3>
+        <div id="serversList" class="servers-list"></div>
+      </aside>
+
+      <main class="content">
+        <nav class="tabs">
+          <button class="tab-btn active" data-tab="overview">📊 Genel Bakış</button>
+          <button class="tab-btn" data-tab="players">👥 Oyuncular</button>
+          <button class="tab-btn" data-tab="logs">📝 Loglar</button>
+          <button class="tab-btn" data-tab="console">⌨️ Konsol</button>
+          <button class="tab-btn" data-tab="settings">⚙️ Ayarlar</button>
+        </nav>
+
+        <!-- Overview Tab -->
+        <div id="overview-tab" class="tab-content active">
+          <div class="panel">
+            <h2 id="serverTitle">Sunucu Seç</h2>
+            <div class="stats-grid">
+              <div class="stat">
+                <span class="label">Durum</span>
+                <span class="value" id="statusValue">-</span>
+              </div>
+              <div class="stat">
+                <span class="label">Oyuncular</span>
+                <span class="value" id="playerCount">0/0</span>
+              </div>
+              <div class="stat">
+                <span class="label">Harita</span>
+                <span class="value" id="mapValue">-</span>
+              </div>
+              <div class="stat">
+                <span class="label">Tickrate</span>
+                <span class="value" id="tickrateValue">-</span>
+              </div>
+            </div>
+
+            <div class="controls">
+              <button id="startBtn" class="btn btn-success">▶️ Başlat</button>
+              <button id="stopBtn" class="btn btn-danger">⏹️ Durdur</button>
+              <button id="restartBtn" class="btn btn-warning">🔄 Yeniden Başlat</button>
+            </div>
+
+            <div class="map-changer">
+              <h3>Harita Değiştir</h3>
+              <div class="flex-group">
+                <select id="mapSelect"></select>
+                <button id="changeMapBtn" class="btn btn-primary">Değiştir</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Players Tab -->
+        <div id="players-tab" class="tab-content">
+          <div class="panel">
+            <h3>Aktif Oyuncular</h3>
+            <div class="table-container">
+              <table class="players-table">
+                <thead>
+                  <tr>
+                    <th>Adı</th>
+                    <th>Skor</th>
+                    <th>Kill</th>
+                    <th>Death</th>
+                    <th>Ping</th>
+                    <th>İşlem</th>
+                  </tr>
+                </thead>
+                <tbody id="playersBody">
+                  <tr><td colspan="6" class="text-center">Oyuncu yok</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Logs Tab -->
+        <div id="logs-tab" class="tab-content">
+          <div class="panel">
+            <h3>Sunucu Logları</h3>
+            <div id="logsContainer" class="logs-container"></div>
+          </div>
+        </div>
+
+        <!-- Console Tab -->
+        <div id="console-tab" class="tab-content">
+          <div class="panel">
+            <h3>RCON Terminal</h3>
+            <div class="console-input">
+              <input type="text" id="rconInput" placeholder="RCON komut girin (ör: changelevel de_dust2)">
+              <button id="executeBtn" class="btn btn-primary">Çalıştır</button>
+            </div>
+            <div class="console-output" id="consoleOutput"></div>
+          </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="settings-tab" class="tab-content">
+          <div class="panel">
+            <h3>Sunucu Ayarları</h3>
+            <textarea id="configEditor" class="config-editor"></textarea>
+            <button class="btn btn-primary" onclick="saveConfig()">Kaydet</button>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
 
   <script src="main.js"></script>
 </body>

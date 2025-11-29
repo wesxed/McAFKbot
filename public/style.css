@@ -119,6 +119,52 @@ body {
   display: block;
 }
 
+.remember-me {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 15px 0;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.remember-me input {
+  cursor: pointer;
+  width: auto;
+}
+
+.connection-info {
+  background: var(--bg);
+  padding: 15px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  border: 2px solid var(--accent);
+}
+
+.info-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.info-label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: bold;
+}
+
+.info-value {
+  font-size: 1.3rem;
+  color: var(--accent);
+  font-weight: bold;
+  font-family: 'Courier New', monospace;
+}
+
 /* Dashboard */
 .header {
   background: var(--bg-secondary);

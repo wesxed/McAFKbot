@@ -1,6 +1,9 @@
 let token = localStorage.getItem('csToken');
-let currentServer = null;
+let username = localStorage.getItem('csUsername');
+let currentServer = 'server-1'; // Always use first server
 let servers = [];
+let serverIP = '';
+let serverPort = '';
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -8,9 +11,39 @@ document.addEventListener('DOMContentLoaded', () => {
     showDashboard();
     loadServers();
   } else {
-    setupLogin();
+    // Check if remember-me data exists
+    const savedUsername = localStorage.getItem('csUsername');
+    const savedPassword = localStorage.getItem('csPassword');
+    if (savedUsername && savedPassword) {
+      autoLogin(savedUsername, savedPassword);
+    } else {
+      setupLogin();
+    }
   }
 });
+
+async function autoLogin(loginUsername, password) {
+  try {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: loginUsername, password })
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      token = data.token;
+      username = loginUsername;
+      localStorage.setItem('csToken', token);
+      showDashboard();
+      loadServers();
+    } else {
+      setupLogin();
+    }
+  } catch (err) {
+    setupLogin();
+  }
+}
 
 // LOGIN & REGISTER
 function setupLogin() {
@@ -28,8 +61,9 @@ function setupLogin() {
   // Login form
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const username = document.getElementById('adminUsername').value;
+    const loginUsername = document.getElementById('adminUsername').value;
     const password = document.getElementById('adminPassword').value;
+    const rememberMe = document.getElementById('rememberMe').checked;
     const errorMsg = document.getElementById('loginError');
     errorMsg.classList.remove('show');
 
@@ -37,13 +71,18 @@ function setupLogin() {
       const res = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ username: loginUsername, password })
       });
 
       const data = await res.json();
       if (res.ok) {
         token = data.token;
+        username = loginUsername;
         localStorage.setItem('csToken', token);
+        if (rememberMe) {
+          localStorage.setItem('csUsername', loginUsername);
+          localStorage.setItem('csPassword', password);
+        }
         showDashboard();
         loadServers();
       } else {
@@ -161,21 +200,18 @@ async function refreshServers() {
 
 function renderServerList() {
   const list = document.getElementById('serversList');
-  list.innerHTML = servers.map(server => `
-    <div class="server-item ${currentServer === server.id ? 'active' : ''}" onclick="selectServer('${server.id}')">
-      <span class="server-status ${server.status === 'running' ? 'running' : 'stopped'}"></span>
-      <strong>${server.name}</strong>
-      <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">
-        ${server.players.length}/${server.maxPlayers} oyuncu
+  const server = servers.find(s => s.id === currentServer);
+  if (server) {
+    list.innerHTML = `
+      <div class="server-item active">
+        <span class="server-status ${server.status === 'running' ? 'running' : 'stopped'}"></span>
+        <strong>${server.name}</strong>
+        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">
+          ${server.players.length}/${server.maxPlayers} oyuncu
+        </div>
       </div>
-    </div>
-  `).join('');
-}
-
-function selectServer(serverId) {
-  currentServer = serverId;
-  renderServerList();
-  updateServerDisplay();
+    `;
+  }
 }
 
 async function updateServerDisplay() {
@@ -190,6 +226,11 @@ async function updateServerDisplay() {
     document.getElementById('playerCount').textContent = `${server.players.length}/${server.maxPlayers}`;
     document.getElementById('mapValue').textContent = server.map;
     document.getElementById('tickrateValue').textContent = server.tickrate + ' Hz';
+    
+    // Update connection info
+    serverIP = server.ip || 'play.server' + Math.floor(Math.random() * 9000 + 1000) + '.com';
+    serverPort = server.port || (25000 + Math.floor(Math.random() * 5000));
+    document.getElementById('connectionIP').textContent = `${serverIP}:${serverPort}`;
 
     // Update players table
     const tbody = document.getElementById('playersBody');
@@ -339,4 +380,13 @@ async function banPlayer(playerId) {
   } catch (err) {
     alert('Hata: ' + err.message);
   }
+}
+
+function copyIP() {
+  const ip = document.getElementById('connectionIP').textContent;
+  navigator.clipboard.writeText(ip).then(() => {
+    alert('✅ Kopyalandı: ' + ip);
+  }).catch(() => {
+    alert('IP: ' + ip);
+  });
 }

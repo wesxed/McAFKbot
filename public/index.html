@@ -20,6 +20,9 @@
       <form id="loginForm" class="auth-form active">
         <input type="text" id="adminUsername" placeholder="Kullanıcı Adı" required>
         <input type="password" id="adminPassword" placeholder="Şifre" required>
+        <label class="remember-me">
+          <input type="checkbox" id="rememberMe"> Beni Hatırla
+        </label>
         <button type="submit">Giriş Yap</button>
         <p class="error-msg" id="loginError"></p>
       </form>
@@ -59,7 +62,14 @@
         <!-- Overview Tab -->
         <div id="overview-tab" class="tab-content active">
           <div class="panel">
-            <h2 id="serverTitle">Sunucu Seç</h2>
+            <h2 id="serverTitle">Sunucu Yönetimi</h2>
+            <div class="connection-info">
+              <div class="info-box">
+                <span class="info-label">Bağlantı Adresi</span>
+                <span class="info-value" id="connectionIP">-</span>
+              </div>
+              <button class="btn btn-secondary" onclick="copyIP()">📋 Kopyala</button>
+            </div>
             <div class="stats-grid">
               <div class="stat">
                 <span class="label">Durum</span>

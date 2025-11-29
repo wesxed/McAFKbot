@@ -35,11 +35,13 @@ async function initData() {
       servers = [
         {
           id: 'server-1',
-          name: 'Ana Sunucu',
-          status: 'stopped',
+          name: 'Türkiye #1 - CS2 Sunucu',
+          status: 'running',
           map: 'de_dust2',
           tickrate: 128,
           maxPlayers: 10,
+          ip: 'play.tr-' + Math.floor(Math.random() * 9000 + 1000) + '.net',
+          port: 27015,
           players: [],
           logs: ['[Sunucu başlatıldı]'],
           config: { sv_gravity: 800, mp_freezetime: 15, mp_roundtime: 35 }
@@ -51,6 +53,8 @@ async function initData() {
           map: 'awp_lego_2',
           tickrate: 128,
           maxPlayers: 5,
+          ip: 'play.practice-' + Math.floor(Math.random() * 9000 + 1000) + '.net',
+          port: 27016,
           players: [],
           logs: ['[Sunucu başlatıldı]'],
           config: { sv_gravity: 800, mp_freezetime: 0, mp_roundtime: 20 }

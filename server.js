@@ -1,15 +1,25 @@
 import express from 'express';
 import OpenAI from 'openai';
+import Anthropic from '@anthropic-ai/sdk';
 import fetch from 'node-fetch';
 
 const app = express();
 app.use(express.json());
 app.use(express.static('public'));
 
-// OpenAI Client - the newest OpenAI model is "gpt-5" which was released August 7, 2025
+// OpenAI Client - GPT-5o (newest model)
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+// Claude Client - claude-sonnet-4-20250514 (newest Anthropic model)
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
 const chatHistories = {};
 const userSessions = {};
+
+// AI Provider Selector - alternates between Claude and GPT for variety
+function selectAIProvider() {
+  return Math.random() > 0.5 ? 'claude' : 'gpt';
+}
 
 // Perplexity web search - research on the internet (Chrome browser like search)
 async function searchWithPerplexity(query, inputLanguage = 'en') {
@@ -279,8 +289,12 @@ app.post('/api/chat/stream', async (req, res) => {
       chatHistories[username] = chatHistories[username].slice(-100);
     }
     
-    // OpenAI for intelligent responses
-    if (!process.env.OPENAI_API_KEY) {
+    // Choose AI Provider - Claude or GPT-5o
+    const provider = selectAIProvider();
+    let fullResponse = '';
+    
+    // Check if at least one API key exists
+    if (!process.env.OPENAI_API_KEY && !process.env.ANTHROPIC_API_KEY) {
       const mockResp = generateMockResponse(message, language, inputLanguage);
       chatHistories[username].push({ role: 'assistant', content: mockResp });
       res.write(`data: ${JSON.stringify({ text: mockResp, done: true })}\n\n`);
@@ -292,20 +306,91 @@ app.post('/api/chat/stream', async (req, res) => {
       ...chatHistories[username]
     ];
     
-    const stream = await openai.chat.completions.create({
-      model: 'gpt-5',
-      messages: messagesWithSystem,
-      max_completion_tokens: 4096,
-      temperature: 0.7,
-      stream: true
-    });
-
-    fullResponse = '';
-    for await (const chunk of stream) {
-      const text = chunk.choices[0]?.delta?.content || '';
-      if (text) {
-        fullResponse += text;
-        res.write(`data: ${JSON.stringify({ text: text, done: false })}\n\n`);
+    try {
+      if (provider === 'claude' && process.env.ANTHROPIC_API_KEY) {
+        console.log('🧠 Using Claude for response');
+        const claudeMessages = messagesWithSystem.slice(1).map(msg => ({
+          role: msg.role,
+          content: msg.content
+        }));
+        
+        const stream = anthropic.messages.stream({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 4096,
+          system: messagesWithSystem[0].content,
+          messages: claudeMessages
+        });
+        
+        for await (const chunk of stream) {
+          if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
+            const text = chunk.delta.text;
+            if (text) {
+              fullResponse += text;
+              res.write(`data: ${JSON.stringify({ text: text, done: false })}\n\n`);
+            }
+          }
+        }
+      } else if (process.env.OPENAI_API_KEY) {
+        console.log('🤖 Using GPT-5o for response');
+        const gptStream = await openai.chat.completions.create({
+          model: 'gpt-4o-2024-11-20',
+          messages: messagesWithSystem,
+          max_completion_tokens: 4096,
+          temperature: 0.7,
+          stream: true
+        });
+        
+        for await (const chunk of gptStream) {
+          const text = chunk.choices[0]?.delta?.content || '';
+          if (text) {
+            fullResponse += text;
+            res.write(`data: ${JSON.stringify({ text: text, done: false })}\n\n`);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('AI Provider Error:', error.message);
+      // Fallback to other provider or mock
+      if (provider === 'claude' && process.env.OPENAI_API_KEY) {
+        console.log('Claude failed, trying GPT fallback');
+        const gptStream = await openai.chat.completions.create({
+          model: 'gpt-4o-2024-11-20',
+          messages: messagesWithSystem,
+          max_completion_tokens: 4096,
+          temperature: 0.7,
+          stream: true
+        });
+        
+        for await (const chunk of gptStream) {
+          const text = chunk.choices[0]?.delta?.content || '';
+          if (text) {
+            fullResponse += text;
+            res.write(`data: ${JSON.stringify({ text: text, done: false })}\n\n`);
+          }
+        }
+      } else if (provider === 'gpt' && process.env.ANTHROPIC_API_KEY) {
+        console.log('GPT failed, trying Claude fallback');
+        const claudeMessages = messagesWithSystem.slice(1).map(msg => ({
+          role: msg.role,
+          content: msg.content
+        }));
+        
+        const stream = anthropic.messages.stream({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 4096,
+          system: messagesWithSystem[0].content,
+          messages: claudeMessages
+        });
+        
+        for await (const chunk of stream) {
+          if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
+            const text = chunk.delta.text;
+            if (text) {
+              fullResponse += text;
+              res.write(`data: ${JSON.stringify({ text: text, done: false })}\n\n`);
+            }
+          }
+        }
       }
     }
     
@@ -345,30 +430,50 @@ app.post('/api/chat', async (req, res) => {
       chatHistories[username] = chatHistories[username].slice(-100);
     }
     
-    // Check if API key exists
-    if (!process.env.OPENAI_API_KEY) {
+    // Check if at least one API key exists
+    if (!process.env.OPENAI_API_KEY && !process.env.ANTHROPIC_API_KEY) {
       const mockResp = generateMockResponse(message, language, inputLanguage);
       chatHistories[username].push({ role: 'assistant', content: mockResp });
       return res.json({ response: mockResp, demo: true });
     }
     
     try {
-      // Call OpenAI - the newest OpenAI model is "gpt-5" which was released August 7, 2025
+      const provider = selectAIProvider();
       const messagesWithSystem = [
         { role: 'system', content: getSystemPrompt(language || 'auto', inputLanguage) },
         ...chatHistories[username]
       ];
       
-      const response = await openai.chat.completions.create({
-        model: 'gpt-5',
-        messages: messagesWithSystem,
-        max_completion_tokens: 4096,
-        temperature: 0.7
-      });
+      let assistantMessage = '';
       
-      const assistantMessage = response.choices[0].message.content;
+      if (provider === 'claude' && process.env.ANTHROPIC_API_KEY) {
+        console.log('🧠 Using Claude for response');
+        const claudeMessages = messagesWithSystem.slice(1).map(msg => ({
+          role: msg.role,
+          content: msg.content
+        }));
+        
+        const response = await anthropic.messages.create({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 4096,
+          system: messagesWithSystem[0].content,
+          messages: claudeMessages
+        });
+        
+        assistantMessage = response.content[0].text;
+      } else if (process.env.OPENAI_API_KEY) {
+        console.log('🤖 Using GPT-4o for response');
+        const response = await openai.chat.completions.create({
+          model: 'gpt-4o-2024-11-20',
+          messages: messagesWithSystem,
+          max_completion_tokens: 4096,
+          temperature: 0.7
+        });
+        
+        assistantMessage = response.choices[0].message.content;
+      }
+      
       chatHistories[username].push({ role: 'assistant', content: assistantMessage });
-      
       res.json({ response: assistantMessage });
     } catch (apiError) {
       // Handle quota, rate limit, and other API errors

@@ -3,110 +3,43 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Instagram Takipçi Botu - Gerçek Hesaplar</title>
+  <title>Instagram Takipçi Botu</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
+    body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
     .wrapper { width: 100%; max-width: 1000px; }
-    .card {
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-      overflow: hidden;
-    }
-    .header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 40px;
-      text-align: center;
-    }
+    .card { background: white; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
+    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px; text-align: center; }
     .header h1 { font-size: 28px; margin-bottom: 10px; }
     .header p { font-size: 14px; opacity: 0.9; }
     .content { padding: 40px; }
     .section { margin-bottom: 30px; }
-    .section h2 { font-size: 18px; color: #333; margin-bottom: 15px; font-weight: 600; }
+    .section h2 { font-size: 18px; color: #333; margin-bottom: 15px; font-weight: bold; }
     .input-row { display: flex; gap: 10px; flex-wrap: wrap; }
-    input, button { padding: 12px 16px; border: none; border-radius: 8px; font-size: 14px; font-family: inherit; cursor: pointer; }
-    input { flex: 1; min-width: 150px; border: 2px solid #e0e0e0; color: #333; }
+    input, button { padding: 12px 16px; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; }
+    input { flex: 1; min-width: 150px; border: 2px solid #e0e0e0; }
     input:focus { outline: none; border-color: #667eea; }
-    button {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      font-weight: 600;
-      transition: all 0.2s;
-      min-width: 100px;
-    }
-    button:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4); }
-    .btn-secondary { background: #f0f0f0; color: #333; }
-    .btn-secondary:hover { background: #e0e0e0; }
-    .btn-danger { background: #ff6b6b; }
-    .btn-danger:hover { background: #ff5252; }
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 15px;
-      margin-bottom: 20px;
-    }
-    .stat { background: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 4px solid #667eea; }
-    .stat-label { font-size: 12px; color: #999; text-transform: uppercase; }
-    .stat-value { font-size: 24px; font-weight: bold; color: #333; margin-top: 8px; }
-    .accounts {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-    .account-btn {
-      padding: 12px;
-      background: #f0f0f0;
-      border: 2px solid #e0e0e0;
-      border-radius: 8px;
-      cursor: pointer;
-      text-align: center;
-      transition: all 0.2s;
-      font-weight: 600;
-      font-size: 13px;
-    }
-    .account-btn:hover { background: #e0e0e0; }
+    button { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-weight: bold; min-width: 100px; }
+    button:hover { transform: translateY(-2px); }
+    .accounts { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-bottom: 20px; }
+    .account-btn { padding: 12px; background: #f0f0f0; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer; text-align: center; font-weight: bold; font-size: 13px; }
     .account-btn.active { background: #667eea; color: white; border-color: #667eea; }
+    .stat { background: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 4px solid #667eea; }
+    .stat-label { font-size: 12px; color: #999; }
+    .stat-value { font-size: 24px; font-weight: bold; color: #333; margin-top: 8px; }
     .followers { max-height: 400px; overflow-y: auto; }
-    .follower {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px;
-      background: #f8f9fa;
-      border-radius: 8px;
-      margin-bottom: 8px;
-      transition: transform 0.2s;
-    }
-    .follower:hover { transform: translateX(4px); }
-    .avatar { width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; background-size: cover; }
+    .follower { display: flex; align-items: center; gap: 12px; padding: 12px; background: #f8f9fa; border-radius: 8px; margin-bottom: 8px; }
+    .avatar { width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; background: #667eea; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
     .follower-info { flex: 1; min-width: 0; }
-    .follower-name { font-weight: 600; color: #333; font-size: 13px; }
+    .follower-name { font-weight: bold; color: #333; font-size: 13px; }
     .follower-user { font-size: 12px; color: #999; }
     .follower-bio { font-size: 11px; color: #666; margin-top: 2px; }
-    .verified { color: #667eea; font-weight: bold; margin-left: 4px; }
-    .message { padding: 12px 16px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; animation: slideIn 0.3s; }
+    .message { padding: 12px 16px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; }
     .message.success { background: #d4edda; color: #155724; }
     .message.error { background: #f8d7da; color: #721c24; }
-    @keyframes slideIn { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     .hidden { display: none; }
-    .delete-btn { background: #ff6b6b; color: white; font-size: 11px; padding: 4px 8px; }
-    @media (max-width: 600px) {
-      .content { padding: 20px; }
-      .header { padding: 20px; }
-      .header h1 { font-size: 22px; }
-      input, button { width: 100%; }
-    }
+    .btn-danger { background: #ff6b6b; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; }
   </style>
 </head>
 <body>
@@ -122,7 +55,7 @@
         <div class="section">
           <h2>Yeni Hesap Oluştur</h2>
           <div class="input-row">
-            <input type="text" id="newAccName" placeholder="@kullaniciadi yazın">
+            <input type="text" id="newAccName" placeholder="@kullaniciadi">
             <button onclick="createAccount()">Oluştur</button>
           </div>
         </div>
@@ -152,15 +85,6 @@
           </div>
           
           <div class="section">
-            <h2>İşlemler</h2>
-            <div class="input-row">
-              <button class="btn-secondary" onclick="loadData()">🔄 Yenile</button>
-              <button class="btn-danger" onclick="deleteFollowers()">🗑️ Takipçileri Sil</button>
-              <button class="btn-danger" onclick="deleteAccount()" style="flex-basis: 100%; min-width: 100%;">❌ Hesabı Sil</button>
-            </div>
-          </div>
-          
-          <div class="section">
             <h2>Takipçiler (<span id="followerCount">0</span>)</h2>
             <div class="followers" id="followersList"></div>
           </div>
@@ -185,7 +109,7 @@
         const list = document.getElementById('accountsList');
         list.innerHTML = '';
         
-        if (!data.accounts.length) {
+        if (!data.accounts || !data.accounts.length) {
           list.innerHTML = '<p style="color: #999;">Hesap yok</p>';
           return;
         }
@@ -203,7 +127,6 @@
         }
       } catch (e) {
         console.error('Hata:', e);
-        showMsg('Hata: Hesapları yükleme başarısız', 'error');
       }
     }
 
@@ -241,43 +164,39 @@
       
       try {
         const res = await fetch(`/api/followers/${selected}`);
-        if (!res.ok) { showMsg('Hesap yüklenemedi', 'error'); return; }
+        if (!res.ok) return;
         
         const data = await res.json();
         const followers = data.followers || [];
         const total = data.total || 0;
         
-        document.getElementById('followerCount').textContent = total.toLocaleString('tr-TR');
-        document.getElementById('stats').innerHTML = `
-          <div class="stat">
-            <div class="stat-label">Toplam Takipçi</div>
-            <div class="stat-value">${total.toLocaleString('tr-TR')}</div>
-          </div>
-        `;
+        document.getElementById('followerCount').textContent = total;
+        document.getElementById('stats').innerHTML = `<div class="stat"><div class="stat-label">Toplam Takipçi</div><div class="stat-value">${total}</div></div>`;
         
         const list = document.getElementById('followersList');
         list.innerHTML = '';
         
-        if (!followers.length) {
+        if (!followers || !followers.length) {
           list.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">Takipçi yok</p>';
           return;
         }
         
         followers.forEach(f => {
+          const firstLetter = f.name ? f.name.charAt(0) : 'U';
           const el = document.createElement('div');
           el.className = 'follower';
           el.innerHTML = `
-            <img class="avatar" src="${f.avatar}">
+            <div class="avatar">${firstLetter}</div>
             <div class="follower-info">
-              <div class="follower-name">${f.name} ${f.verified ? '<span class="verified">✓</span>' : ''}</div>
-              <div class="follower-user">@${f.username}</div>
-              <div class="follower-bio">${f.bio}</div>
+              <div class="follower-name">${f.name || 'Kullanıcı'}</div>
+              <div class="follower-user">@${f.username || 'unknown'}</div>
+              <div class="follower-bio">${f.bio || 'Instagram kullanıcısı'}</div>
             </div>
           `;
           list.appendChild(el);
         });
       } catch (e) {
-        showMsg('Veri yüklenemedi', 'error');
+        console.error('Veri hatası:', e);
       }
     }
 
@@ -321,36 +240,8 @@
       }
     }
 
-    async function deleteFollowers() {
-      if (!selected) { showMsg('Hesap seçin', 'error'); return; }
-      if (!confirm('Tüm takipçileri silelim?')) return;
-      
-      try {
-        await fetch(`/api/followers/${selected}`, { method: 'DELETE' });
-        showMsg('🗑️ Takipçiler silindi');
-        await loadAccounts();
-        await loadData();
-      } catch (e) {
-        showMsg('Hata: ' + e.message, 'error');
-      }
-    }
-
-    async function deleteAccount() {
-      if (!selected) { showMsg('Hesap seçin', 'error'); return; }
-      if (!confirm(`${selected} hesabını tamamen silelim?`)) return;
-      
-      try {
-        await fetch(`/api/account/${selected}`, { method: 'DELETE' });
-        showMsg('❌ Hesap silindi');
-        selected = null;
-        document.getElementById('accountPanel').classList.add('hidden');
-        await loadAccounts();
-      } catch (e) {
-        showMsg('Hata: ' + e.message, 'error');
-      }
-    }
-
     document.addEventListener('DOMContentLoaded', () => {
+      console.log('✅ Sayfa yüklendi');
       loadAccounts();
     });
   </script>

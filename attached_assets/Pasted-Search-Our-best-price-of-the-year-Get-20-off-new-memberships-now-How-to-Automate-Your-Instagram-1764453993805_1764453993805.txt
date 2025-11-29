@@ -1,0 +1,37 @@
+Search
+
+
+Our best price of the year.
+Get 20% off new memberships now.
+How to Automate Your Instagram with Python using instagrapi and replit.com
+
+Aalap Davjekar
+Aalap Davjekar
+
+Follow
+9 min read
+·
+Jul 23, 2024
+
+Listen
+
+Share
+Press enter or click to view image in full size
+A screenshot of the Instragram account where my script has automatically posted images.
+Midjourney outputs automatically uploaded by my script to an IG account.
+Introduction
+This week, I wrote a simple program that takes some images and automatically uploads them one-by-one to an Instagram account.
+If you are not too familiar with Python, I’d recommend starting with a basic version of the script that uploads a single image at a time. However, if you do have some experience with the language, I will walk you through the process of creating a script with a scheduler. We’ll explore how to leverage instagrapi, a fast and robust Python library for interacting with Instagram’s private API. We will be using replit.com, a free, cloud-based development platform, to host and run our script. This approach eliminates the need for local setup and allows your script to run continuously without relying on your personal computer.
+By the end of this tutorial, you’ll have a fully functional Instagram auto-posting script that you can customize and expand to suit your specific needs.
+I created the images using Midjourney, a popular AI image generation tool, and saved them to a folder. The script, when executed, uploads each image from the folder to the account.
+Setting Up the Environment
+Before we dive into coding our script, we need to set up our development environment on replit.com. To do this, you’ll have to:
+Create an account (the free tier will do for this project)
+Create an account. You can sign up using your email, Google account, or GitHub account. Follow the prompts to complete your account creation.
+Create a new Python Repl: Click on the “+” icon on the top right.
+Select “Python” as your language, give your program a name, and click on the blue Create Repl button.
+Press enter or click to view image in full size
+A screenshot of creating a new Repl on replit.com.
+Create a new Repl before we can proceed any further.
+Install required libraries
+In the repl’s shell (usually on the right side of the screen), install the necessary

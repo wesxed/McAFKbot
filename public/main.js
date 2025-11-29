@@ -414,14 +414,16 @@ function showCreateServerForm() {
   if (mapSelect.options.length <= 1) {
     fetch('/api/maps', { headers: { 'Authorization': `Bearer ${token}` } })
       .then(res => res.json())
-      .then(maps => {
+      .then(data => {
+        const maps = Array.isArray(data) ? data : (data.maps || []);
         maps.forEach(map => {
           const opt = document.createElement('option');
           opt.value = map;
           opt.textContent = map;
           mapSelect.appendChild(opt);
         });
-      });
+      })
+      .catch(err => console.error('Harita yükleme hatası:', err));
   }
 }
 

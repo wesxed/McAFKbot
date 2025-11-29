@@ -2,14 +2,32 @@
   {
     "id": "server-1",
     "name": "Türkiye #1 - CS2 Sunucu",
-    "status": "running",
+    "status": "stopped",
     "map": "de_dust2",
     "tickrate": 128,
     "maxPlayers": 10,
     "ip": "play.tr-5234.net",
     "port": 27015,
     "players": [],
-    "logs": ["[Sunucu başlatıldı]"],
+    "logs": [
+      "[Sunucu başlatıldı]",
+      "[12:07:31 PM] Oyuncu katıldı",
+      "[12:07:35 PM] ✅ Sunucu başlatıldı",
+      "[12:07:35 PM] Oyuncu katıldı",
+      "[12:07:36 PM] ✅ Sunucu başlatıldı",
+      "[12:07:45 PM] Oyuncu katıldı",
+      "[12:07:51 PM] Oyuncu katıldı",
+      "[12:07:54 PM] Oyuncu katıldı",
+      "[12:08:03 PM] Oyuncu ayrıldı",
+      "[12:08:14 PM] Oyuncu ayrıldı",
+      "[12:08:32 PM] Oyuncu ayrıldı",
+      "[12:08:54 PM] 🛑 Sunucu durduruldu",
+      "[12:08:55 PM] 🔄 Sunucu yeniden başlatılıyor...",
+      "[12:08:56 PM] ✅ Sunucu başlatıldı",
+      "[12:08:57 PM] ✅ Sunucu başladı",
+      "[12:08:58 PM] Oyuncu katıldı",
+      "[12:08:59 PM] 🛑 Sunucu durduruldu"
+    ],
     "specs": {
       "cpu": "4.0 GHz",
       "ram": "12 GB",
@@ -32,7 +50,9 @@
     "ip": "play.practice-6789.net",
     "port": 27016,
     "players": [],
-    "logs": ["[Sunucu başlatıldı]"],
+    "logs": [
+      "[Sunucu başlatıldı]"
+    ],
     "specs": {
       "cpu": "4.0 GHz",
       "ram": "12 GB",

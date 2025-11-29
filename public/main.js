@@ -172,15 +172,20 @@ async function loadServers() {
       headers: { 'Authorization': `Bearer ${token}` }
     });
 
+    if (!res.ok) throw new Error('Sunucular yüklenemedi');
+    
     servers = await res.json();
     renderServerList();
     
     if (servers.length > 0) {
       if (!currentServer || !servers.find(s => s.id === currentServer)) {
-        selectServer(servers[0].id);
+        currentServer = servers[0].id;
+        await updateServerDisplay();
       } else {
-        updateServerDisplay();
+        await updateServerDisplay();
       }
+    } else {
+      alert('Henüz sunucu oluşturulmamış. Yeni sunucu oluşturunuz.');
     }
 
     // Auto-refresh every 3 seconds
@@ -188,7 +193,8 @@ async function loadServers() {
       window.refreshInterval = setInterval(refreshServers, 3000);
     }
   } catch (err) {
-    console.error(err);
+    console.error('Sunucu yükleme hatası:', err);
+    alert('Sunucular yüklenemedi: ' + err.message);
   }
 }
 
@@ -230,10 +236,15 @@ function selectServer(serverId) {
 }
 
 async function updateServerDisplay() {
+  if (!currentServer) {
+    console.warn('currentServer tanımlı değil');
+    return;
+  }
   try {
     const res = await fetch(`/api/server/${currentServer}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
+    if (!res.ok) throw new Error(`Sunucu bulunamadı (${res.status})`);
     const server = await res.json();
 
     document.getElementById('serverTitle').textContent = server.name;
@@ -290,30 +301,44 @@ async function updateServerDisplay() {
 }
 
 async function startServer() {
-  if (!currentServer) return;
+  if (!currentServer) {
+    alert('Lütfen önce bir sunucu seçin');
+    return;
+  }
   try {
-    await fetch(`/api/server/${currentServer}/start`, {
+    const res = await fetch(`/api/server/${currentServer}/start`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}` }
     });
+    if (!res.ok) {
+      throw new Error('Sunucu başlatılamadı');
+    }
     await new Promise(r => setTimeout(r, 500));
     updateServerDisplay();
+    alert('✅ Sunucu başlatıldı');
   } catch (err) {
-    alert('Hata: ' + err.message);
+    alert('❌ Sunucu başlatma hatası: ' + err.message);
   }
 }
 
 async function stopServer() {
-  if (!currentServer) return;
+  if (!currentServer) {
+    alert('Lütfen önce bir sunucu seçin');
+    return;
+  }
   try {
-    await fetch(`/api/server/${currentServer}/stop`, {
+    const res = await fetch(`/api/server/${currentServer}/stop`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}` }
     });
+    if (!res.ok) {
+      throw new Error('Sunucu durdurulamadı');
+    }
     await new Promise(r => setTimeout(r, 500));
     updateServerDisplay();
+    alert('✅ Sunucu durduruldu');
   } catch (err) {
-    alert('Hata: ' + err.message);
+    alert('❌ Sunucu durdurma hatası: ' + err.message);
   }
 }
 

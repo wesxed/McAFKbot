@@ -4,6 +4,7 @@ let currentServer = 'server-1'; // Always use first server
 let servers = [];
 let serverIP = '';
 let serverPort = '';
+let allMaps = ['de_dust2', 'de_inferno', 'de_mirage', 'de_nuke', 'de_train', 'de_cache', 'de_vertigo', 'cs_office', 'de_cbble'];
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -406,7 +407,7 @@ function copyIP() {
 }
 
 // Create Server Functions
-async function showCreateServerForm() {
+function showCreateServerForm() {
   document.getElementById('createServerModal').style.display = 'flex';
   
   // Clear and populate map options
@@ -416,23 +417,13 @@ async function showCreateServerForm() {
     mapSelect.remove(1);
   }
   
-  try {
-    const res = await fetch('/api/maps', { 
-      headers: { 'Authorization': `Bearer ${token}` } 
-    });
-    const data = await res.json();
-    const maps = Array.isArray(data) ? data : (data.maps || []);
-    
-    maps.forEach(map => {
-      const opt = document.createElement('option');
-      opt.value = map;
-      opt.textContent = map;
-      mapSelect.appendChild(opt);
-    });
-  } catch (err) {
-    console.error('Harita yükleme hatası:', err);
-    alert('Haritalar yüklenemedi');
-  }
+  // Add maps to dropdown
+  allMaps.forEach(map => {
+    const opt = document.createElement('option');
+    opt.value = map;
+    opt.textContent = map;
+    mapSelect.appendChild(opt);
+  });
 }
 
 function hideCreateServerForm() {

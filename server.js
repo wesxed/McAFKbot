@@ -485,7 +485,7 @@ function buildA2SInfoResponse(gameServer) {
   let offset = 0;
   
   // Header
-  buf.writeUInt32LE(0xFFFFFFFF, offset);
+  buf.writeUInt32BE(0xFFFFFFFF, offset);
   offset += 4;
   
   // Type (I for info)
@@ -560,6 +560,7 @@ function buildA2SInfoResponse(gameServer) {
 function createGameServerListener(serverId, port) {
   const socket = dgram.createSocket('udp4');
   let connectionAttempts = 0;
+  const challengeCode = Math.floor(Math.random() * 0xFFFFFFFF);
   
   socket.on('message', (msg, rinfo) => {
     try {
@@ -572,7 +573,7 @@ function createGameServerListener(serverId, port) {
       const type = msg[4];
       const gameServer = servers.find(s => s.id === serverId);
       
-      if (!gameServer || gameServer.status !== 'running') return;
+      if (!gameServer) return;
       
       // A2A_PING (0x69)
       if (type === 0x69) {
@@ -584,14 +585,33 @@ function createGameServerListener(serverId, port) {
       
       // A2S_INFO (0x54)
       else if (type === 0x54) {
+        if (gameServer.status !== 'running') return;
         connectionAttempts++;
         const response = buildA2SInfoResponse(gameServer);
         socket.send(response, rinfo.port, rinfo.address);
-        gameServer.logs.push(`[${new Date().toLocaleTimeString()}] ✅ A2S_INFO İsteği (${connectionAttempts})`);
+        gameServer.logs.push(`[${new Date().toLocaleTimeString()}] ✅ A2S_INFO İsteği`);
       }
       
-      // A2S_PLAYER (0x55)
+      // A2S_PLAYER (0x55) - Challenge required
       else if (type === 0x55) {
+        if (gameServer.status !== 'running') return;
+        
+        let challenge = null;
+        if (msg.length >= 9) {
+          challenge = msg.readUInt32LE(5);
+        }
+        
+        if (!challenge || challenge === 0xFFFFFFFF) {
+          // Return challenge
+          const challengeResp = Buffer.alloc(9);
+          challengeResp.writeUInt32BE(0xFFFFFFFF, 0);
+          challengeResp[4] = 0x41; // 'A' = S2C_CHALLENGE
+          challengeResp.writeUInt32LE(challengeCode, 5);
+          socket.send(challengeResp, rinfo.port, rinfo.address);
+          return;
+        }
+        
+        // Send player list
         let buf = Buffer.alloc(1024);
         let offset = 0;
         buf.writeUInt32BE(0xFFFFFFFF, offset);
@@ -600,22 +620,42 @@ function createGameServerListener(serverId, port) {
         buf.writeUInt8(gameServer.players?.length || 0, offset);
         offset += 1;
         
-        (gameServer.players || []).forEach(p => {
+        (gameServer.players || []).forEach((p, idx) => {
+          buf.writeUInt8(idx, offset);
+          offset += 1;
           const name = p.name.substring(0, 31) + '\0';
           const nameBuf = Buffer.from(name);
           nameBuf.copy(buf, offset);
           offset += nameBuf.length;
           buf.writeUInt32LE(p.score || 0, offset);
           offset += 4;
-          buf.writeFloatLE(Math.random() * 60, offset);
+          buf.writeFloatLE(Math.random() * 600, offset);
           offset += 4;
         });
         
         socket.send(buf.slice(0, offset), rinfo.port, rinfo.address);
       }
       
-      // A2S_RULES (0x56)
+      // A2S_RULES (0x56) - Challenge required
       else if (type === 0x56) {
+        if (gameServer.status !== 'running') return;
+        
+        let challenge = null;
+        if (msg.length >= 9) {
+          challenge = msg.readUInt32LE(5);
+        }
+        
+        if (!challenge || challenge === 0xFFFFFFFF) {
+          // Return challenge
+          const challengeResp = Buffer.alloc(9);
+          challengeResp.writeUInt32BE(0xFFFFFFFF, 0);
+          challengeResp[4] = 0x41; // 'A' = S2C_CHALLENGE
+          challengeResp.writeUInt32LE(challengeCode, 5);
+          socket.send(challengeResp, rinfo.port, rinfo.address);
+          return;
+        }
+        
+        // Send empty rules
         let buf = Buffer.alloc(2048);
         let offset = 0;
         buf.writeUInt32BE(0xFFFFFFFF, offset);
@@ -635,7 +675,7 @@ function createGameServerListener(serverId, port) {
   });
 
   try {
-    socket.bind(port, '0.0.0.0');
+    socket.bind(port, '127.0.0.1');
     console.log(`🎮 UDP Sunucu Port ${port} açıldı (A2S protokol)`);
   } catch (err) {
     console.error(`Port ${port} açılamadı:`, err.message);

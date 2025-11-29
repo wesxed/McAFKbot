@@ -14,14 +14,14 @@ app.get('/', (req, res) => {
   res.redirect('/chatgpt.html');
 });
 
-// Intelligent mock response generator - like ChatGPT
+// Intelligent mock response generator - like ChatGPT (English only)
 function generateMockResponse(userMessage, language = 'auto') {
   const msg = userMessage.toLowerCase();
   
   // Detect question type
-  const isCode = msg.includes('code') || msg.includes('kod') || msg.includes('write') || msg.includes('yaz') || msg.includes('function') || msg.includes('class') || msg.includes('program') || msg.includes('example') || msg.includes('örnek');
-  const isExplain = msg.includes('explain') || msg.includes('what') || msg.includes('how') || msg.includes('nedir') || msg.includes('nasıl') || msg.includes('açıkla') || msg.includes('anlat');
-  const isHelp = msg.includes('help') || msg.includes('error') || msg.includes('problem') || msg.includes('issue') || msg.includes('yardım') || msg.includes('hata') || msg.includes('sorun');
+  const isCode = msg.includes('code') || msg.includes('write') || msg.includes('function') || msg.includes('class') || msg.includes('program') || msg.includes('example');
+  const isExplain = msg.includes('explain') || msg.includes('what') || msg.includes('how') || msg.includes('why') || msg.includes('describe');
+  const isHelp = msg.includes('help') || msg.includes('error') || msg.includes('problem') || msg.includes('issue') || msg.includes('fix') || msg.includes('debug');
   
   const codeLanguageMap = {
     javascript: 'JavaScript',
@@ -115,24 +115,38 @@ public static List<Integer> example() {
   return `Thank you for your question! Here's my analysis:\n\n**Understanding Your Question:**\nYour question touches on an important aspect of modern software development and technology.\n\n**Key Insights:**\n1. **Current State**: This area is rapidly evolving with many new tools and approaches emerging\n2. **Best Practices**: The most effective solutions combine multiple techniques and perspectives\n3. **Practical Application**: Real-world implementation requires consideration of various factors\n\n**Main Considerations:**\n- Performance and efficiency\n- Code maintainability and readability\n- Scalability for future growth\n- Team collaboration and knowledge sharing\n- Testing and quality assurance\n\n**Recommendations:**\n- Start with solid fundamentals\n- Experiment with different approaches\n- Learn from community best practices\n- Build projects to gain hands-on experience\n- Stay updated with industry trends\n\n**Next Steps:**\nCould you provide more context about what you're trying to achieve? This will help me give more specific guidance tailored to your needs.`;
 }
 
-// Get system prompt based on selected language
+// Get system prompt based on selected language with extended thinking
 function getSystemPrompt(language) {
-  const prompts = {
-    auto: 'You are a helpful AI assistant. Answer questions clearly and concisely.',
-    javascript: 'You are an expert JavaScript developer. When asked for code, provide JavaScript/Node.js solutions with clear explanations.',
-    python: 'You are an expert Python developer. When asked for code, provide Python solutions with clear explanations.',
-    typescript: 'You are an expert TypeScript developer. When asked for code, provide TypeScript solutions with clear explanations.',
-    go: 'You are an expert Go developer. When asked for code, provide Go solutions with clear explanations.',
-    rust: 'You are an expert Rust developer. When asked for code, provide Rust solutions with clear explanations and ownership rules.',
-    nodejs: 'You are an expert Node.js developer. When asked for code, provide Node.js/JavaScript solutions with clear explanations.',
-    java: 'You are an expert Java developer. When asked for code, provide Java solutions with clear explanations.',
-    cpp: 'You are an expert C++ developer. When asked for code, provide C++ solutions with clear explanations.',
-    csharp: 'You are an expert C# developer. When asked for code, provide C# solutions with clear explanations.',
-    php: 'You are an expert PHP developer. When asked for code, provide PHP solutions with clear explanations.',
-    ruby: 'You are an expert Ruby developer. When asked for code, provide Ruby solutions with clear explanations.'
+  const basePrompts = {
+    auto: 'You are a world-class AI assistant with exceptional reasoning capabilities. Think deeply about questions before answering. Provide thorough, well-reasoned responses that consider multiple perspectives and edge cases.',
+    javascript: 'You are a world-class JavaScript/Node.js expert. Think deeply about problems. Provide expert-level solutions with detailed explanations of design patterns, performance considerations, and best practices.',
+    python: 'You are a world-class Python expert. Think deeply about problems. Provide expert-level solutions with explanations of data structures, algorithms, and pythonic patterns.',
+    typescript: 'You are a world-class TypeScript expert. Think deeply about problems. Provide expert-level solutions with detailed type system insights and best practices.',
+    go: 'You are a world-class Go expert. Think deeply about problems. Provide expert-level solutions focusing on concurrency, efficiency, and Go idioms.',
+    rust: 'You are a world-class Rust expert. Think deeply about problems. Provide expert-level solutions with detailed explanations of ownership, borrowing, and performance optimization.',
+    nodejs: 'You are a world-class Node.js expert. Think deeply about problems. Provide expert-level solutions with explanations of async patterns, streams, and production best practices.',
+    java: 'You are a world-class Java expert. Think deeply about problems. Provide expert-level solutions with OOP principles and enterprise patterns.',
+    cpp: 'You are a world-class C++ expert. Think deeply about problems. Provide expert-level solutions with memory management, STL, and performance optimization.',
+    csharp: 'You are a world-class C# expert. Think deeply about problems. Provide expert-level solutions with LINQ, async/await, and .NET patterns.',
+    php: 'You are a world-class PHP expert. Think deeply about problems. Provide expert-level solutions with modern PHP practices and architecture.',
+    ruby: 'You are a world-class Ruby expert. Think deeply about problems. Provide expert-level solutions with idiomatic Ruby and Rails patterns.'
   };
-  return prompts[language] || prompts.auto;
+  
+  const basePrompt = basePrompts[language] || basePrompts.auto;
+  
+  return `${basePrompt}
+
+IMPORTANT: Always respond in English only. Use clear, professional language.
+
+When solving problems:
+1. Think through the problem systematically
+2. Consider multiple approaches and their tradeoffs
+3. Explain your reasoning clearly
+4. Provide production-ready solutions
+5. Include relevant context and best practices
+6. Ask clarifying questions if needed`;
 }
+
 
 // AI Chat API Endpoint
 app.post('/api/chat', async (req, res) => {
@@ -148,9 +162,9 @@ app.post('/api/chat', async (req, res) => {
     // Add user message to history
     chatHistories[username].push({ role: 'user', content: message });
     
-    // Keep only last 20 messages for context
-    if (chatHistories[username].length > 20) {
-      chatHistories[username] = chatHistories[username].slice(-20);
+    // Keep extended conversation history (up to 100 messages for deeper context)
+    if (chatHistories[username].length > 100) {
+      chatHistories[username] = chatHistories[username].slice(-100);
     }
     
     // Check if API key exists
@@ -170,7 +184,8 @@ app.post('/api/chat', async (req, res) => {
       const response = await openai.chat.completions.create({
         model: 'gpt-5',
         messages: messagesWithSystem,
-        max_completion_tokens: 1024
+        max_completion_tokens: 4096,
+        temperature: 0.7
       });
       
       const assistantMessage = response.choices[0].message.content;

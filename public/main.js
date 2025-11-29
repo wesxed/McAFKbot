@@ -406,24 +406,32 @@ function copyIP() {
 }
 
 // Create Server Functions
-function showCreateServerForm() {
+async function showCreateServerForm() {
   document.getElementById('createServerModal').style.display = 'flex';
   
-  // Populate map options
+  // Clear and populate map options
   const mapSelect = document.getElementById('newServerMap');
-  if (mapSelect.options.length <= 1) {
-    fetch('/api/maps', { headers: { 'Authorization': `Bearer ${token}` } })
-      .then(res => res.json())
-      .then(data => {
-        const maps = Array.isArray(data) ? data : (data.maps || []);
-        maps.forEach(map => {
-          const opt = document.createElement('option');
-          opt.value = map;
-          opt.textContent = map;
-          mapSelect.appendChild(opt);
-        });
-      })
-      .catch(err => console.error('Harita yükleme hatası:', err));
+  // Remove all options except first
+  while (mapSelect.options.length > 1) {
+    mapSelect.remove(1);
+  }
+  
+  try {
+    const res = await fetch('/api/maps', { 
+      headers: { 'Authorization': `Bearer ${token}` } 
+    });
+    const data = await res.json();
+    const maps = Array.isArray(data) ? data : (data.maps || []);
+    
+    maps.forEach(map => {
+      const opt = document.createElement('option');
+      opt.value = map;
+      opt.textContent = map;
+      mapSelect.appendChild(opt);
+    });
+  } catch (err) {
+    console.error('Harita yükleme hatası:', err);
+    alert('Haritalar yüklenemedi');
   }
 }
 

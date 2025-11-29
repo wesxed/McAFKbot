@@ -161,6 +161,12 @@ app.post('/api/server/create', authenticate, (req, res) => {
     port: 27000 + servers.length,
     players: [],
     logs: [`[${new Date().toLocaleTimeString()}] Sunucu oluşturuldu`],
+    specs: {
+      cpu: '4.0 GHz',
+      ram: '12 GB',
+      storage: '100 GB',
+      lag: 'Yok'
+    },
     config: { sv_gravity: 800, mp_freezetime: 15, mp_roundtime: 35 }
   };
   

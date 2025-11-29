@@ -14,18 +14,105 @@ app.get('/', (req, res) => {
   res.redirect('/chatgpt.html');
 });
 
-// Mock response for demo/testing
-function generateMockResponse(userMessage) {
-  const responses = [
-    `"${userMessage}" iyi bir soru. Bu konuda şu bilgileri söyleyebilirim: AI teknolojisi hızla gelişiyor ve uygulamaları çok geniş.`,
-    `${userMessage} hakkında düşündüğümüzde, bunun birçok yönü var. Detaylar şöyle açıklanabilir: Modern teknoloji her gün yenileniyor.`,
-    `Sordığunuz "${userMessage}" sorusuna yanıt olarak: Yapay zeka, makine öğrenmesi ve derin öğrenme en popüler alanlardır.`,
-    `"${userMessage}" konusunda söyleyeceklerim: Web uygulamaları, mobil uygulamalar ve API'ler günümüzün temel bileşenleridir.`,
-    `Harika bir soru: ${userMessage}. Bunu düşünürsek, JavaScript, Python ve TypeScript en çok kullanılan dillerdir.`,
-    `${userMessage} ile ilgili olarak: Yazılım geliştirme, veri analizi ve bulut hesaplama önemli becerilerdir.`,
-    `"${userMessage}" açısından: Replit, Vercel, Netlify gibi platformlar modern geliştirmeyi kolaylaştırıyor.`
-  ];
-  return responses[Math.floor(Math.random() * responses.length)];
+// Intelligent mock response generator - like ChatGPT
+function generateMockResponse(userMessage, language = 'auto') {
+  const msg = userMessage.toLowerCase();
+  
+  // Detect question type
+  const isCode = msg.includes('code') || msg.includes('kod') || msg.includes('write') || msg.includes('yaz') || msg.includes('function') || msg.includes('class') || msg.includes('program') || msg.includes('example') || msg.includes('örnek');
+  const isExplain = msg.includes('explain') || msg.includes('what') || msg.includes('how') || msg.includes('nedir') || msg.includes('nasıl') || msg.includes('açıkla') || msg.includes('anlat');
+  const isHelp = msg.includes('help') || msg.includes('error') || msg.includes('problem') || msg.includes('issue') || msg.includes('yardım') || msg.includes('hata') || msg.includes('sorun');
+  
+  const codeLanguageMap = {
+    javascript: 'JavaScript',
+    python: 'Python',
+    typescript: 'TypeScript',
+    go: 'Go',
+    rust: 'Rust',
+    nodejs: 'Node.js',
+    java: 'Java',
+    cpp: 'C++',
+    csharp: 'C#',
+    php: 'PHP',
+    ruby: 'Ruby'
+  };
+  
+  const lang = codeLanguageMap[language] || 'the requested language';
+  
+  if (isCode) {
+    const codeExamples = {
+      javascript: `// Here's an example in JavaScript:
+function example() {
+  const data = [];
+  for (let i = 0; i < 10; i++) {
+    data.push(i * 2);
+  }
+  return data;
+}
+
+console.log(example());`,
+      python: `# Here's an example in Python:
+def example():
+    data = []
+    for i in range(10):
+        data.append(i * 2)
+    return data
+
+print(example())`,
+      typescript: `// Here's an example in TypeScript:
+function example(): number[] {
+  const data: number[] = [];
+  for (let i = 0; i < 10; i++) {
+    data.push(i * 2);
+  }
+  return data;
+}
+
+console.log(example());`,
+      go: `// Here's an example in Go:
+package main
+import "fmt"
+
+func example() []int {
+    data := []int{}
+    for i := 0; i < 10; i++ {
+        data = append(data, i*2)
+    }
+    return data
+}`,
+      rust: `// Here's an example in Rust:
+fn example() -> Vec<i32> {
+    let mut data: Vec<i32> = Vec::new();
+    for i in 0..10 {
+        data.push(i * 2);
+    }
+    data
+}`,
+      java: `// Here's an example in Java:
+public static List<Integer> example() {
+    List<Integer> data = new ArrayList<>();
+    for (int i = 0; i < 10; i++) {
+        data.add(i * 2);
+    }
+    return data;
+}`
+    };
+    
+    const baseExample = codeExamples[language] || codeExamples.javascript;
+    
+    return `I'd be happy to help with ${lang}! Here's a practical example:\n\n${baseExample}\n\nThis demonstrates the basic pattern. You can modify this based on your specific needs. Would you like me to explain any part of this or help you adapt it for a specific use case?`;
+  }
+  
+  if (isHelp) {
+    return `I understand you're facing an issue. Let me help you troubleshoot this:\n\n1. **Identify the problem**: What exactly is happening when you encounter this? Any error messages?\n\n2. **Check the basics**:\n   - Verify your syntax and spelling\n   - Make sure all imports/dependencies are included\n   - Check your file paths and configurations\n\n3. **Debug systematically**:\n   - Add console logs or print statements to trace execution\n   - Test small parts of your code in isolation\n   - Check your environment variables and settings\n\n4. **Search for solutions**: Search error messages online - you might find existing solutions\n\nCan you share more details about what's happening? That will help me give you more specific guidance.`;
+  }
+  
+  if (isExplain) {
+    return `That's a great question! Let me break this down for you:\n\n**Key Points:**\n• This concept relates to understanding how systems work together\n• It involves several important components that interact\n• Understanding each part helps you grasp the whole picture\n\n**How it works:**\n1. First, the foundation - you need to understand the basics\n2. Then, you build on that knowledge progressively\n3. Finally, you can combine these ideas into complex solutions\n\n**Real-world Application:**\nThis principle applies across many areas in software development, data science, and system design.\n\n**Further Learning:**\n- Start with fundamentals and examples\n- Practice implementing small projects\n- Gradually increase complexity\n- Join communities to learn from others\n\nWould you like me to dive deeper into any specific aspect?`;
+  }
+  
+  // Default thoughtful response
+  return `Thank you for your question! Here's my analysis:\n\n**Understanding Your Question:**\nYour question touches on an important aspect of modern software development and technology.\n\n**Key Insights:**\n1. **Current State**: This area is rapidly evolving with many new tools and approaches emerging\n2. **Best Practices**: The most effective solutions combine multiple techniques and perspectives\n3. **Practical Application**: Real-world implementation requires consideration of various factors\n\n**Main Considerations:**\n- Performance and efficiency\n- Code maintainability and readability\n- Scalability for future growth\n- Team collaboration and knowledge sharing\n- Testing and quality assurance\n\n**Recommendations:**\n- Start with solid fundamentals\n- Experiment with different approaches\n- Learn from community best practices\n- Build projects to gain hands-on experience\n- Stay updated with industry trends\n\n**Next Steps:**\nCould you provide more context about what you're trying to achieve? This will help me give more specific guidance tailored to your needs.`;
 }
 
 // Get system prompt based on selected language
@@ -68,7 +155,7 @@ app.post('/api/chat', async (req, res) => {
     
     // Check if API key exists
     if (!process.env.OPENAI_API_KEY) {
-      const mockResp = generateMockResponse(message);
+      const mockResp = generateMockResponse(message, language);
       chatHistories[username].push({ role: 'assistant', content: mockResp });
       return res.json({ response: mockResp, demo: true });
     }
@@ -96,7 +183,7 @@ app.post('/api/chat', async (req, res) => {
       
       if (apiError.status === 429 || apiError.message.includes('quota')) {
         // Quota exceeded - use fallback
-        const mockResp = generateMockResponse(message);
+        const mockResp = generateMockResponse(message, language);
         chatHistories[username].push({ role: 'assistant', content: mockResp });
         return res.json({ response: mockResp, demo: true, notice: 'Demo Mode: OpenAI quota aşıldı.' });
       }
@@ -107,7 +194,7 @@ app.post('/api/chat', async (req, res) => {
     console.error('Chat Hata:', error.message);
     
     // Last resort: generate mock response
-    const mockResp = generateMockResponse(req.body.message);
+    const mockResp = generateMockResponse(req.body.message, language);
     const chat = chatHistories[username];
     if (chat) {
       chat.push({ role: 'assistant', content: mockResp });

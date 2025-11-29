@@ -192,9 +192,26 @@ async function loadServers() {
     if (!window.refreshInterval) {
       window.refreshInterval = setInterval(refreshServers, 3000);
     }
+    
+    loadSystemInfo();
   } catch (err) {
     console.error('Sunucu yükleme hatası:', err);
     alert('Sunucular yüklenemedi: ' + err.message);
+  }
+}
+
+async function loadSystemInfo() {
+  try {
+    const res = await fetch('/api/system-info', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const info = await res.json();
+    const sysBox = document.getElementById('systemInfo');
+    if (sysBox) {
+      sysBox.innerHTML = `<div class="system-grid"><div class="sys-item"><span class="sys-label">💻 İşletim Sistemi</span><span class="sys-value">${info.os}</span></div><div class="sys-item"><span class="sys-label">⚙️ İşlemci</span><span class="sys-value">${info.cpuModel}</span></div><div class="sys-item"><span class="sys-label">🔧 Hız</span><span class="sys-value">${info.cpuSpeed}</span></div><div class="sys-item"><span class="sys-label">📊 Çekirdek</span><span class="sys-value">${info.cpuCores}</span></div><div class="sys-item"><span class="sys-label">🧠 RAM</span><span class="sys-value">${info.usedMemGB}/${info.totalMemGB} GB (${info.memPercent}%)</span></div><div class="sys-item"><span class="sys-label">💾 Disk</span><span class="sys-value">${info.usedDiskGB}/${info.totalDiskGB} GB (${info.diskPercent}%)</span></div><div class="sys-item"><span class="sys-label">🌐 Bilgisayar</span><span class="sys-value">${info.hostname}</span></div><div class="sys-item"><span class="sys-label">⏱️ Uptime</span><span class="sys-value">${info.uptime}</span></div></div>`;
+    }
+  } catch (err) {
+    console.error('Sistem bilgisi hatası:', err);
   }
 }
 

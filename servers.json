@@ -2,94 +2,13 @@
   {
     "id": "server-1",
     "name": "Türkiye #1 - CS2 Sunucu",
-    "status": "running",
+    "status": "stopped",
     "map": "de_dust2",
     "tickrate": 128,
     "maxPlayers": 10,
     "ip": "127.0.0.1",
     "port": 27015,
-    "players": [
-      {
-        "id": "player-1764418755939",
-        "name": "Asker269",
-        "score": 690,
-        "kills": 36,
-        "deaths": 21,
-        "ping": 94
-      },
-      {
-        "id": "player-1764418969933",
-        "name": "Alpha376",
-        "score": 155,
-        "kills": 13,
-        "deaths": 17,
-        "ping": 117
-      },
-      {
-        "id": "player-1764418989935",
-        "name": "Sigma838",
-        "score": 320,
-        "kills": 16,
-        "deaths": 8,
-        "ping": 53
-      },
-      {
-        "id": "player-1764419009938",
-        "name": "Ninja636",
-        "score": 70,
-        "kills": 6,
-        "deaths": 8,
-        "ping": 17
-      },
-      {
-        "id": "player-1764419019940",
-        "name": "Delta644",
-        "score": 295,
-        "kills": 15,
-        "deaths": 8,
-        "ping": 31
-      },
-      {
-        "id": "player-1764419114956",
-        "name": "Falcon387",
-        "score": 120,
-        "kills": 6,
-        "deaths": 3,
-        "ping": 15
-      },
-      {
-        "id": "player-1764419154962",
-        "name": "Delta177",
-        "score": 5,
-        "kills": 1,
-        "deaths": 2,
-        "ping": 15
-      },
-      {
-        "id": "player-1764419159961",
-        "name": "Ninja410",
-        "score": 30,
-        "kills": 2,
-        "deaths": 2,
-        "ping": 20
-      },
-      {
-        "id": "player-1764419164962",
-        "name": "Şef191",
-        "score": 90,
-        "kills": 4,
-        "deaths": 1,
-        "ping": 30
-      },
-      {
-        "id": "player-1764419179963",
-        "name": "Ninja685",
-        "score": -10,
-        "kills": 0,
-        "deaths": 1,
-        "ping": 45
-      }
-    ],
+    "players": [],
     "logs": [
       "[✅] Sunucu başlatıldı",
       "[✅] Oyuncu bağlantıları aktif",
@@ -218,7 +137,13 @@
       "[12:25:59 PM] ✅ Ninja410 sunucuya katıldı",
       "[12:26:04 PM] ✅ Şef191 sunucuya katıldı",
       "[12:26:14 PM] 🔴 Falcon189 ayrıldı",
-      "[12:26:19 PM] ✅ Ninja685 sunucuya katıldı"
+      "[12:26:19 PM] ✅ Ninja685 sunucuya katıldı",
+      "[12:26:44 PM] 🔴 Şef191 ayrıldı",
+      "[12:26:49 PM] ✅ Phoenix778 sunucuya katıldı",
+      "[12:27:14 PM] 🔴 Phoenix778 ayrıldı",
+      "[12:27:29 PM] ✅ Alpha990 sunucuya katıldı",
+      "[12:28:09 PM] 🔴 Ninja685 ayrıldı",
+      "[12:28:27 PM] 🛑 Sunucu durduruldu"
     ],
     "specs": {
       "cpu": "4.0 GHz",
@@ -243,44 +168,36 @@
     "port": 27016,
     "players": [
       {
-        "id": "player-1764418869905-1",
-        "name": "Echo0",
-        "score": 465,
-        "kills": 25,
-        "deaths": 16,
-        "ping": 15
-      },
-      {
         "id": "player-1764418924931",
         "name": "Asker77",
-        "score": 400,
-        "kills": 18,
-        "deaths": 5,
-        "ping": 34
+        "score": 430,
+        "kills": 20,
+        "deaths": 7,
+        "ping": 23
       },
       {
-        "id": "player-1764419129960",
-        "name": "Kahraman705",
-        "score": -20,
-        "kills": 0,
-        "deaths": 2,
-        "ping": 46
+        "id": "player-1764419294979",
+        "name": "Delta656",
+        "score": 125,
+        "kills": 5,
+        "deaths": 0,
+        "ping": 59
       },
       {
-        "id": "player-1764419154962",
-        "name": "Pilot272",
-        "score": -10,
-        "kills": 0,
-        "deaths": 1,
-        "ping": 20
+        "id": "player-1764419299656-0",
+        "name": "Zirve902",
+        "score": 560,
+        "kills": 24,
+        "deaths": 4,
+        "ping": 36
       },
       {
-        "id": "player-1764419159962",
-        "name": "Phoenix546",
-        "score": 65,
-        "kills": 3,
-        "deaths": 1,
-        "ping": 28
+        "id": "player-1764419299656-1",
+        "name": "Takım501",
+        "score": 405,
+        "kills": 23,
+        "deaths": 17,
+        "ping": 38
       }
     ],
     "logs": [
@@ -345,7 +262,15 @@
       "[12:25:34 PM] 🔴 Asker872 ayrıldı",
       "[12:25:44 PM] 🔴 Zirve732 ayrıldı",
       "[12:25:54 PM] ✅ Pilot272 sunucuya katıldı",
-      "[12:25:59 PM] ✅ Phoenix546 sunucuya katıldı"
+      "[12:25:59 PM] ✅ Phoenix546 sunucuya katıldı",
+      "[12:27:14 PM] 🔴 Echo0 ayrıldı",
+      "[12:27:44 PM] 🔴 Kahraman705 ayrıldı",
+      "[12:27:54 PM] ✅ Pilot996 sunucuya katıldı",
+      "[12:28:04 PM] 🔴 Pilot272 ayrıldı",
+      "[12:28:09 PM] 🔴 Phoenix546 ayrıldı",
+      "[12:28:14 PM] ✅ Delta656 sunucuya katıldı",
+      "[12:28:29 PM] 🔴 Pilot996 ayrıldı",
+      "[12:28:34 PM] 🔴 Asker210 ayrıldı"
     ],
     "specs": {
       "cpu": "4.0 GHz",

@@ -3,6 +3,8 @@ import fs from 'fs-extra';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dgram from 'dgram';
+import os from 'os';
+import { execSync } from 'child_process';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -237,6 +239,51 @@ app.get('/api/maps', authenticate, (req, res) => {
 // Get packages
 app.get('/api/packages', authenticate, (req, res) => {
   res.json(serverPackages);
+});
+
+// Get system info
+app.get('/api/system-info', authenticate, (req, res) => {
+  const cpus = os.cpus();
+  const totalMem = os.totalmem();
+  const freeMem = os.freemem();
+  const usedMem = totalMem - freeMem;
+  
+  let diskSpace = { total: 0, free: 0, used: 0 };
+  try {
+    const result = execSync('df -B1 / 2>/dev/null | tail -1').toString().split(/\s+/);
+    if (result.length >= 3) {
+      diskSpace.total = parseInt(result[1]) || 0;
+      diskSpace.free = parseInt(result[3]) || 0;
+      diskSpace.used = diskSpace.total - diskSpace.free;
+    }
+  } catch (e) {
+    try {
+      const result = execSync('wmic logicaldisk get size,freespace | findstr C:').toString().split(/\s+/);
+      if (result.length >= 2) {
+        diskSpace.total = parseInt(result[0]) || 0;
+        diskSpace.free = parseInt(result[1]) || 0;
+        diskSpace.used = diskSpace.total - diskSpace.free;
+      }
+    } catch (e2) {}
+  }
+
+  res.json({
+    os: os.type() + ' ' + os.release(),
+    arch: os.arch(),
+    cpuCores: cpus.length,
+    cpuModel: cpus[0].model,
+    cpuSpeed: (cpus[0].speed / 1000).toFixed(2) + ' GHz',
+    totalMemGB: (totalMem / 1024 / 1024 / 1024).toFixed(2),
+    usedMemGB: (usedMem / 1024 / 1024 / 1024).toFixed(2),
+    freeMemGB: (freeMem / 1024 / 1024 / 1024).toFixed(2),
+    memPercent: ((usedMem / totalMem) * 100).toFixed(1),
+    totalDiskGB: (diskSpace.total / 1024 / 1024 / 1024).toFixed(2),
+    usedDiskGB: (diskSpace.used / 1024 / 1024 / 1024).toFixed(2),
+    freeDiskGB: (diskSpace.free / 1024 / 1024 / 1024).toFixed(2),
+    diskPercent: diskSpace.total > 0 ? ((diskSpace.used / diskSpace.total) * 100).toFixed(1) : 0,
+    uptime: (os.uptime() / 3600).toFixed(1) + ' hours',
+    hostname: os.hostname()
+  });
 });
 
 // Start game simulation

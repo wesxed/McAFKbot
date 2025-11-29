@@ -1,5 +1,6 @@
 import express from 'express';
 import OpenAI from 'openai';
+import fetch from 'node-fetch';
 
 const app = express();
 app.use(express.json());
@@ -9,6 +10,51 @@ app.use(express.static('public'));
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const chatHistories = {};
 const userSessions = {};
+
+// Perplexity web search - research on the internet
+async function searchWithPerplexity(query, inputLanguage = 'en') {
+  if (!process.env.PERPLEXITY_API_KEY) return null;
+  
+  try {
+    const response = await fetch('https://api.perplexity.ai/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'llama-3.1-sonar-small-128k-online',
+        messages: [
+          {
+            role: 'system',
+            content: inputLanguage === 'tr' 
+              ? 'Kısa, net ve doğru cevaplar ver. Güncel bilgi sağla.'
+              : 'Be precise, concise, and provide current information.'
+          },
+          {
+            role: 'user',
+            content: query
+          }
+        ],
+        max_tokens: 1024,
+        temperature: 0.7,
+        top_p: 0.9,
+        stream: false
+      })
+    });
+
+    if (!response.ok) {
+      console.error('Perplexity API error:', response.status);
+      return null;
+    }
+
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content || null;
+  } catch (error) {
+    console.error('Web search error:', error.message);
+    return null;
+  }
+}
 
 // Redirect root to ChatGPT page
 app.get('/', (req, res) => {
@@ -129,8 +175,16 @@ public static List<Integer> example() {
     return `That's a great question! Let me break this down for you:\n\n**Key Points:**\n• This concept relates to understanding how systems work together\n• It involves several important components that interact\n• Understanding each part helps you grasp the whole picture\n\n**How it works:**\n1. First, the foundation - you need to understand the basics\n2. Then, you build on that knowledge progressively\n3. Finally, you can combine these ideas into complex solutions\n\n**Real-world Application:**\nThis principle applies across many areas in software development, data science, and system design.\n\n**Further Learning:**\n- Start with fundamentals and examples\n- Practice implementing small projects\n- Gradually increase complexity\n- Join communities to learn from others\n\nWould you like me to dive deeper into any specific aspect?`;
   }
   
-  // Default thoughtful response
-  return `Thank you for your question! Here's my analysis:\n\n**Understanding Your Question:**\nYour question touches on an important aspect of modern software development and technology.\n\n**Key Insights:**\n1. **Current State**: This area is rapidly evolving with many new tools and approaches emerging\n2. **Best Practices**: The most effective solutions combine multiple techniques and perspectives\n3. **Practical Application**: Real-world implementation requires consideration of various factors\n\n**Main Considerations:**\n- Performance and efficiency\n- Code maintainability and readability\n- Scalability for future growth\n- Team collaboration and knowledge sharing\n- Testing and quality assurance\n\n**Recommendations:**\n- Start with solid fundamentals\n- Experiment with different approaches\n- Learn from community best practices\n- Build projects to gain hands-on experience\n- Stay updated with industry trends\n\n**Next Steps:**\nCould you provide more context about what you're trying to achieve? This will help me give more specific guidance tailored to your needs.`;
+  // Default thoughtful responses - varied
+  const defaultResponses = [
+    `That's an interesting question! Let me think through this systematically:\n\n**Analysis:**\n1. **Context**: Your question relates to important modern practices\n2. **Key Factors**: Multiple approaches and trade-offs exist\n3. **Implementation**: Success depends on understanding your specific needs\n\n**Approach:**\n- Research current best practices\n- Consider your constraints and resources\n- Test solutions progressively\n- Gather feedback and iterate\n\n**Resources:**\n- Community documentation\n- Industry case studies\n- Hands-on experimentation\n- Peer discussion\n\nWhat specific aspect would you like me to dive deeper into?`,
+    
+    `Great question! Here's my perspective:\n\n**Understanding the Topic:**\nThis involves several interconnected concepts that work together.\n\n**Key Points:**\n• Multiple valid approaches exist\n• Context matters significantly\n• Best practices evolve over time\n• Practical experience teaches valuable lessons\n\n**Strategic Steps:**\n1. Understand the fundamentals\n2. Explore different implementations\n3. Test in realistic scenarios\n4. Learn from results\n5. Refine your approach\n\n**Further Exploration:**\n- Read authoritative sources\n- Study real-world examples\n- Experiment hands-on\n- Connect with experts\n\nWould you like me to elaborate on any part?`,
+    
+    `Excellent question! Let me break this down for you:\n\n**The Big Picture:**\nThis topic involves balancing several important considerations.\n\n**Key Elements:**\n- Theory and practice\n- Performance and maintainability\n- Current standards and future trends\n- Your specific use case\n\n**Practical Strategy:**\nStart with foundations → Explore options → Test approaches → Learn from feedback → Optimize\n\n**Important Considerations:**\n✓ Code quality and readability\n✓ Performance metrics\n✓ Maintenance burden\n✓ Team expertise\n✓ Long-term scalability\n\n**Next Steps:**\nShare more details about your specific scenario, and I can provide more targeted guidance.`,
+  ];
+  
+  return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
 }
 
 // Get system prompt based on selected language with extended thinking and input language detection
@@ -170,7 +224,7 @@ When solving problems:
 }
 
 
-// Streaming Chat API Endpoint (SSE)
+// Streaming Chat API Endpoint (SSE) - Try Perplexity first for web search
 app.post('/api/chat/stream', async (req, res) => {
   const { message, username, language } = req.body;
   if (!message || !username) return res.status(400).json({ error: 'Message required' });
@@ -191,6 +245,19 @@ app.post('/api/chat/stream', async (req, res) => {
       chatHistories[username] = chatHistories[username].slice(-100);
     }
     
+    // Try Perplexity first (web search with current info)
+    let fullResponse = null;
+    if (process.env.PERPLEXITY_API_KEY && message.length > 3) {
+      fullResponse = await searchWithPerplexity(message, inputLanguage);
+      if (fullResponse) {
+        console.log('Using Perplexity web search for answer');
+        chatHistories[username].push({ role: 'assistant', content: fullResponse });
+        res.write(`data: ${JSON.stringify({ text: fullResponse, done: true, search: true })}\n\n`);
+        return res.end();
+      }
+    }
+    
+    // Fallback to OpenAI
     if (!process.env.OPENAI_API_KEY) {
       const mockResp = generateMockResponse(message, language, inputLanguage);
       chatHistories[username].push({ role: 'assistant', content: mockResp });
@@ -211,7 +278,7 @@ app.post('/api/chat/stream', async (req, res) => {
       stream: true
     });
 
-    let fullResponse = '';
+    fullResponse = '';
     for await (const chunk of stream) {
       const text = chunk.choices[0]?.delta?.content || '';
       if (text) {
@@ -254,6 +321,15 @@ app.post('/api/chat', async (req, res) => {
     // Keep extended conversation history (up to 100 messages for deeper context)
     if (chatHistories[username].length > 100) {
       chatHistories[username] = chatHistories[username].slice(-100);
+    }
+    
+    // Try Perplexity first for web search
+    if (process.env.PERPLEXITY_API_KEY && message.length > 3) {
+      const webResult = await searchWithPerplexity(message, inputLanguage);
+      if (webResult) {
+        chatHistories[username].push({ role: 'assistant', content: webResult });
+        return res.json({ response: webResult, search: true });
+      }
     }
     
     // Check if API key exists

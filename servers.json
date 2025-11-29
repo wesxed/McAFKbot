@@ -12,66 +12,82 @@
       {
         "id": "player-1764418755939",
         "name": "Asker269",
-        "score": 325,
-        "kills": 17,
-        "deaths": 10,
-        "ping": 98
+        "score": 690,
+        "kills": 36,
+        "deaths": 21,
+        "ping": 94
       },
       {
-        "id": "player-1764418820679",
-        "name": "Delta537",
-        "score": 200,
-        "kills": 10,
-        "deaths": 5,
-        "ping": 19
+        "id": "player-1764418969933",
+        "name": "Alpha376",
+        "score": 155,
+        "kills": 13,
+        "deaths": 17,
+        "ping": 117
       },
       {
-        "id": "player-1764418840948",
-        "name": "Pilot479",
-        "score": 25,
-        "kills": 3,
-        "deaths": 5,
+        "id": "player-1764418989935",
+        "name": "Sigma838",
+        "score": 320,
+        "kills": 16,
+        "deaths": 8,
+        "ping": 53
+      },
+      {
+        "id": "player-1764419009938",
+        "name": "Ninja636",
+        "score": 70,
+        "kills": 6,
+        "deaths": 8,
+        "ping": 17
+      },
+      {
+        "id": "player-1764419019940",
+        "name": "Delta644",
+        "score": 295,
+        "kills": 15,
+        "deaths": 8,
+        "ping": 31
+      },
+      {
+        "id": "player-1764419114956",
+        "name": "Falcon387",
+        "score": 120,
+        "kills": 6,
+        "deaths": 3,
+        "ping": 15
+      },
+      {
+        "id": "player-1764419154962",
+        "name": "Delta177",
+        "score": 5,
+        "kills": 1,
+        "deaths": 2,
+        "ping": 15
+      },
+      {
+        "id": "player-1764419159961",
+        "name": "Ninja410",
+        "score": 30,
+        "kills": 2,
+        "deaths": 2,
         "ping": 20
       },
       {
-        "id": "player-1764418855948",
-        "name": "Pilot610",
-        "score": 145,
-        "kills": 7,
-        "deaths": 3,
+        "id": "player-1764419164962",
+        "name": "Şef191",
+        "score": 90,
+        "kills": 4,
+        "deaths": 1,
         "ping": 30
       },
       {
-        "id": "player-1764418860949",
-        "name": "Pilot624",
+        "id": "player-1764419179963",
+        "name": "Ninja685",
         "score": -10,
         "kills": 0,
         "deaths": 1,
-        "ping": 55
-      },
-      {
-        "id": "player-1764418869904-0",
-        "name": "Kahraman227",
-        "score": 150,
-        "kills": 8,
-        "deaths": 5,
         "ping": 45
-      },
-      {
-        "id": "player-1764418869904-1",
-        "name": "Pilot873",
-        "score": 365,
-        "kills": 17,
-        "deaths": 6,
-        "ping": 27
-      },
-      {
-        "id": "player-1764418869904-2",
-        "name": "Asker314",
-        "score": -75,
-        "kills": 5,
-        "deaths": 20,
-        "ping": 41
       }
     ],
     "logs": [
@@ -174,7 +190,35 @@
       "[12:20:55 PM] ✅ Pilot610 sunucuya katıldı",
       "[12:21:00 PM] ✅ Pilot624 sunucuya katıldı",
       "[12:21:24 PM] 🔴 Delta569 ayrıldı",
-      "[12:21:29 PM] 🔴 Oyuncu619 ayrıldı"
+      "[12:21:29 PM] 🔴 Oyuncu619 ayrıldı",
+      "[12:21:44 PM] ✅ Takım886 sunucuya katıldı",
+      "[12:21:59 PM] 🔴 Takım886 ayrıldı",
+      "[12:22:09 PM] ✅ Phoenix451 sunucuya katıldı",
+      "[12:22:24 PM] 🔴 Kahraman227 ayrıldı",
+      "[12:22:44 PM] 🔴 Pilot624 ayrıldı",
+      "[12:22:49 PM] ✅ Alpha376 sunucuya katıldı",
+      "[12:22:49 PM] 🔴 Asker314 ayrıldı",
+      "[12:22:54 PM] ✅ Delta381 sunucuya katıldı",
+      "[12:22:59 PM] 🔴 Pilot610 ayrıldı",
+      "[12:23:09 PM] ✅ Sigma838 sunucuya katıldı",
+      "[12:23:19 PM] 🔴 Delta381 ayrıldı",
+      "[12:23:29 PM] ✅ Ninja636 sunucuya katıldı",
+      "[12:23:34 PM] 🔴 Delta537 ayrıldı",
+      "[12:23:39 PM] ✅ Delta644 sunucuya katıldı",
+      "[12:23:44 PM] 🔴 Pilot479 ayrıldı",
+      "[12:23:49 PM] ✅ Sigma273 sunucuya katıldı",
+      "[12:24:34 PM] ✅ Falcon189 sunucuya katıldı",
+      "[12:24:44 PM] ✅ Kahraman89 sunucuya katıldı",
+      "[12:24:54 PM] 🔴 Pilot873 ayrıldı",
+      "[12:25:14 PM] ✅ Falcon387 sunucuya katıldı",
+      "[12:25:14 PM] 🔴 Kahraman89 ayrıldı",
+      "[12:25:49 PM] 🔴 Sigma273 ayrıldı",
+      "[12:25:54 PM] ✅ Delta177 sunucuya katıldı",
+      "[12:25:54 PM] 🔴 Phoenix451 ayrıldı",
+      "[12:25:59 PM] ✅ Ninja410 sunucuya katıldı",
+      "[12:26:04 PM] ✅ Şef191 sunucuya katıldı",
+      "[12:26:14 PM] 🔴 Falcon189 ayrıldı",
+      "[12:26:19 PM] ✅ Ninja685 sunucuya katıldı"
     ],
     "specs": {
       "cpu": "4.0 GHz",
@@ -199,44 +243,44 @@
     "port": 27016,
     "players": [
       {
-        "id": "player-1764418795678",
-        "name": "Delta596",
-        "score": 145,
-        "kills": 7,
-        "deaths": 3,
-        "ping": 75
-      },
-      {
-        "id": "player-1764418825681",
-        "name": "Phoenix861",
-        "score": 30,
-        "kills": 2,
-        "deaths": 2,
-        "ping": 39
-      },
-      {
-        "id": "player-1764418869905-0",
-        "name": "Şef841",
-        "score": 525,
-        "kills": 25,
-        "deaths": 10,
-        "ping": 35
-      },
-      {
         "id": "player-1764418869905-1",
         "name": "Echo0",
-        "score": 255,
-        "kills": 11,
-        "deaths": 2,
-        "ping": 71
+        "score": 465,
+        "kills": 25,
+        "deaths": 16,
+        "ping": 15
       },
       {
-        "id": "player-1764418869905-2",
-        "name": "Oyuncu654",
-        "score": 665,
-        "kills": 31,
-        "deaths": 11,
-        "ping": 15
+        "id": "player-1764418924931",
+        "name": "Asker77",
+        "score": 400,
+        "kills": 18,
+        "deaths": 5,
+        "ping": 34
+      },
+      {
+        "id": "player-1764419129960",
+        "name": "Kahraman705",
+        "score": -20,
+        "kills": 0,
+        "deaths": 2,
+        "ping": 46
+      },
+      {
+        "id": "player-1764419154962",
+        "name": "Pilot272",
+        "score": -10,
+        "kills": 0,
+        "deaths": 1,
+        "ping": 20
+      },
+      {
+        "id": "player-1764419159962",
+        "name": "Phoenix546",
+        "score": 65,
+        "kills": 3,
+        "deaths": 1,
+        "ping": 28
       }
     ],
     "logs": [
@@ -279,22 +323,35 @@
       "[12:20:35 PM] ✅ Oyuncu978 sunucuya katıldı",
       "[12:20:55 PM] ✅ Alpha405 sunucuya katıldı",
       "[12:21:19 PM] 🔴 Oyuncu978 ayrıldı",
-      "[12:21:34 PM] 🔴 Alpha405 ayrıldı"
+      "[12:21:34 PM] 🔴 Alpha405 ayrıldı",
+      "[12:21:54 PM] 🔴 Oyuncu654 ayrıldı",
+      "[12:22:04 PM] ✅ Asker77 sunucuya katıldı",
+      "[12:22:44 PM] 🔴 Delta596 ayrıldı",
+      "[12:22:49 PM] ✅ Zirve64 sunucuya katıldı",
+      "[12:22:49 PM] 🔴 Zirve64 ayrıldı",
+      "[12:23:14 PM] ✅ Kahraman10 sunucuya katıldı",
+      "[12:23:44 PM] 🔴 Şef841 ayrıldı",
+      "[12:23:54 PM] 🔴 Kahraman10 ayrıldı",
+      "[12:24:04 PM] ✅ Echo647 sunucuya katıldı",
+      "[12:24:04 PM] 🔴 Echo647 ayrıldı",
+      "[12:24:19 PM] ✅ Asker872 sunucuya katıldı",
+      "[12:24:24 PM] ✅ Şef469 sunucuya katıldı",
+      "[12:24:44 PM] 🔴 Phoenix861 ayrıldı",
+      "[12:24:59 PM] 🔴 Şef469 ayrıldı",
+      "[12:25:09 PM] ✅ Sigma936 sunucuya katıldı",
+      "[12:25:09 PM] 🔴 Sigma936 ayrıldı",
+      "[12:25:19 PM] ✅ Zirve732 sunucuya katıldı",
+      "[12:25:29 PM] ✅ Kahraman705 sunucuya katıldı",
+      "[12:25:34 PM] 🔴 Asker872 ayrıldı",
+      "[12:25:44 PM] 🔴 Zirve732 ayrıldı",
+      "[12:25:54 PM] ✅ Pilot272 sunucuya katıldı",
+      "[12:25:59 PM] ✅ Phoenix546 sunucuya katıldı"
     ],
     "specs": {
       "cpu": "4.0 GHz",
       "ram": "12 GB",
       "storage": "100 GB",
       "lag": "Yok"
-    },
-    "config": {
-      "sv_gravity": 800,
-      "mp_freezetime": 0,
-      "mp_roundtime": 20
-    }
-  }
-]
-"Yok"
     },
     "config": {
       "sv_gravity": 800,

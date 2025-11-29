@@ -15,9 +15,26 @@ app.get('/', (req, res) => {
   res.redirect('/chatgpt.html');
 });
 
-// Intelligent mock response generator - like ChatGPT (English only)
-function generateMockResponse(userMessage, language = 'auto') {
+// Detect user input language
+function detectLanguage(text) {
+  const turkishChars = /[çğıöşüÇĞİÖŞÜ]/g;
+  const turkishWords = /\b(ve|bir|bu|var|ben|sen|o|da|mi|mı|mu|mü|ne|nedir|nasıl|hangi|kaç|kim|nerede|ne zaman)\b/gi;
+  
+  const turkishCharCount = (text.match(turkishChars) || []).length;
+  const turkishWordCount = (text.match(turkishWords) || []).length;
+  const textLength = text.split(' ').length;
+  
+  if (turkishCharCount > textLength * 0.1 || turkishWordCount > textLength * 0.2) {
+    return 'tr';
+  }
+  
+  return 'en';
+}
+
+// Intelligent mock response generator - like ChatGPT (Multi-language)
+function generateMockResponse(userMessage, language = 'auto', inputLanguage = 'en') {
   const msg = userMessage.toLowerCase();
+  const isTurkish = inputLanguage === 'tr';
   
   // Detect question type
   const isCode = msg.includes('code') || msg.includes('write') || msg.includes('function') || msg.includes('class') || msg.includes('program') || msg.includes('example');
@@ -116,8 +133,8 @@ public static List<Integer> example() {
   return `Thank you for your question! Here's my analysis:\n\n**Understanding Your Question:**\nYour question touches on an important aspect of modern software development and technology.\n\n**Key Insights:**\n1. **Current State**: This area is rapidly evolving with many new tools and approaches emerging\n2. **Best Practices**: The most effective solutions combine multiple techniques and perspectives\n3. **Practical Application**: Real-world implementation requires consideration of various factors\n\n**Main Considerations:**\n- Performance and efficiency\n- Code maintainability and readability\n- Scalability for future growth\n- Team collaboration and knowledge sharing\n- Testing and quality assurance\n\n**Recommendations:**\n- Start with solid fundamentals\n- Experiment with different approaches\n- Learn from community best practices\n- Build projects to gain hands-on experience\n- Stay updated with industry trends\n\n**Next Steps:**\nCould you provide more context about what you're trying to achieve? This will help me give more specific guidance tailored to your needs.`;
 }
 
-// Get system prompt based on selected language with extended thinking
-function getSystemPrompt(language) {
+// Get system prompt based on selected language with extended thinking and input language detection
+function getSystemPrompt(language, inputLanguage = 'en') {
   const basePrompts = {
     auto: 'You are a world-class AI assistant with exceptional reasoning capabilities. Think deeply about questions before answering. Provide thorough, well-reasoned responses that consider multiple perspectives and edge cases.',
     javascript: 'You are a world-class JavaScript/Node.js expert. Think deeply about problems. Provide expert-level solutions with detailed explanations of design patterns, performance considerations, and best practices.',
@@ -135,9 +152,13 @@ function getSystemPrompt(language) {
   
   const basePrompt = basePrompts[language] || basePrompts.auto;
   
+  const languageInstruction = inputLanguage === 'tr' 
+    ? 'ÖNEMLI: Cevaplarını TÜRKÇE ver. Açık, profesyonel ve anlaşılır dil kullan.'
+    : 'IMPORTANT: Respond in English. Use clear, professional language.';
+  
   return `${basePrompt}
 
-IMPORTANT: Always respond in English only. Use clear, professional language.
+${languageInstruction}
 
 When solving problems:
 1. Think through the problem systematically
@@ -159,6 +180,8 @@ app.post('/api/chat/stream', async (req, res) => {
   res.setHeader('Connection', 'keep-alive');
 
   try {
+    const inputLanguage = detectLanguage(message);
+    
     if (!chatHistories[username]) {
       chatHistories[username] = [];
     }
@@ -169,14 +192,14 @@ app.post('/api/chat/stream', async (req, res) => {
     }
     
     if (!process.env.OPENAI_API_KEY) {
-      const mockResp = generateMockResponse(message, language);
+      const mockResp = generateMockResponse(message, language, inputLanguage);
       chatHistories[username].push({ role: 'assistant', content: mockResp });
       res.write(`data: ${JSON.stringify({ text: mockResp, done: true })}\n\n`);
       return res.end();
     }
     
     const messagesWithSystem = [
-      { role: 'system', content: getSystemPrompt(language || 'auto') },
+      { role: 'system', content: getSystemPrompt(language || 'auto', inputLanguage) },
       ...chatHistories[username]
     ];
     
@@ -203,7 +226,8 @@ app.post('/api/chat/stream', async (req, res) => {
   } catch (error) {
     console.error('Stream Error:', error.message);
     if (error.status === 429 || error.message.includes('quota')) {
-      const mockResp = generateMockResponse(req.body.message, req.body.language);
+      const inputLang = detectLanguage(req.body.message);
+      const mockResp = generateMockResponse(req.body.message, req.body.language, inputLang);
       chatHistories[req.body.username]?.push({ role: 'assistant', content: mockResp });
       res.write(`data: ${JSON.stringify({ text: mockResp, done: true, demo: true })}\n\n`);
     }
@@ -217,6 +241,8 @@ app.post('/api/chat', async (req, res) => {
   if (!message || !username) return res.status(400).json({ error: 'Mesaj gerekli' });
   
   try {
+    const inputLanguage = detectLanguage(message);
+    
     // Initialize chat history for user
     if (!chatHistories[username]) {
       chatHistories[username] = [];
@@ -232,7 +258,7 @@ app.post('/api/chat', async (req, res) => {
     
     // Check if API key exists
     if (!process.env.OPENAI_API_KEY) {
-      const mockResp = generateMockResponse(message, language);
+      const mockResp = generateMockResponse(message, language, inputLanguage);
       chatHistories[username].push({ role: 'assistant', content: mockResp });
       return res.json({ response: mockResp, demo: true });
     }
@@ -240,7 +266,7 @@ app.post('/api/chat', async (req, res) => {
     try {
       // Call OpenAI - the newest OpenAI model is "gpt-5" which was released August 7, 2025
       const messagesWithSystem = [
-        { role: 'system', content: getSystemPrompt(language || 'auto') },
+        { role: 'system', content: getSystemPrompt(language || 'auto', inputLanguage) },
         ...chatHistories[username]
       ];
       
@@ -261,7 +287,8 @@ app.post('/api/chat', async (req, res) => {
       
       if (apiError.status === 429 || apiError.message.includes('quota')) {
         // Quota exceeded - use fallback
-        const mockResp = generateMockResponse(message, language);
+        const inputLang = detectLanguage(message);
+        const mockResp = generateMockResponse(message, language, inputLang);
         chatHistories[username].push({ role: 'assistant', content: mockResp });
         return res.json({ response: mockResp, demo: true, notice: 'Demo Mode: OpenAI quota aşıldı.' });
       }
@@ -272,7 +299,8 @@ app.post('/api/chat', async (req, res) => {
     console.error('Chat Hata:', error.message);
     
     // Last resort: generate mock response
-    const mockResp = generateMockResponse(req.body.message, language);
+    const inputLang = detectLanguage(req.body.message);
+    const mockResp = generateMockResponse(req.body.message, language, inputLang);
     const chat = chatHistories[username];
     if (chat) {
       chat.push({ role: 'assistant', content: mockResp });

@@ -10,14 +10,10 @@ app.use(express.json());
 app.use(express.static('public'));
 
 const DATA_FILE = 'bot_data.json';
-
-// Instagram API Config
 const INSTAGRAM_ACCESS_TOKEN = process.env.INSTAGRAM_ACCESS_TOKEN || '';
-const FACEBOOK_APP_ID = process.env.FACEBOOK_APP_ID || '';
 
 console.log('🔐 Instagram API:', INSTAGRAM_ACCESS_TOKEN ? '✅ Bağlı' : '❌ Eksik');
 
-// Kalıcı bellek depolama
 let db = loadDB();
 
 function loadDB() {
@@ -28,7 +24,7 @@ function loadDB() {
       return data;
     }
   } catch (e) {
-    console.error('Veritabanı yükleme hatası:', e.message);
+    console.error('DB yükleme hatası:', e.message);
   }
   return { accounts: {} };
 }
@@ -37,41 +33,29 @@ function saveDB() {
   try {
     fs.writeJsonSync(DATA_FILE, db, { spaces: 2 });
   } catch (e) {
-    console.error('Veritabanı kaydetme hatası:', e.message);
+    console.error('DB kaydetme hatası:', e.message);
   }
 }
 
-// Gerçek Instagram API'den takipçi verisi çek
-async function fetchInstagramFollowers(accountId, limit = 50) {
-  if (!INSTAGRAM_ACCESS_TOKEN) {
-    return null;
-  }
-
-  try {
-    const url = `https://graph.instagram.com/${accountId}/followers?fields=id,username,name,profile_picture_url&limit=${limit}&access_token=${INSTAGRAM_ACCESS_TOKEN}`;
-    const res = await fetch(url, { timeout: 10000 });
-    
-    if (res.ok) {
-      const data = await res.json();
-      return data.data || [];
-    }
-  } catch (e) {
-    console.error('Instagram API hatası:', e.message);
-  }
-  return null;
-}
-
-// Profil verilerini formatla
-function formatProfile(igData) {
+// Profil oluştur
+function generateProfile() {
+  const names = ['Ahmet', 'Zeynep', 'Can', 'Elif', 'Murat', 'Ayşe', 'Ali', 'Seda', 'Emre', 'Gül'];
+  const last = ['Kaya', 'Yıldız', 'Demir', 'Şahin', 'Özbek', 'Çelik', 'Yalçın', 'Aksoy', 'Çan', 'Demirkaya'];
+  const bios = ['Mühendis • İstanbul', 'Fotoğrafçı • Doğa', 'Yazılımcı • Startup', 'Moda blogger', 'Spor tutkunu', 'Şef • Yemek', 'Seyahat blogu', 'Yoga öğretmeni', 'Müzisyen', 'İç mimar'];
+  
+  const fname = names[Math.floor(Math.random() * names.length)];
+  const lname = last[Math.floor(Math.random() * last.length)];
+  const username = `${fname.toLowerCase()}_${lname.toLowerCase()}_${Math.floor(Math.random() * 9999)}`;
+  
   return {
-    id: igData.id,
-    name: igData.name || igData.username,
-    username: igData.username,
-    avatar: igData.profile_picture_url || `https://ui-avatars.com/api/?name=${igData.username}&background=667eea&color=fff`,
-    verified: false,
-    bio: 'Instagram kullanıcısı',
-    followers: Math.floor(Math.random() * 50000),
-    posts: Math.floor(Math.random() * 1000)
+    id: `uid_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    name: `${fname} ${lname}`,
+    username: username,
+    bio: bios[Math.floor(Math.random() * bios.length)],
+    avatar: `https://ui-avatars.com/api/?name=${fname}+${lname}&background=667eea&color=fff&bold=true&size=128`,
+    verified: Math.random() > 0.92,
+    followers: Math.floor(Math.random() * 50000) + 100,
+    posts: Math.floor(Math.random() * 1000) + 10
   };
 }
 
@@ -84,8 +68,7 @@ app.post('/api/account', (req, res) => {
     db.accounts[name] = { 
       name, 
       followers: [], 
-      created: new Date().toISOString(),
-      igAccount: null 
+      created: new Date().toISOString()
     };
     saveDB();
   }
@@ -122,8 +105,7 @@ app.post('/api/followers/:account/add', (req, res) => {
     db.accounts[account] = { 
       name: account, 
       followers: [], 
-      created: new Date().toISOString(),
-      igAccount: null 
+      created: new Date().toISOString()
     };
   }
   
@@ -131,16 +113,7 @@ app.post('/api/followers/:account/add', (req, res) => {
   const newFollowers = [];
   
   for (let i = 0; i < Math.min(count, 1000); i++) {
-    newFollowers.push({
-      id: `uid_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      name: `Kullanıcı ${Math.floor(Math.random() * 9999)}`,
-      username: `user_${Math.floor(Math.random() * 999999)}`,
-      avatar: `https://ui-avatars.com/api/?name=User&background=667eea&color=fff&rand=${Math.random()}`,
-      verified: Math.random() > 0.95,
-      bio: 'Instagram kullanıcısı',
-      followers: Math.floor(Math.random() * 50000),
-      posts: Math.floor(Math.random() * 1000)
-    });
+    newFollowers.push(generateProfile());
   }
   
   acc.followers = [...newFollowers, ...acc.followers];
@@ -161,8 +134,7 @@ app.post('/api/followers/:account/bulk', (req, res) => {
     db.accounts[account] = { 
       name: account, 
       followers: [], 
-      created: new Date().toISOString(),
-      igAccount: null 
+      created: new Date().toISOString()
     };
   }
   
@@ -171,16 +143,7 @@ app.post('/api/followers/:account/bulk', (req, res) => {
   const newFollowers = [];
   
   for (let i = 0; i < batchSize; i++) {
-    newFollowers.push({
-      id: `uid_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      name: `Kullanıcı ${Math.floor(Math.random() * 9999)}`,
-      username: `user_${Math.floor(Math.random() * 999999)}`,
-      avatar: `https://ui-avatars.com/api/?name=User&background=667eea&color=fff&rand=${Math.random()}`,
-      verified: Math.random() > 0.95,
-      bio: 'Instagram kullanıcısı',
-      followers: Math.floor(Math.random() * 50000),
-      posts: Math.floor(Math.random() * 1000)
-    });
+    newFollowers.push(generateProfile());
   }
   
   acc.followers = [...newFollowers, ...acc.followers];
@@ -209,22 +172,11 @@ app.delete('/api/account/:account', (req, res) => {
   res.json({ success: true });
 });
 
-app.get('/api/stats', (req, res) => {
-  const totalAccounts = Object.keys(db.accounts).length;
-  const totalFollowers = Object.values(db.accounts).reduce((sum, acc) => sum + acc.followers.length, 0);
-  
-  res.json({
-    totalAccounts,
-    totalFollowers,
-    apiStatus: INSTAGRAM_ACCESS_TOKEN ? '✅ Bağlı' : '⚠️ Demo Mode'
-  });
-});
-
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.listen(5000, '0.0.0.0', () => {
-  console.log('✅ Instagram Bot başladı - Port 5000');
-  console.log('📊 Instagram API:', INSTAGRAM_ACCESS_TOKEN ? '✅ Bağlı' : '⚠️ Demo Mode');
+  console.log('✅ Bot başladı - Port 5000');
+  console.log('📊 Instagram API:', INSTAGRAM_ACCESS_TOKEN ? '✅ Bağlı' : '⚠️ Demo');
 });

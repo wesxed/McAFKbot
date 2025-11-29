@@ -1,0 +1,85 @@
+**“Benim için Replit üzerinde tamamen çalışan, çoklu sunucu destekli, gelişmiş bir ‘CS Sunucu Yönetim Sistemi’ oluşturmanı istiyorum. Bu gerçek bir CS2 sunucusu açacaksın ve sunucu çalışacak ve Steam API’den canlı veri alabilecek. Proje hem arka planda çalışan sahte sunucular hem de bu sunucuları kontrol eden bir web paneli içerecek. Aşağıdaki özelliklerin tamamını dahil et:
+
+Çoklu sunucu desteği:
+
+Birden fazla sunucu aynı anda çalışabiliyor
+
+Her sunucu bağımsız çalışıyor, kendi IP, port, harita, tickrate ve oyuncu listesi var
+
+Sunucuların durumlarını panelden seçip yönetebilme
+
+Sunucu çekirdeği (backend simülasyon):
+
+Çalışıyor/duruyor durumu
+
+Varsayılan harita ve tickrate
+
+Oyuncu listesi ve rastgele katılma/ayrılma sistemi
+
+Log sistemi ve gerçek zamanlı güncelleme
+
+Sahte RCON komut sistemi (changelevel, sv_gravity, kick, ban, say vb.)
+
+Admin komutlarının işlenmesi
+
+Oyunculara ceza simülasyonu: mute, unmute, kick, ban
+
+JSON dosyasıyla sunucu yapılandırması
+
+Harita listesi dosyası (awp_lego_2, awp_lego_3, de_dust2, cs_office…)
+
+Steam API entegrasyonu: panelden seçilen sunucu için Steam’den oyuncu sayısı ve oyuncu bilgileri çekilebilsin, loglar gerçek zamanlı güncellensin
+
+Web paneli (HTML + CSS + JS):
+
+Modern dashboard tasarımı
+
+Admin login sistemi ve yetki seviyeleri
+
+Gerçek zamanlı log akışı (AJAX/Websocket ile)
+
+Harita değiştirme menüsü (harita listesi dosyasından çekilen)
+
+Sunucuyu başlat/durdur/yeniden başlat butonları
+
+Oyuncu listesi görüntüleme
+
+Steam API’den gelen canlı oyuncu bilgilerini panelde gösterme
+
+Oyunculara cezalar uygulama (mute/kick/ban)
+
+RCON komut girişi olan terminal bölümü
+
+Ayarlar sayfası (tickrate, sunucu adı, max oyuncu sayısı vb.)
+
+Dosya yöneticisi: config dosyalarını panelden düzenleme
+
+Sunucular arası geçiş ve tek panelden yönetim
+
+Discord bot entegrasyonu:
+
+Discord kanalına sunucu loglarını ve Steam API oyuncu bilgilerini gönderme
+
+Paneldeki RCON komutlarının Discord’dan çalıştırılabilmesi
+
+Sunucu açıldığında/kapandığında Discord’a bildirim gönderebilme
+
+Plugin sistemi:
+
+Panel ve sunucuya plugin ekleyebilme
+
+Yeni özellikler plugin ile aktif edilebilsin
+
+Pluginler sunucu başlatıldığında yüklenebilsin
+
+Replit uyumluluğu:
+
+Arka plan servisi olarak çalışsın
+
+Web paneli / API / simülasyon aynı anda problemsiz çalışsın
+
+Gerekli tüm dosya ve klasörleri otomatik oluştur
+
+Websocket veya AJAX ile canlı veri güncellemesini sağla
+
+Tüm proje tamamen çalışır halde olsun ve kullanıcı, bu panel sayesinde gerçek bir CS sunucusunu yönetiyormuş hissine kapılsın. Kodları, dosyaları, HTML şablonlarını, backend yapısını, Discord botunu, plugin sistemini ve Steam API entegrasyonunu tamamen sen oluştur.

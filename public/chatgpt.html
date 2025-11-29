@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Chat - ChatGPT Clone</title>
+  <title>AI Chat - ChatGPT Clone | Sohbet Yapın</title>
   <style>
     * {
       margin: 0;
@@ -365,7 +365,7 @@
     <!-- Main Chat -->
     <div class="main">
       <div class="header">
-        <h1>AI Chat Assistant</h1>
+        <h1>🤖 AI Chat - ChatGPT</h1>
       </div>
 
       <div class="messages-container" id="messagesContainer">
@@ -493,9 +493,13 @@
         loadingEl.remove();
 
         if (data.response) {
-          addMessageToDOM('assistant', data.response);
+          let displayMsg = data.response;
+          if (data.notice) {
+            displayMsg = `[${data.notice}]\n\n${data.response}`;
+          }
+          addMessageToDOM('assistant', displayMsg);
           if (chat) {
-            chat.messages.push({ role: 'assistant', content: data.response });
+            chat.messages.push({ role: 'assistant', content: displayMsg });
             saveChats();
           }
         } else {

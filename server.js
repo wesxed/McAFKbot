@@ -28,9 +28,28 @@ function generateMockResponse(userMessage) {
   return responses[Math.floor(Math.random() * responses.length)];
 }
 
+// Get system prompt based on selected language
+function getSystemPrompt(language) {
+  const prompts = {
+    auto: 'You are a helpful AI assistant. Answer questions clearly and concisely.',
+    javascript: 'You are an expert JavaScript developer. When asked for code, provide JavaScript/Node.js solutions with clear explanations.',
+    python: 'You are an expert Python developer. When asked for code, provide Python solutions with clear explanations.',
+    typescript: 'You are an expert TypeScript developer. When asked for code, provide TypeScript solutions with clear explanations.',
+    go: 'You are an expert Go developer. When asked for code, provide Go solutions with clear explanations.',
+    rust: 'You are an expert Rust developer. When asked for code, provide Rust solutions with clear explanations and ownership rules.',
+    nodejs: 'You are an expert Node.js developer. When asked for code, provide Node.js/JavaScript solutions with clear explanations.',
+    java: 'You are an expert Java developer. When asked for code, provide Java solutions with clear explanations.',
+    cpp: 'You are an expert C++ developer. When asked for code, provide C++ solutions with clear explanations.',
+    csharp: 'You are an expert C# developer. When asked for code, provide C# solutions with clear explanations.',
+    php: 'You are an expert PHP developer. When asked for code, provide PHP solutions with clear explanations.',
+    ruby: 'You are an expert Ruby developer. When asked for code, provide Ruby solutions with clear explanations.'
+  };
+  return prompts[language] || prompts.auto;
+}
+
 // AI Chat API Endpoint
 app.post('/api/chat', async (req, res) => {
-  const { message, username } = req.body;
+  const { message, username, language } = req.body;
   if (!message || !username) return res.status(400).json({ error: 'Mesaj gerekli' });
   
   try {
@@ -56,9 +75,14 @@ app.post('/api/chat', async (req, res) => {
     
     try {
       // Call OpenAI - the newest OpenAI model is "gpt-5" which was released August 7, 2025
+      const messagesWithSystem = [
+        { role: 'system', content: getSystemPrompt(language || 'auto') },
+        ...chatHistories[username]
+      ];
+      
       const response = await openai.chat.completions.create({
         model: 'gpt-5',
-        messages: chatHistories[username],
+        messages: messagesWithSystem,
         max_completion_tokens: 1024
       });
       

@@ -376,6 +376,22 @@
       </div>
 
       <div class="input-area">
+        <div style="display: flex; gap: 8px; margin-bottom: 8px; padding: 0 12px;">
+          <select id="languageSelect" style="flex: 1; padding: 8px 12px; background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--bg-tertiary); border-radius: 6px; font-size: 13px; cursor: pointer; font-family: inherit;">
+            <option value="auto">🌐 Otomatik</option>
+            <option value="javascript">📜 JavaScript</option>
+            <option value="python">🐍 Python</option>
+            <option value="typescript">📘 TypeScript</option>
+            <option value="go">🐹 Go</option>
+            <option value="rust">🦀 Rust</option>
+            <option value="nodejs">🟢 Node.js</option>
+            <option value="java">☕ Java</option>
+            <option value="cpp">⚙️ C++</option>
+            <option value="csharp">🔷 C#</option>
+            <option value="php">🐘 PHP</option>
+            <option value="ruby">💎 Ruby</option>
+          </select>
+        </div>
         <div class="input-wrapper">
           <textarea class="input-field" id="messageInput" placeholder="Bir soru sor..." rows="1"></textarea>
           <button class="send-btn" id="sendBtn" onclick="sendMessage()">Gönder</button>
@@ -389,10 +405,12 @@
     const messageInput = document.getElementById('messageInput');
     const sendBtn = document.getElementById('sendBtn');
     const chatHistoryEl = document.getElementById('chatHistory');
+    const languageSelect = document.getElementById('languageSelect');
     
     let chats = [];
     let currentChatId = null;
     let isLoading = false;
+    let selectedLanguage = 'auto';
 
     // Load chats from localStorage
     function loadChats() {
@@ -486,7 +504,7 @@
         const response = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: text, username: 'user' })
+          body: JSON.stringify({ message: text, username: 'user', language: selectedLanguage })
         });
 
         const data = await response.json();
@@ -556,6 +574,19 @@
     // Toggle theme
     function toggleTheme() {
       document.body.style.filter = document.body.style.filter === 'invert(1)' ? 'invert(0)' : 'invert(1)';
+    }
+
+    // Language selector
+    languageSelect.addEventListener('change', (e) => {
+      selectedLanguage = e.target.value;
+      localStorage.setItem('selectedLanguage', selectedLanguage);
+    });
+
+    // Load saved language
+    const savedLanguage = localStorage.getItem('selectedLanguage');
+    if (savedLanguage) {
+      selectedLanguage = savedLanguage;
+      languageSelect.value = savedLanguage;
     }
 
     // Auto-expand textarea

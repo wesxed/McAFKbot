@@ -1,207 +1,107 @@
 import express from 'express';
-import bodyParser from 'body-parser';
-import twilio from 'twilio';
-import path from 'path';
+import cors from 'cors';
 import { fileURLToPath } from 'url';
-import fs from 'fs-extra';
+import path from 'path';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
-app.use(bodyParser.json());
+const PORT = 5000;
+
+app.use(cors());
+app.use(express.json());
 app.use(express.static('public'));
 
-const DB_FILE = 'sms_db.json';
-
-// Twilio credentials
-const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const authToken = process.env.TWILIO_AUTH_TOKEN;
-const fromNumber = process.env.TWILIO_PHONE_NUMBER;
-
-let client = null;
-let twilioReady = false;
-
-// Initialize Twilio
-if (accountSid && authToken && fromNumber) {
-  try {
-    client = twilio(accountSid, authToken);
-    twilioReady = true;
-    console.log('✅ Twilio Bağlı');
-  } catch (e) {
-    console.log('❌ Twilio Error:', e.message);
-  }
-} else {
-  console.log('⚠️ Twilio Credentials Eksik');
-}
-
-let db = {
-  sms: [],
-  templates: []
+let gameState = {
+  players: {},
+  bullets: [],
+  tick: 0,
+  teams: { red: [], blue: [] }
 };
 
-function loadDB() {
-  try {
-    if (fs.existsSync(DB_FILE)) {
-      db = fs.readJsonSync(DB_FILE);
-    }
-  } catch (e) {
-    console.error('DB load error:', e.message);
-  }
-}
+const playerData = new Map();
 
-function saveDB() {
-  try {
-    fs.writeJsonSync(DB_FILE, db, { spaces: 2 });
-  } catch (e) {
-    console.error('DB save error:', e.message);
-  }
-}
+app.post('/api/join', (req, res) => {
+  const { nickname, team } = req.body;
+  const playerId = Math.random().toString(36).substr(2, 9);
+  
+  playerData.set(playerId, {
+    id: playerId,
+    nickname,
+    team: team || (Math.random() > 0.5 ? 'red' : 'blue'),
+    x: team === 'red' ? 100 : 900,
+    y: 300,
+    health: 100,
+    alive: true,
+    kills: 0,
+    deaths: 0,
+    ammo: 120
+  });
 
-loadDB();
+  res.json({ playerId, player: playerData.get(playerId) });
+});
+
+app.post('/api/move', (req, res) => {
+  const { playerId, x, y, angle } = req.body;
+  if (playerData.has(playerId)) {
+    const p = playerData.get(playerId);
+    p.x = Math.max(0, Math.min(1000, x));
+    p.y = Math.max(0, Math.min(600, y));
+    p.angle = angle;
+  }
+  res.json({ ok: true });
+});
+
+app.post('/api/shoot', (req, res) => {
+  const { playerId, angle } = req.body;
+  const player = playerData.get(playerId);
+  
+  if (player && player.ammo > 0 && player.alive) {
+    player.ammo--;
+    gameState.bullets.push({
+      x: player.x,
+      y: player.y,
+      angle,
+      playerId,
+      speed: 8,
+      life: 100
+    });
+  }
+  res.json({ ammo: player?.ammo || 0 });
+});
+
+app.get('/api/state', (req, res) => {
+  const players = Array.from(playerData.values());
+  gameState.bullets = gameState.bullets.filter(b => b.life > 0);
+  
+  gameState.bullets.forEach(b => {
+    b.x += Math.cos(b.angle) * b.speed;
+    b.y += Math.sin(b.angle) * b.speed;
+    b.life--;
+
+    players.forEach(p => {
+      if (p.id !== b.playerId && p.alive) {
+        const dist = Math.hypot(p.x - b.x, p.y - b.y);
+        if (dist < 20) {
+          p.health -= 25;
+          if (p.health <= 0) {
+            p.alive = false;
+            p.deaths++;
+            const shooter = playerData.get(b.playerId);
+            if (shooter) shooter.kills++;
+          }
+          b.life = 0;
+        }
+      }
+    });
+  });
+
+  res.json({ players, bullets: gameState.bullets.slice(0, 50), tick: gameState.tick++ });
+});
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Send SMS with Twilio
-app.post('/api/sms/send', async (req, res) => {
-  const { phone, message, type = 'manual' } = req.body;
-
-  if (!phone || !message) {
-    return res.status(400).json({ error: 'Telefon ve mesaj gerekli' });
-  }
-
-  // Send immediate response
-  res.json({
-    success: true,
-    message: `⏳ SMS 5 saniye içinde gönderilecek: ${phone}`,
-    scheduled: true
-  });
-
-  // Schedule SMS sending after 5 seconds
-  setTimeout(async () => {
-    try {
-      let twilioStatus = 'pending';
-      let sid = 'LOCAL_' + Date.now();
-
-      // If Twilio is ready, send real SMS
-      if (twilioReady && client) {
-        try {
-          const result = await client.messages.create({
-            body: message.substring(0, 160),
-            from: fromNumber,
-            to: phone
-          });
-          
-          twilioStatus = result.status;
-          sid = result.sid;
-          console.log(`✅ Twilio SMS gönderildi: ${phone} | SID: ${sid}`);
-        } catch (twilioError) {
-          console.error(`❌ Twilio Error: ${twilioError.message}`);
-          twilioStatus = 'failed';
-        }
-      } else {
-        console.log(`📤 SMS Kaydedildi (Twilio Yok): ${phone}`);
-      }
-
-      // Save to database
-      const sms = {
-        id: sid,
-        from: fromNumber || '+7999000001',
-        to: phone.toString(),
-        message: message.substring(0, 160),
-        type,
-        status: twilioStatus,
-        timestamp: new Date().toISOString(),
-        charCount: message.length
-      };
-
-      db.sms.push(sms);
-      saveDB();
-
-    } catch (e) {
-      console.error('SMS Error:', e.message);
-    }
-  }, 5000);
-});
-
-// Get SMS list
-app.get('/api/sms', (req, res) => {
-  const limit = parseInt(req.query.limit) || 50;
-  const sms = db.sms.reverse().slice(0, limit);
-  
-  res.json({
-    success: true,
-    total: db.sms.length,
-    sms: sms
-  });
-});
-
-// Get SMS stats
-app.get('/api/sms/stats', (req, res) => {
-  const today = new Date().toISOString().split('T')[0];
-  const todaySms = db.sms.filter(s => s.timestamp.startsWith(today));
-  
-  res.json({
-    total: db.sms.length,
-    today: todaySms.length,
-    twilio: twilioReady ? '✅ Aktif' : '❌ Yok',
-    sender: fromNumber || '+7999000001',
-    byType: {
-      manual: db.sms.filter(s => s.type === 'manual').length,
-      automated: db.sms.filter(s => s.type === 'automated').length
-    }
-  });
-});
-
-// Delete SMS
-app.delete('/api/sms/:id', (req, res) => {
-  const { id } = req.params;
-  db.sms = db.sms.filter(s => s.id !== id);
-  saveDB();
-  res.json({ success: true, message: 'SMS silindi' });
-});
-
-// Clear all SMS
-app.delete('/api/sms', (req, res) => {
-  db.sms = [];
-  saveDB();
-  res.json({ success: true, message: 'Tüm SMS silindi' });
-});
-
-// Save template
-app.post('/api/templates', (req, res) => {
-  const { name, message } = req.body;
-
-  if (!name || !message) {
-    return res.status(400).json({ error: 'İsim ve mesaj gerekli' });
-  }
-
-  const template = {
-    id: Date.now().toString(),
-    name,
-    message: message.substring(0, 160)
-  };
-
-  db.templates.push(template);
-  saveDB();
-
-  res.json({ success: true, template });
-});
-
-// Get templates
-app.get('/api/templates', (req, res) => {
-  res.json({ success: true, templates: db.templates });
-});
-
-// Delete template
-app.delete('/api/templates/:id', (req, res) => {
-  db.templates = db.templates.filter(t => t.id !== req.params.id);
-  saveDB();
-  res.json({ success: true });
-});
-
-app.listen(5000, '0.0.0.0', () => {
-  console.log('✅ SMS API çalışıyor - Port 5000');
-  console.log('📊 Database: sms_db.json');
-  console.log(`📱 Twilio: ${twilioReady ? '✅ Aktif' : '❌ Yapılandırılmamış'}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🎮 Tactical Arena - Port ${PORT}`);
 });

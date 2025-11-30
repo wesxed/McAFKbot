@@ -28,6 +28,16 @@
       "status": "delivered",
       "timestamp": "2025-11-30T19:16:17.687Z",
       "charCount": 17
+    },
+    {
+      "id": "1764530228425",
+      "from": "+7999000001",
+      "to": "+905523331614",
+      "message": "Sa",
+      "type": "manual",
+      "status": "delivered",
+      "timestamp": "2025-11-30T19:17:08.425Z",
+      "charCount": 2
     }
   ],
   "templates": []

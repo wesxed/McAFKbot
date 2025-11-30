@@ -265,6 +265,15 @@
     .buy-item:active {
       background: rgba(255, 255, 0, 0.2);
     }
+
+    #fps {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: #00ff00;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+    }
   </style>
 </head>
 <body>
@@ -278,6 +287,8 @@
   </div>
 
   <canvas id="canvas"></canvas>
+
+  <div id="fps">FPS: 60</div>
 
   <div id="topbar">
     <div class="score-display">
@@ -340,8 +351,10 @@
     let gameState = { players: [], bombPlanted: false };
     let stats = { health: 100, armor: 100, money: 2400, ammo: 20, kills: 0, deaths: 0 };
     let moveInput = { x: 0, z: 0 }, lookInput = { x: 0, y: 0 };
-
-    const weaponModels = {};
+    let lastUpdateTime = 0;
+    let fpsCounter = 0, lastFpsTime = 0;
+    let playerMeshes = new Map();
+    let crateInstances = null;
 
     async function startGame() {
       const nickname = document.getElementById('nickname').value || 'Player';
@@ -363,58 +376,53 @@
     function initGame() {
       scene = new THREE.Scene();
       scene.background = new THREE.Color(0x87CEEB);
-      scene.fog = new THREE.Fog(0x87CEEB, 500, 800);
+      scene.fog = new THREE.Fog(0x87CEEB, 300, 600);
 
-      camera = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
       
-      renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas'), antialias: true });
+      renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas'), antialias: false, precision: 'lowp' });
       renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      renderer.shadowMap.enabled = true;
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
 
-      // Lighting
-      const ambLight = new THREE.AmbientLight(0xffffff, 0.7);
+      // Lighting - minimal for performance
+      const ambLight = new THREE.AmbientLight(0xffffff, 0.8);
       scene.add(ambLight);
-      const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-      dirLight.position.set(100, 100, 100);
-      dirLight.castShadow = true;
-      scene.add(dirLight);
 
       // Ground
       const groundGeo = new THREE.PlaneGeometry(300, 300);
-      const groundMat = new THREE.MeshLambertMaterial({ color: 0x888888 });
+      groundGeo.dispose();
+      const groundMat = new THREE.MeshBasicMaterial({ color: 0x888888 });
       const ground = new THREE.Mesh(groundGeo, groundMat);
       ground.rotation.x = -Math.PI / 2;
-      ground.receiveShadow = true;
       scene.add(ground);
 
-      // Buildings and structures
-      const buildingMat = new THREE.MeshLambertMaterial({ color: 0xcccccc });
+      // Buildings - low poly
+      const buildingMat = new THREE.MeshBasicMaterial({ color: 0xcccccc });
       const createBuilding = (x, y, z, w, h, d) => {
         const box = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), buildingMat);
         box.position.set(x, y, z);
-        box.castShadow = true;
-        box.receiveShadow = true;
         scene.add(box);
       };
 
       createBuilding(-100, 15, 0, 40, 30, 80);
       createBuilding(100, 15, 0, 40, 30, 80);
       createBuilding(0, 10, 100, 80, 20, 40);
-      createBuilding(0, 8, -100, 80, 16, 40);
+      createBuilding(0, 10, -100, 80, 20, 40);
       createBuilding(0, 5, 0, 60, 2, 60);
 
-      // Containers/crates
+      // Crates using InstancedMesh
+      const crateGeo = new THREE.BoxGeometry(3, 3, 3);
+      const crateMat = new THREE.MeshBasicMaterial({ color: 0x8B4513 });
+      crateInstances = new THREE.InstancedMesh(crateGeo, crateMat, 8);
+      
       for (let i = 0; i < 8; i++) {
         const x = (Math.random() - 0.5) * 120;
         const z = (Math.random() - 0.5) * 120;
-        const crateGeo = new THREE.BoxGeometry(3, 3, 3);
-        const crateMat = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
-        const crate = new THREE.Mesh(crateGeo, crateMat);
-        crate.position.set(x, 1.5, z);
-        crate.castShadow = true;
-        scene.add(crate);
+        const matrix = new THREE.Matrix4();
+        matrix.setPosition(x, 1.5, z);
+        crateInstances.setMatrixAt(i, matrix);
       }
+      scene.add(crateInstances);
 
       setupControls();
     }
@@ -441,8 +449,7 @@
       if (!touch) {
         if (type === 'move') moveInput = { x: 0, z: 0 };
         else lookInput = { x: 0, y: 0 };
-        if (type === 'move') document.getElementById('moveStick').style.transform = 'translate(-50%, -50%)';
-        else document.getElementById('lookStick').style.transform = 'translate(-50%, -50%)';
+        document.getElementById(type === 'move' ? 'moveStick' : 'lookStick').style.transform = 'translate(-50%, -50%)';
         return;
       }
 
@@ -488,17 +495,32 @@
     }
 
     async function gameLoop() {
+      const now = performance.now();
+      const frameTime = now - lastUpdateTime;
+      lastUpdateTime = now;
+
+      // FPS counter
+      fpsCounter++;
+      if (now - lastFpsTime >= 1000) {
+        document.getElementById('fps').textContent = 'FPS: ' + fpsCounter;
+        fpsCounter = 0;
+        lastFpsTime = now;
+      }
+
       const speed = 0.2;
       playerPos.x += moveInput.x * speed;
       playerPos.z += moveInput.z * speed;
       playerAngle += lookInput.x;
       playerPitch = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, playerPitch + lookInput.y));
 
-      await fetch('/api/move', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ playerId, x: playerPos.x, y: playerPos.y, z: playerPos.z, angle: playerAngle, pitch: playerPitch })
-      });
+      // Throttle network updates to 30Hz
+      if (now % 33 < 16) {
+        await fetch('/api/move', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ playerId, x: playerPos.x, y: playerPos.y, z: playerPos.z, angle: playerAngle, pitch: playerPitch })
+        });
+      }
 
       const res = await fetch(`/api/state/${gameId}`);
       const state = await res.json();
@@ -523,12 +545,11 @@
       document.getElementById('deaths').textContent = stats.deaths;
       document.getElementById('scoreA').textContent = state.game.teamAScore;
       document.getElementById('scoreB').textContent = state.game.teamBScore;
-      document.getElementById('roundNum').textContent = state.game.round;
 
-      // Team list
+      // Team list - only render first 10
       const teamListHtml = '<strong style="color: #ffff00; display: block; margin-bottom: 5px;">TEAM</strong>' +
-        state.teamAPlayers.map(p => `<div class="team-player ${!p.alive ? 'dead' : ''}">${p.nickname} ${p.alive ? '●' : '✕'}</div>`).join('') +
-        state.teamBPlayers.map(p => `<div class="team-player ${!p.alive ? 'dead' : ''}">${p.nickname} ${p.alive ? '●' : '✕'}</div>`).join('');
+        state.teamAPlayers.slice(0, 5).map(p => `<div class="team-player ${!p.alive ? 'dead' : ''}">${p.nickname} ${p.alive ? '●' : '✕'}</div>`).join('') +
+        state.teamBPlayers.slice(0, 5).map(p => `<div class="team-player ${!p.alive ? 'dead' : ''}">${p.nickname} ${p.alive ? '●' : '✕'}</div>`).join('');
       document.getElementById('teamList').innerHTML = teamListHtml;
 
       // Camera
@@ -537,45 +558,44 @@
       camera.rotation.y = playerAngle;
       camera.rotation.x = playerPitch;
 
-      // Clear enemies
-      scene.children = scene.children.filter(obj => {
-        if (obj.name && (obj.name.startsWith('enemy') || obj.name.startsWith('bomb'))) {
-          scene.remove(obj);
-          return false;
-        }
-        return true;
-      });
+      // Remove old meshes
+      for (let mesh of playerMeshes.values()) {
+        scene.remove(mesh);
+        mesh.geometry.dispose();
+        mesh.material.dispose();
+      }
+      playerMeshes.clear();
 
-      // Draw players
-      state.players.forEach(p => {
-        if (!p.alive || p.id === playerId) return;
-        const mat = new THREE.MeshLambertMaterial({ color: p.team === 'A' ? 0xff6666 : 0x6699ff });
-        const mesh = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 1.8, 8), mat);
+      // Draw only visible players (max 8)
+      const visible = state.players.filter(p => p.alive && p.id !== playerId && 
+        Math.hypot(p.x - playerPos.x, p.z - playerPos.z) < 100).slice(0, 8);
+
+      visible.forEach(p => {
+        const mat = new THREE.MeshBasicMaterial({ color: p.team === 'A' ? 0xff6666 : 0x6699ff });
+        const mesh = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.8, 0.8), mat);
         mesh.position.set(p.x, p.y, p.z);
-        mesh.castShadow = true;
-        mesh.name = 'enemy_' + p.id;
         scene.add(mesh);
+        playerMeshes.set(p.id, mesh);
       });
 
       // Minimap
       const mmCanvas = document.getElementById('minimap');
-      if (mmCanvas) {
-        const mmCtx = mmCanvas.getContext('2d');
+      if (mmCanvas && mmCanvas.getContext) {
+        const mmCtx = mmCanvas.getContext('2d', { willReadFrequently: false });
         mmCtx.fillStyle = 'rgba(0, 0, 0, 0.7)';
         mmCtx.fillRect(0, 0, 140, 140);
         mmCtx.strokeStyle = 'rgba(255, 255, 0, 0.5)';
         mmCtx.strokeRect(0, 0, 140, 140);
 
-        state.players.forEach(p => {
+        state.players.slice(0, 12).forEach(p => {
           const rx = 70 + (p.x / 150) * 60;
           const rz = 70 + (p.z / 150) * 60;
-          mmCtx.fillStyle = p.team === 'A' ? '#ff6666' : '#6699ff';
           if (p.id === playerId) {
             mmCtx.fillStyle = '#ffff00';
-            mmCtx.fillRect(rx - 2, rz - 2, 4, 4);
           } else {
-            mmCtx.fillRect(rx - 2, rz - 2, 4, 4);
+            mmCtx.fillStyle = p.team === 'A' ? '#ff6666' : '#6699ff';
           }
+          mmCtx.fillRect(rx - 2, rz - 2, 4, 4);
         });
       }
 

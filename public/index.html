@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-  <title>CS Mobile - Tactical Warfare</title>
+  <title>CS2 Mobile - Counter-Strike</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-user-select: none; user-select: none; }
     html, body { width: 100%; height: 100%; overflow: hidden; }
@@ -51,26 +51,26 @@
 
     #teamList {
       position: absolute;
-      top: 10px;
+      top: 40px;
       right: 10px;
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(0, 0, 0, 0.85);
       border: 1px solid rgba(255, 255, 0, 0.3);
-      padding: 10px;
+      padding: 8px;
       color: #fff;
       font-family: 'Courier New', monospace;
-      font-size: 12px;
-      max-width: 200px;
+      font-size: 11px;
+      max-width: 180px;
     }
 
     .team-player {
-      padding: 3px;
-      margin: 2px 0;
-      border-left: 3px solid #ffff00;
-      padding-left: 6px;
+      padding: 2px;
+      margin: 1px 0;
+      border-left: 2px solid #ffff00;
+      padding-left: 5px;
     }
 
     .team-player.dead {
-      opacity: 0.5;
+      opacity: 0.4;
       color: #ff6666;
     }
 
@@ -93,14 +93,8 @@
       text-align: center;
     }
 
-    .score-team-a { color: #ff6666; }
-    .score-team-b { color: #6699ff; }
-
-    .timer {
-      background: rgba(0, 0, 0, 0.7);
-      padding: 5px 15px;
-      border: 1px solid rgba(255, 255, 0, 0.3);
-    }
+    .score-team-a { color: #ff6666; font-weight: bold; }
+    .score-team-b { color: #6699ff; font-weight: bold; }
 
     #crosshair {
       position: absolute;
@@ -244,19 +238,19 @@
       left: 10px;
       background: rgba(0, 0, 0, 0.9);
       border: 1px solid rgba(255, 255, 0, 0.3);
-      padding: 10px;
+      padding: 8px;
       display: none;
       z-index: 100;
-      max-height: 150px;
+      max-height: 130px;
       overflow-y: auto;
       color: #ffff00;
       font-family: 'Courier New', monospace;
-      font-size: 11px;
+      font-size: 10px;
     }
 
     .buy-item {
-      padding: 5px;
-      margin: 3px 0;
+      padding: 4px;
+      margin: 2px 0;
       background: rgba(0, 50, 0, 0.5);
       border: 1px solid rgba(255, 255, 0, 0.2);
       cursor: pointer;
@@ -274,13 +268,25 @@
       font-family: 'Courier New', monospace;
       font-size: 12px;
     }
+
+    #bombStatus {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #ff0000;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      font-weight: bold;
+      text-shadow: 0 0 10px #ff0000;
+    }
   </style>
 </head>
 <body>
   <div class="join-screen" id="joinScreen">
     <div class="join-panel">
-      <h1>⚔️ CS MOBILE</h1>
-      <p>Tactical Warfare</p>
+      <h1>⚔️ CS2 MOBILE</h1>
+      <p>Counter-Strike Evolution</p>
       <input type="text" id="nickname" placeholder="Nickname" maxlength="15">
       <button onclick="startGame()">ENTER BATTLE</button>
     </div>
@@ -289,13 +295,10 @@
   <canvas id="canvas"></canvas>
 
   <div id="fps">FPS: 60</div>
+  <div id="bombStatus"></div>
 
   <div id="topbar">
     <div class="score-display">
-      ROUND <span id="roundNum">1</span>
-      <span class="timer" id="timer">60:00</span>
-    </div>
-    <div>
       <span class="score-team-a" id="scoreA">0</span> - <span class="score-team-b" id="scoreB">0</span>
     </div>
   </div>
@@ -310,11 +313,10 @@
   <div id="hud">
     <div class="hud-left">
       <div class="hud-item">$<span id="money">2400</span></div>
-      <div class="hud-item">❤ <span id="health">100</span>%</div>
-      <div class="hud-item">🛡 <span id="armor">100</span>%</div>
+      <div class="hud-item">❤ <span id="health">100</span>/100</div>
     </div>
     <div class="hud-center">
-      <div class="ammo-display"><span id="ammo">20</span> | <span id="clip">30</span></div>
+      <div class="ammo-display"><span id="ammo">12</span></div>
       <div class="weapon-name" id="weaponName">Glock-18</div>
     </div>
     <div class="hud-right">
@@ -324,7 +326,7 @@
   </div>
 
   <div id="buyMenu" class="buy-menu">
-    <div class="buy-item" onclick="buyWeapon('ar')">M4A1 - $3100</div>
+    <div class="buy-item" onclick="buyWeapon('ar')">M4A1-S - $3100</div>
     <div class="buy-item" onclick="buyWeapon('rifle')">AK-47 - $2900</div>
     <div class="buy-item" onclick="buyWeapon('shotgun')">XM1014 - $1200</div>
     <div class="buy-item" onclick="buyWeapon('sniper')">AWP - $4750</div>
@@ -347,14 +349,16 @@
   <script>
     let playerId = null, gameId = 'default';
     let scene, camera, renderer, playerPos = { x: 0, y: 1.6, z: 0 };
+    let playerVel = { x: 0, y: 0, z: 0 };
     let playerAngle = 0, playerPitch = 0;
-    let gameState = { players: [], bombPlanted: false };
-    let stats = { health: 100, armor: 100, money: 2400, ammo: 20, kills: 0, deaths: 0 };
+    let gameState = { players: [], bombPlanted: false, bombTimer: 0 };
+    let stats = { health: 100, money: 2400, ammo: 12, kills: 0, deaths: 0 };
     let moveInput = { x: 0, z: 0 }, lookInput = { x: 0, y: 0 };
-    let lastUpdateTime = 0;
-    let fpsCounter = 0, lastFpsTime = 0;
+    let lastUpdateTime = 0, fpsCounter = 0, lastFpsTime = 0;
     let playerMeshes = new Map();
-    let crateInstances = null;
+    const GRAVITY = 0.015;
+    const FRICTION = 0.85;
+    const MOVE_SPEED = 0.25;
 
     async function startGame() {
       const nickname = document.getElementById('nickname').value || 'Player';
@@ -376,7 +380,7 @@
     function initGame() {
       scene = new THREE.Scene();
       scene.background = new THREE.Color(0x87CEEB);
-      scene.fog = new THREE.Fog(0x87CEEB, 300, 600);
+      scene.fog = new THREE.Fog(0x87CEEB, 250, 400);
 
       camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
       
@@ -384,40 +388,48 @@
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
 
-      // Lighting - minimal for performance
-      const ambLight = new THREE.AmbientLight(0xffffff, 0.8);
+      const ambLight = new THREE.AmbientLight(0xffffff, 0.9);
       scene.add(ambLight);
 
-      // Ground
-      const groundGeo = new THREE.PlaneGeometry(300, 300);
-      groundGeo.dispose();
-      const groundMat = new THREE.MeshBasicMaterial({ color: 0x888888 });
+      // de_dust2 inspired map
+      const groundGeo = new THREE.PlaneGeometry(400, 400);
+      const groundMat = new THREE.MeshBasicMaterial({ color: 0xAAAA88 });
       const ground = new THREE.Mesh(groundGeo, groundMat);
       ground.rotation.x = -Math.PI / 2;
       scene.add(ground);
 
-      // Buildings - low poly
-      const buildingMat = new THREE.MeshBasicMaterial({ color: 0xcccccc });
-      const createBuilding = (x, y, z, w, h, d) => {
-        const box = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), buildingMat);
+      // Walls and structures
+      const wallMat = new THREE.MeshBasicMaterial({ color: 0xBBBBBB });
+      const createWall = (x, y, z, w, h, d) => {
+        const box = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), wallMat);
         box.position.set(x, y, z);
         scene.add(box);
       };
 
-      createBuilding(-100, 15, 0, 40, 30, 80);
-      createBuilding(100, 15, 0, 40, 30, 80);
-      createBuilding(0, 10, 100, 80, 20, 40);
-      createBuilding(0, 10, -100, 80, 20, 40);
-      createBuilding(0, 5, 0, 60, 2, 60);
+      // Outer walls
+      createWall(-150, 15, 0, 40, 30, 400);
+      createWall(150, 15, 0, 40, 30, 400);
+      createWall(0, 15, 150, 400, 30, 40);
+      createWall(0, 15, -150, 400, 30, 40);
 
-      // Crates using InstancedMesh
+      // Inner structures
+      createWall(-60, 8, 0, 60, 16, 50);
+      createWall(60, 8, 0, 60, 16, 50);
+      createWall(0, 8, -80, 50, 16, 60);
+      createWall(0, 8, 80, 50, 16, 60);
+
+      // Bomb sites
+      createWall(-80, 0.5, -100, 40, 1, 40);
+      createWall(80, 0.5, 100, 40, 1, 40);
+
+      // Crates
       const crateGeo = new THREE.BoxGeometry(3, 3, 3);
       const crateMat = new THREE.MeshBasicMaterial({ color: 0x8B4513 });
-      crateInstances = new THREE.InstancedMesh(crateGeo, crateMat, 8);
+      const crateInstances = new THREE.InstancedMesh(crateGeo, crateMat, 12);
       
-      for (let i = 0; i < 8; i++) {
-        const x = (Math.random() - 0.5) * 120;
-        const z = (Math.random() - 0.5) * 120;
+      for (let i = 0; i < 12; i++) {
+        const x = (Math.random() - 0.5) * 200;
+        const z = (Math.random() - 0.5) * 200;
         const matrix = new THREE.Matrix4();
         matrix.setPosition(x, 1.5, z);
         crateInstances.setMatrixAt(i, matrix);
@@ -496,10 +508,8 @@
 
     async function gameLoop() {
       const now = performance.now();
-      const frameTime = now - lastUpdateTime;
       lastUpdateTime = now;
 
-      // FPS counter
       fpsCounter++;
       if (now - lastFpsTime >= 1000) {
         document.getElementById('fps').textContent = 'FPS: ' + fpsCounter;
@@ -507,18 +517,36 @@
         lastFpsTime = now;
       }
 
-      const speed = 0.2;
-      playerPos.x += moveInput.x * speed;
-      playerPos.z += moveInput.z * speed;
+      // Physics
+      playerVel.y -= GRAVITY;
+      if (playerPos.y <= 1.6) {
+        playerPos.y = 1.6;
+        playerVel.y = 0;
+      }
+
+      playerVel.x = moveInput.x * MOVE_SPEED;
+      playerVel.z = moveInput.z * MOVE_SPEED;
+
+      playerPos.x += playerVel.x;
+      playerPos.y += playerVel.y;
+      playerPos.z += playerVel.z;
+
+      playerPos.x = Math.max(-140, Math.min(140, playerPos.x));
+      playerPos.z = Math.max(-140, Math.min(140, playerPos.z));
+
       playerAngle += lookInput.x;
       playerPitch = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, playerPitch + lookInput.y));
 
-      // Throttle network updates to 30Hz
-      if (now % 33 < 16) {
+      if (now % 50 < 25) {
         await fetch('/api/move', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ playerId, x: playerPos.x, y: playerPos.y, z: playerPos.z, angle: playerAngle, pitch: playerPitch })
+          body: JSON.stringify({ 
+            playerId, 
+            x: playerPos.x, y: playerPos.y, z: playerPos.z,
+            vx: playerVel.x, vy: playerVel.y, vz: playerVel.z,
+            angle: playerAngle, pitch: playerPitch 
+          })
         });
       }
 
@@ -529,16 +557,14 @@
       const me = state.players.find(p => p.id === playerId);
       if (me) {
         stats.health = me.health;
-        stats.armor = me.armor;
         stats.kills = me.kills;
         stats.deaths = me.deaths;
         stats.money = me.money;
         stats.ammo = me.ammo;
+        playerPos.y = me.y;
       }
 
-      // Update UI
       document.getElementById('health').textContent = Math.max(0, Math.floor(stats.health));
-      document.getElementById('armor').textContent = Math.max(0, Math.floor(stats.armor));
       document.getElementById('money').textContent = stats.money;
       document.getElementById('ammo').textContent = stats.ammo;
       document.getElementById('kills').textContent = stats.kills;
@@ -546,19 +572,22 @@
       document.getElementById('scoreA').textContent = state.game.teamAScore;
       document.getElementById('scoreB').textContent = state.game.teamBScore;
 
-      // Team list - only render first 10
+      if (state.bombPlanted) {
+        document.getElementById('bombStatus').textContent = `💣 BOMB ${state.bombTimer}s`;
+      } else {
+        document.getElementById('bombStatus').textContent = '';
+      }
+
       const teamListHtml = '<strong style="color: #ffff00; display: block; margin-bottom: 5px;">TEAM</strong>' +
-        state.teamAPlayers.slice(0, 5).map(p => `<div class="team-player ${!p.alive ? 'dead' : ''}">${p.nickname} ${p.alive ? '●' : '✕'}</div>`).join('') +
-        state.teamBPlayers.slice(0, 5).map(p => `<div class="team-player ${!p.alive ? 'dead' : ''}">${p.nickname} ${p.alive ? '●' : '✕'}</div>`).join('');
+        state.teamAPlayers.slice(0, 5).map(p => `<div class="team-player ${!p.alive ? 'dead' : ''}">${p.nickname}</div>`).join('') +
+        state.teamBPlayers.slice(0, 5).map(p => `<div class="team-player ${!p.alive ? 'dead' : ''}">${p.nickname}</div>`).join('');
       document.getElementById('teamList').innerHTML = teamListHtml;
 
-      // Camera
       camera.position.copy(playerPos);
       camera.rotation.order = 'YXZ';
       camera.rotation.y = playerAngle;
       camera.rotation.x = playerPitch;
 
-      // Remove old meshes
       for (let mesh of playerMeshes.values()) {
         scene.remove(mesh);
         mesh.geometry.dispose();
@@ -566,9 +595,8 @@
       }
       playerMeshes.clear();
 
-      // Draw only visible players (max 8)
       const visible = state.players.filter(p => p.alive && p.id !== playerId && 
-        Math.hypot(p.x - playerPos.x, p.z - playerPos.z) < 100).slice(0, 8);
+        Math.hypot(p.x - playerPos.x, p.z - playerPos.z) < 120).slice(0, 8);
 
       visible.forEach(p => {
         const mat = new THREE.MeshBasicMaterial({ color: p.team === 'A' ? 0xff6666 : 0x6699ff });
@@ -578,7 +606,6 @@
         playerMeshes.set(p.id, mesh);
       });
 
-      // Minimap
       const mmCanvas = document.getElementById('minimap');
       if (mmCanvas && mmCanvas.getContext) {
         const mmCtx = mmCanvas.getContext('2d', { willReadFrequently: false });
@@ -588,13 +615,9 @@
         mmCtx.strokeRect(0, 0, 140, 140);
 
         state.players.slice(0, 12).forEach(p => {
-          const rx = 70 + (p.x / 150) * 60;
-          const rz = 70 + (p.z / 150) * 60;
-          if (p.id === playerId) {
-            mmCtx.fillStyle = '#ffff00';
-          } else {
-            mmCtx.fillStyle = p.team === 'A' ? '#ff6666' : '#6699ff';
-          }
+          const rx = 70 + (p.x / 200) * 60;
+          const rz = 70 + (p.z / 200) * 60;
+          mmCtx.fillStyle = p.id === playerId ? '#ffff00' : (p.team === 'A' ? '#ff6666' : '#6699ff');
           mmCtx.fillRect(rx - 2, rz - 2, 4, 4);
         });
       }

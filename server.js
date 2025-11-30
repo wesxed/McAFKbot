@@ -11,132 +11,187 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
+const games = new Map();
 const players = new Map();
-const bullets = [];
-const enemies = [];
 
-let tick = 0;
-
-// Initialize enemies
-for (let i = 0; i < 15; i++) {
-  enemies.push({
-    id: `enemy_${i}`,
-    x: Math.random() * 100 - 50,
-    y: 2,
-    z: Math.random() * 100 - 50,
-    health: 100,
-    vx: (Math.random() - 0.5) * 0.2,
-    vz: (Math.random() - 0.5) * 0.2,
-    angle: Math.random() * Math.PI * 2
-  });
-}
+const WEAPON_PRICES = {
+  pistol: { damage: 35, price: 500, ammo: 20 },
+  rifle: { damage: 75, price: 2900, ammo: 30 },
+  shotgun: { damage: 120, price: 1200, ammo: 8 },
+  sniper: { damage: 150, price: 4750, ammo: 10 }
+};
 
 app.post('/api/join', (req, res) => {
-  const { nickname } = req.body;
-  const playerId = Math.random().toString(36).substr(2, 9);
-  
-  players.set(playerId, {
-    id: playerId,
+  const { nickname, gameId } = req.body;
+  const gid = gameId || 'default';
+  const pid = Math.random().toString(36).substr(2, 9);
+
+  if (!games.has(gid)) {
+    games.set(gid, {
+      id: gid,
+      round: 1,
+      teamA: [],
+      teamB: [],
+      bombPlanted: false,
+      bombX: 0,
+      bombY: 0,
+      bombZ: 0,
+      teamAMoney: 2400,
+      teamBMoney: 2400,
+      teamAScore: 0,
+      teamBScore: 0
+    });
+  }
+
+  const game = games.get(gid);
+  const team = game.teamA.length <= game.teamB.length ? 'A' : 'B';
+  if (team === 'A') game.teamA.push(pid);
+  else game.teamB.push(pid);
+
+  const spawnPos = team === 'A' 
+    ? { x: -20, y: 2, z: -50 }
+    : { x: 20, y: 2, z: 50 };
+
+  players.set(pid, {
+    id: pid,
     nickname,
-    x: 0,
-    y: 1.6,
-    z: 0,
-    angle: 0,
+    gameId: gid,
+    team,
+    x: spawnPos.x + (Math.random() - 0.5) * 10,
+    y: spawnPos.y,
+    z: spawnPos.z + (Math.random() - 0.5) * 10,
+    angle: team === 'A' ? 0 : Math.PI,
     pitch: 0,
     health: 100,
-    ammo: 300,
+    armor: 0,
+    money: 2400,
+    weapon: 'pistol',
+    ammo: 20,
     kills: 0,
-    score: 0
+    deaths: 0,
+    alive: true,
+    planting: false,
+    defusing: false
   });
 
-  res.json({ playerId, player: players.get(playerId) });
+  res.json({
+    playerId: pid,
+    gameId: gid,
+    player: players.get(pid),
+    game: game
+  });
+});
+
+app.post('/api/buy', (req, res) => {
+  const { playerId, weapon } = req.body;
+  const player = players.get(playerId);
+  
+  if (player && WEAPON_PRICES[weapon]) {
+    const price = WEAPON_PRICES[weapon].price;
+    if (player.money >= price) {
+      player.money -= price;
+      player.weapon = weapon;
+      player.ammo = WEAPON_PRICES[weapon].ammo;
+    }
+  }
+  res.json({ money: player?.money || 0, weapon: player?.weapon || 'pistol', ammo: player?.ammo || 0 });
 });
 
 app.post('/api/move', (req, res) => {
   const { playerId, x, y, z, angle, pitch } = req.body;
-  if (players.has(playerId)) {
-    const p = players.get(playerId);
-    p.x = x;
-    p.y = y;
-    p.z = z;
-    p.angle = angle;
-    p.pitch = pitch;
+  const player = players.get(playerId);
+  
+  if (player && player.alive) {
+    player.x = Math.max(-100, Math.min(100, x));
+    player.y = Math.max(0, Math.min(50, y));
+    player.z = Math.max(-100, Math.min(100, z));
+    player.angle = angle;
+    player.pitch = pitch;
   }
   res.json({ ok: true });
 });
 
 app.post('/api/shoot', (req, res) => {
-  const { playerId, startX, startY, startZ, dirX, dirY, dirZ } = req.body;
+  const { playerId, dirX, dirY, dirZ } = req.body;
   const player = players.get(playerId);
+  const game = games.get(player?.gameId);
   
-  if (player && player.ammo > 0 && player.health > 0) {
+  if (player && player.alive && player.ammo > 0) {
     player.ammo--;
-    bullets.push({
-      playerId,
-      x: startX,
-      y: startY,
-      z: startZ,
-      dx: dirX,
-      dy: dirY,
-      dz: dirZ,
-      life: 150,
-      speed: 1.5
+    
+    // Hit detection
+    const players_in_game = Array.from(players.values()).filter(p => p.gameId === player.gameId);
+    players_in_game.forEach(target => {
+      if (target.id !== playerId && target.alive && target.team !== player.team) {
+        const dx = target.x - player.x;
+        const dy = target.y - player.y;
+        const dz = target.z - player.z;
+        const dist = Math.hypot(dx, dy, dz);
+        
+        const dot = (dx * dirX + dy * dirY + dz * dirZ) / (dist || 1);
+        if (dist < 3 && dot > 0.8) {
+          const damage = WEAPON_PRICES[player.weapon].damage;
+          target.health -= damage;
+          
+          if (target.health <= 0) {
+            target.alive = false;
+            target.deaths++;
+            player.kills++;
+            player.money += 300;
+          }
+        }
+      }
     });
   }
   res.json({ ammo: player?.ammo || 0 });
 });
 
-app.get('/api/state', (req, res) => {
-  // Update bullets
-  for (let i = bullets.length - 1; i >= 0; i--) {
-    const b = bullets[i];
-    b.x += b.dx * b.speed;
-    b.y += b.dy * b.speed;
-    b.z += b.dz * b.speed;
-    b.life--;
-
-    // Check collision with enemies
-    for (let j = enemies.length - 1; j >= 0; j--) {
-      const e = enemies[j];
-      const dist = Math.hypot(b.x - e.x, b.y - e.y, b.z - e.z);
-      
-      if (dist < 1) {
-        e.health -= 25;
-        const shooter = players.get(b.playerId);
-        if (e.health <= 0) {
-          enemies.splice(j, 1);
-          if (shooter) {
-            shooter.kills++;
-            shooter.score += 100;
-          }
-          bullets.splice(i, 1);
-          break;
-        } else {
-          bullets.splice(i, 1);
-          break;
-        }
-      }
-    }
-
-    if (b.life <= 0) bullets.splice(i, 1);
+app.post('/api/plant', (req, res) => {
+  const { playerId } = req.body;
+  const player = players.get(playerId);
+  const game = games.get(player?.gameId);
+  
+  if (player && player.team === 'A' && player.alive && game) {
+    game.bombPlanted = true;
+    game.bombX = player.x;
+    game.bombY = player.y;
+    game.bombZ = player.z;
+    player.planting = false;
   }
+  res.json({ planted: game?.bombPlanted || false });
+});
 
-  // Update enemies
-  enemies.forEach(e => {
-    e.x += e.vx;
-    e.z += e.vz;
-    e.angle += 0.02;
+app.post('/api/defuse', (req, res) => {
+  const { playerId } = req.body;
+  const player = players.get(playerId);
+  const game = games.get(player?.gameId);
+  
+  if (player && player.team === 'B' && player.alive && game && game.bombPlanted) {
+    game.bombPlanted = false;
+    player.money += 300;
+  }
+  res.json({ defused: !game?.bombPlanted });
+});
 
-    // Boundary
-    if (e.x > 60 || e.x < -60) e.vx *= -1;
-    if (e.z > 60 || e.z < -60) e.vz *= -1;
-  });
+app.get('/api/state/:gameId', (req, res) => {
+  const game = games.get(req.params.gameId);
+  if (!game) return res.status(404).json({ error: 'Game not found' });
+  
+  const gamePlayers = Array.from(players.values()).filter(p => p.gameId === req.params.gameId);
+  
+  // Check win conditions
+  const teamAAlive = gamePlayers.filter(p => p.team === 'A' && p.alive).length;
+  const teamBAlive = gamePlayers.filter(p => p.team === 'B' && p.alive).length;
+  
+  if (teamAAlive === 0) game.teamBScore++;
+  if (teamBAlive === 0 || (game.bombPlanted && Date.now() % 1000 > 500)) game.teamAScore++;
 
   res.json({
-    players: Array.from(players.values()),
-    enemies,
-    bullets: bullets.slice(0, 100),
-    tick: tick++
+    game,
+    players: gamePlayers,
+    round: game.round,
+    bombPlanted: game.bombPlanted,
+    bombPos: { x: game.bombX, y: game.bombY, z: game.bombZ }
   });
 });
 
@@ -145,5 +200,5 @@ app.get('/', (req, res) => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🎮 FPS Arena - Port ${PORT}`);
+  console.log(`🎮 CS-Style Mobile FPS - Port ${PORT}`);
 });

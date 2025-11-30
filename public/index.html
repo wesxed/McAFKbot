@@ -2,175 +2,134 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FPS Arena - First Person Shooter</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <title>CS Mobile - Tactical FPS</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Arial', sans-serif;
-      background: #000;
-      overflow: hidden;
-      color: #0f0;
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-user-select: none; user-select: none; }
+    html, body { width: 100%; height: 100%; overflow: hidden; }
+    body { font-family: Arial, sans-serif; background: #000; }
+    #canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+    
+    .ui-layer { position: absolute; z-index: 100; color: #0f0; font-family: 'Courier New', monospace; text-shadow: 0 0 5px #0f0; }
+    #hud { top: 10px; left: 10px; font-size: 12px; }
+    .hud-row { margin: 4px 0; background: rgba(0, 30, 0, 0.7); padding: 3px 6px; border: 1px solid #0f0; }
+    
+    #minimap { bottom: 60px; right: 10px; width: 120px; height: 120px; background: rgba(0, 0, 0, 0.8); border: 2px solid #0f0; }
+    
+    #controls {
+      bottom: 0; left: 0; right: 0; width: 100%;
+      display: flex; justify-content: space-between; align-items: flex-end;
+      height: 80px; background: rgba(0, 0, 0, 0.5); border-top: 1px solid #0f0;
     }
-    #canvas {
-      display: block;
-      width: 100%;
-      height: 100vh;
+    
+    .joystick-area {
+      width: 100px; height: 100px; position: relative; margin: 10px;
+      background: rgba(0, 50, 0, 0.5); border: 1px solid #0f0;
     }
-    #hud {
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
-      color: #0f0;
-      font-family: 'Courier New', monospace;
-      font-size: 14px;
-      text-shadow: 0 0 10px #0f0;
-      z-index: 100;
+    .joystick-center { position: absolute; width: 30px; height: 30px; background: #0f0; border-radius: 50%; }
+    
+    .button-area {
+      margin: 10px; display: flex; gap: 5px;
     }
-    .hud-item {
-      margin: 5px 0;
-      background: rgba(0, 50, 0, 0.7);
-      padding: 5px 10px;
-      border: 1px solid #0f0;
+    .btn {
+      width: 50px; height: 50px; background: rgba(0, 100, 0, 0.7); border: 1px solid #0f0;
+      color: #0f0; cursor: pointer; font-weight: bold; border-radius: 5px;
+      touch-action: manipulation; -webkit-touch-callout: none;
     }
-    #crosshair {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 40px;
-      height: 40px;
-      border: 2px solid #0f0;
-      border-radius: 50%;
-      z-index: 50;
-    }
+    .btn:active { background: #0f0; color: #000; }
+    
     .join-screen {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: linear-gradient(135deg, #001a00, #003300);
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      display: flex; justify-content: center; align-items: center;
       z-index: 200;
     }
     .join-panel {
-      border: 2px solid #0f0;
-      padding: 40px;
-      background: rgba(0, 20, 0, 0.9);
-      text-align: center;
-      color: #0f0;
-      font-family: 'Courier New', monospace;
+      border: 2px solid #0f0; padding: 20px; background: rgba(0, 20, 0, 0.95);
+      text-align: center; color: #0f0; font-family: 'Courier New', monospace;
     }
-    .join-panel h1 {
-      margin-bottom: 20px;
-      text-shadow: 0 0 20px #0f0;
-    }
+    .join-panel h1 { margin-bottom: 15px; font-size: 24px; }
     .join-panel input {
-      width: 200px;
-      padding: 10px;
-      margin: 10px;
-      background: rgba(0, 50, 0, 0.8);
-      border: 1px solid #0f0;
-      color: #0f0;
-      font-family: 'Courier New', monospace;
+      width: 150px; padding: 8px; margin: 8px; background: rgba(0, 50, 0, 0.8);
+      border: 1px solid #0f0; color: #0f0; font-family: 'Courier New', monospace;
     }
     .join-panel button {
-      padding: 10px 30px;
-      margin-top: 20px;
-      background: rgba(0, 100, 0, 0.8);
-      border: 2px solid #0f0;
-      color: #0f0;
-      cursor: pointer;
-      font-size: 16px;
-      font-family: 'Courier New', monospace;
-      transition: 0.2s;
+      padding: 8px 20px; margin-top: 10px; background: rgba(0, 100, 0, 0.8);
+      border: 1px solid #0f0; color: #0f0; cursor: pointer; font-weight: bold;
     }
-    .join-panel button:hover {
-      background: #0f0;
-      color: #000;
-      text-shadow: none;
+    
+    #shop {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background: rgba(0, 20, 0, 0.95); border: 2px solid #0f0; padding: 15px;
+      max-height: 80vh; overflow-y: auto; display: none; z-index: 150; color: #0f0;
+      font-family: 'Courier New', monospace; font-size: 12px;
     }
-    #scoreboard {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      background: rgba(0, 50, 0, 0.8);
-      border: 1px solid #0f0;
-      padding: 15px;
-      color: #0f0;
-      font-family: 'Courier New', monospace;
-      font-size: 12px;
-      max-height: 300px;
-      overflow-y: auto;
-      z-index: 100;
-    }
-    .scoreboard-player {
-      padding: 3px 5px;
-      border-bottom: 1px solid rgba(0, 255, 0, 0.3);
-    }
-    #radar {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      width: 150px;
-      height: 150px;
-      border: 1px solid #0f0;
-      background: rgba(0, 20, 0, 0.8);
-      z-index: 100;
-    }
+    .shop-item { padding: 5px; margin: 5px 0; background: rgba(0, 50, 0, 0.5); border: 1px solid #0f0; cursor: pointer; }
+    .shop-item:active { background: #0f0; color: #000; }
   </style>
 </head>
 <body>
   <div class="join-screen" id="joinScreen">
     <div class="join-panel">
-      <h1>⚔️ FPS ARENA</h1>
-      <p>Enter your name to start</p>
-      <input type="text" id="nickname" placeholder="Nickname" maxlength="20">
-      <button onclick="startGame()">ENTER BATTLE</button>
+      <h1>CS MOBILE</h1>
+      <input type="text" id="nickname" placeholder="Nickname" maxlength="15">
+      <button onclick="startGame()">PLAY</button>
     </div>
   </div>
 
   <canvas id="canvas"></canvas>
-  
-  <div id="radar"></div>
-  
-  <div id="crosshair"></div>
-  
-  <div id="hud">
-    <div class="hud-item">AMMO: <span id="ammo">300</span></div>
-    <div class="hud-item">HEALTH: <span id="health">100</span>/100</div>
-    <div class="hud-item">KILLS: <span id="kills">0</span></div>
-    <div class="hud-item">SCORE: <span id="score">0</span></div>
+
+  <div id="hud" class="ui-layer">
+    <div class="hud-row">HP: <span id="health">100</span>/100</div>
+    <div class="hud-row">$: <span id="money">2400</span></div>
+    <div class="hud-row" id="ammoDisplay">AMMO: 20</div>
+    <div class="hud-row">K: <span id="kills">0</span> D: <span id="deaths">0</span></div>
+    <div class="hud-row" id="bombStatus"></div>
   </div>
 
-  <div id="scoreboard"></div>
+  <canvas id="minimap" class="ui-layer"></canvas>
+
+  <div id="shop" class="ui-layer">
+    <h3>SHOP</h3>
+    <div class="shop-item" onclick="buyWeapon('rifle')">RIFLE $2900</div>
+    <div class="shop-item" onclick="buyWeapon('shotgun')">SHOTGUN $1200</div>
+    <div class="shop-item" onclick="buyWeapon('sniper')">SNIPER $4750</div>
+  </div>
+
+  <div id="controls">
+    <div class="joystick-area" id="moveJoystick">
+      <div class="joystick-center" id="moveStick" style="left: 35px; top: 35px;"></div>
+    </div>
+    <div class="joystick-area" id="lookJoystick">
+      <div class="joystick-center" id="lookStick" style="left: 35px; top: 35px;"></div>
+    </div>
+    <div class="button-area">
+      <button class="btn" id="shootBtn" ontouchstart="shoot()" ontouchend="">🔫</button>
+      <button class="btn" id="shopBtn" ontouchstart="toggleShop()">🛒</button>
+    </div>
+  </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script>
-    let playerId = null;
-    let scene, camera, renderer;
-    let playerPos = { x: 0, y: 1.6, z: 0 };
-    let playerAngle = 0;
-    let playerPitch = 0;
-    let velocity = { x: 0, y: 0, z: 0 };
-    let gameState = { players: [], enemies: [], bullets: [] };
-    let localStats = { ammo: 300, health: 100, kills: 0, score: 0 };
-
-    const keys = {};
-    let mouseX = 0, mouseY = 0;
+    let playerId = null, gameId = 'default';
+    let scene, camera, renderer, playerPos = { x: 0, y: 2, z: 0 };
+    let playerAngle = 0, playerPitch = 0;
+    let gameState = { players: [], bombPlanted: false };
+    let stats = { health: 100, money: 2400, ammo: 20, kills: 0, deaths: 0 };
+    
+    let moveInput = { x: 0, z: 0 }, lookInput = { x: 0, y: 0 };
 
     async function startGame() {
       const nickname = document.getElementById('nickname').value || 'Player';
       const res = await fetch('/api/join', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nickname })
+        body: JSON.stringify({ nickname, gameId })
       });
       const data = await res.json();
       playerId = data.playerId;
+      gameId = data.gameId;
+      stats.money = data.player.money;
       
       document.getElementById('joinScreen').style.display = 'none';
       initGame();
@@ -180,209 +139,201 @@
     function initGame() {
       scene = new THREE.Scene();
       scene.background = new THREE.Color(0x1a1a2e);
-      scene.fog = new THREE.Fog(0x1a1a2e, 200, 500);
+      scene.fog = new THREE.Fog(0x1a1a2e, 300, 500);
 
       camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-      camera.position.set(playerPos.x, playerPos.y, playerPos.z);
-
+      
       renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas'), antialias: true });
       renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
       // Lighting
-      const ambLight = new THREE.AmbientLight(0xffffff, 0.6);
-      scene.add(ambLight);
+      scene.add(new THREE.AmbientLight(0xffffff, 0.6));
       const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
       dirLight.position.set(50, 50, 50);
       scene.add(dirLight);
 
       // Ground
       const groundGeo = new THREE.PlaneGeometry(200, 200);
-      const groundMat = new THREE.MeshLambertMaterial({ color: 0x2a4a2a });
+      const groundMat = new THREE.MeshLambertMaterial({ color: 0x2a3a2a });
       const ground = new THREE.Mesh(groundGeo, groundMat);
       ground.rotation.x = -Math.PI / 2;
-      ground.position.y = 0;
       scene.add(ground);
 
-      // Walls
-      const wallMat = new THREE.MeshLambertMaterial({ color: 0x333366 });
-      const wallGeo = new THREE.BoxGeometry(200, 50, 2);
-      const wall1 = new THREE.Mesh(wallGeo, wallMat);
-      wall1.position.set(0, 25, 100);
-      scene.add(wall1);
-      const wall2 = new THREE.Mesh(wallGeo, wallMat);
-      wall2.position.set(0, 25, -100);
-      scene.add(wall2);
+      // Map structures
+      const boxMat = new THREE.MeshLambertMaterial({ color: 0x444466 });
+      const createBox = (x, y, z, w, h, d) => {
+        const box = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), boxMat);
+        box.position.set(x, y, z);
+        scene.add(box);
+      };
+      
+      createBox(-50, 10, 0, 15, 20, 80);
+      createBox(50, 10, 0, 15, 20, 80);
+      createBox(0, 10, 50, 80, 20, 15);
+      createBox(0, 10, -50, 80, 20, 15);
+      createBox(0, 5, 0, 30, 3, 30);
 
-      // Enemy model
-      window.enemyObjects = new Map();
+      setupControls();
+    }
 
-      window.addEventListener('keydown', (e) => keys[e.key.toLowerCase()] = true);
-      window.addEventListener('keyup', (e) => keys[e.key.toLowerCase()] = false);
-      window.addEventListener('mousemove', (e) => {
-        mouseX = e.movementX;
-        mouseY = e.movementY;
+    function setupControls() {
+      const moveArea = document.getElementById('moveJoystick');
+      const lookArea = document.getElementById('lookJoystick');
+
+      ['touchstart', 'touchmove', 'touchend'].forEach(evt => {
+        moveArea.addEventListener(evt, (e) => handleJoystick(e, moveArea, 'move'), false);
+        lookArea.addEventListener(evt, (e) => handleJoystick(e, lookArea, 'look'), false);
       });
-      window.addEventListener('click', shoot);
-      window.addEventListener('contextmenu', (e) => e.preventDefault());
 
-      document.addEventListener('click', () => {
-        renderer.domElement.requestPointerLock();
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
       });
+    }
+
+    function handleJoystick(e, area, type) {
+      e.preventDefault();
+      const touch = e.touches[0];
+      if (!touch) {
+        if (type === 'move') moveInput = { x: 0, z: 0 };
+        else lookInput = { x: 0, y: 0 };
+        return;
+      }
+
+      const rect = area.getBoundingClientRect();
+      const x = (touch.clientX - rect.left) / rect.width - 0.5;
+      const y = (touch.clientY - rect.top) / rect.height - 0.5;
+
+      if (type === 'move') moveInput = { x: x * 2, z: -y * 2 };
+      else lookInput = { x: x * 0.1, y: -y * 0.1 };
+
+      const stick = type === 'move' ? document.getElementById('moveStick') : document.getElementById('lookStick');
+      stick.style.left = (50 + x * 35) + 'px';
+      stick.style.top = (50 + y * 35) + 'px';
     }
 
     async function shoot() {
       if (!playerId) return;
-      
-      const start = new THREE.Vector3(playerPos.x, playerPos.y, playerPos.z);
       const dir = new THREE.Vector3(0, 0, -1);
       dir.applyAxisAngle(new THREE.Vector3(0, 1, 0), playerAngle);
       dir.applyAxisAngle(new THREE.Vector3(1, 0, 0), playerPitch);
-
+      
       await fetch('/api/shoot', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          playerId,
-          startX: start.x,
-          startY: start.y,
-          startZ: start.z,
-          dirX: dir.x,
-          dirY: dir.y,
-          dirZ: dir.z
-        })
+        body: JSON.stringify({ playerId, dirX: dir.x, dirY: dir.y, dirZ: dir.z })
       });
-      localStats.ammo--;
+    }
+
+    async function buyWeapon(weapon) {
+      const res = await fetch('/api/buy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ playerId, weapon })
+      });
+      const data = await res.json();
+      stats.money = data.money;
+      stats.ammo = data.ammo;
+    }
+
+    function toggleShop() {
+      const shop = document.getElementById('shop');
+      shop.style.display = shop.style.display === 'none' ? 'block' : 'none';
     }
 
     async function gameLoop() {
-      // Input
-      const speed = 0.3;
-      if (keys['w']) {
-        playerPos.x -= Math.sin(playerAngle) * speed;
-        playerPos.z -= Math.cos(playerAngle) * speed;
-      }
-      if (keys['s']) {
-        playerPos.x += Math.sin(playerAngle) * speed;
-        playerPos.z += Math.cos(playerAngle) * speed;
-      }
-      if (keys['a']) {
-        playerPos.x -= Math.cos(playerAngle) * speed;
-        playerPos.z += Math.sin(playerAngle) * speed;
-      }
-      if (keys['d']) {
-        playerPos.x += Math.cos(playerAngle) * speed;
-        playerPos.z -= Math.sin(playerAngle) * speed;
-      }
+      const speed = 0.25;
+      playerPos.x += moveInput.x * speed;
+      playerPos.z += moveInput.z * speed;
+      playerAngle += lookInput.x;
+      playerPitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, playerPitch + lookInput.y));
 
-      playerAngle -= mouseX * 0.003;
-      playerPitch -= mouseY * 0.003;
-      playerPitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, playerPitch));
-      mouseX = 0;
-      mouseY = 0;
-
-      // Send state
       await fetch('/api/move', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          playerId,
-          x: playerPos.x,
-          y: playerPos.y,
-          z: playerPos.z,
-          angle: playerAngle,
-          pitch: playerPitch
-        })
+        body: JSON.stringify({ playerId, x: playerPos.x, y: playerPos.y, z: playerPos.z, angle: playerAngle, pitch: playerPitch })
       });
 
-      // Get state
-      const res = await fetch('/api/state');
+      const res = await fetch(`/api/state/${gameId}`);
       const state = await res.json();
       gameState = state;
 
-      // Update camera
+      const me = state.players.find(p => p.id === playerId);
+      if (me) {
+        stats.health = me.health;
+        stats.kills = me.kills;
+        stats.deaths = me.deaths;
+        stats.money = me.money;
+        stats.ammo = me.ammo;
+      }
+
+      // Update UI
+      document.getElementById('health').textContent = Math.max(0, stats.health);
+      document.getElementById('money').textContent = stats.money;
+      document.getElementById('ammoDisplay').textContent = `AMMO: ${stats.ammo}`;
+      document.getElementById('kills').textContent = stats.kills;
+      document.getElementById('deaths').textContent = stats.deaths;
+      document.getElementById('bombStatus').textContent = state.bombPlanted ? '💣 BOMB!' : '';
+
+      // Camera
       camera.position.copy(playerPos);
       camera.rotation.order = 'YXZ';
       camera.rotation.y = playerAngle;
       camera.rotation.x = playerPitch;
 
-      // Clear old objects
+      // Clear objects
       scene.children = scene.children.filter(obj => {
-        if (obj.name && (obj.name.startsWith('enemy') || obj.name.startsWith('bullet'))) {
+        if (obj.name && (obj.name.startsWith('enemy') || obj.name.startsWith('bomb'))) {
           scene.remove(obj);
           return false;
         }
         return true;
       });
 
-      // Draw enemies
-      gameState.enemies.forEach(e => {
-        const geo = new THREE.BoxGeometry(1, 2, 1);
-        const mat = new THREE.MeshLambertMaterial({ color: 0xff4444 });
-        const mesh = new THREE.Mesh(geo, mat);
-        mesh.position.set(e.x, e.y, e.z);
-        mesh.name = 'enemy_' + e.id;
+      // Draw players
+      state.players.forEach(p => {
+        if (!p.alive || p.id === playerId) return;
+        const mat = new THREE.MeshLambertMaterial({ color: p.team === 'A' ? 0xff6666 : 0x6699ff });
+        const mesh = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.8, 0.8), mat);
+        mesh.position.set(p.x, p.y, p.z);
+        mesh.name = 'enemy_' + p.id;
         scene.add(mesh);
       });
 
-      // Draw bullets
-      gameState.bullets.forEach(b => {
-        const geo = new THREE.SphereGeometry(0.1, 4, 4);
-        const mat = new THREE.MeshBasicMaterial({ color: 0xffff00 });
-        const mesh = new THREE.Mesh(geo, mat);
-        mesh.position.set(b.x, b.y, b.z);
-        mesh.name = 'bullet_' + Math.random();
-        scene.add(mesh);
-      });
-
-      // Update HUD
-      document.getElementById('ammo').textContent = localStats.ammo;
-      document.getElementById('kills').textContent = localStats.kills;
-      document.getElementById('score').textContent = localStats.score;
-
-      const me = gameState.players.find(p => p.id === playerId);
-      if (me) {
-        localStats.health = me.health;
-        localStats.kills = me.kills;
-        localStats.score = me.score;
-        document.getElementById('health').textContent = Math.max(0, me.health);
+      // Draw bomb
+      if (state.bombPlanted) {
+        const bombMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+        const bomb = new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 8), bombMat);
+        bomb.position.set(state.bombPos.x, state.bombPos.y, state.bombPos.z);
+        bomb.name = 'bomb';
+        scene.add(bomb);
       }
 
-      // Scoreboard
-      const sorted = gameState.players.sort((a, b) => b.score - a.score);
-      document.getElementById('scoreboard').innerHTML = '<strong>LEADERBOARD</strong><br>' + 
-        sorted.slice(0, 5).map(p => `<div class="scoreboard-player">${p.nickname} - ${p.score}</div>`).join('');
+      // Minimap
+      const mmCanvas = document.getElementById('minimap');
+      if (mmCanvas) {
+        const mmCtx = mmCanvas.getContext('2d');
+        mmCtx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+        mmCtx.fillRect(0, 0, 120, 120);
+        mmCtx.strokeStyle = '#0f0';
+        mmCtx.strokeRect(0, 0, 120, 120);
 
-      // Radar
-      const radar = document.getElementById('radar');
-      const radarCtx = radar.getContext ? radar.getContext('2d') : null;
-      if (radarCtx) {
-        radarCtx.fillStyle = 'rgba(0, 20, 0, 0.8)';
-        radarCtx.fillRect(0, 0, 150, 150);
-        radarCtx.strokeStyle = '#0f0';
-        radarCtx.strokeRect(0, 0, 150, 150);
-
-        gameState.enemies.slice(0, 10).forEach(e => {
-          const rx = 75 + (e.x / 100) * 70;
-          const rz = 75 + (e.z / 100) * 70;
-          radarCtx.fillStyle = '#f00';
-          radarCtx.fillRect(rx - 2, rz - 2, 4, 4);
+        state.players.slice(0, 10).forEach(p => {
+          const rx = 60 + (p.x / 100) * 50;
+          const rz = 60 + (p.z / 100) * 50;
+          mmCtx.fillStyle = p.team === 'A' ? '#ff6666' : '#6699ff';
+          mmCtx.fillRect(rx - 2, rz - 2, 4, 4);
         });
 
-        radarCtx.fillStyle = '#0f0';
-        radarCtx.fillRect(73, 73, 4, 4);
+        mmCtx.fillStyle = '#0f0';
+        mmCtx.fillRect(58, 58, 4, 4);
       }
 
       renderer.render(scene, camera);
       requestAnimationFrame(gameLoop);
     }
-
-    window.addEventListener('resize', () => {
-      if (renderer) {
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-      }
-    });
   </script>
 </body>
 </html>

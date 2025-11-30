@@ -3,93 +3,107 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SMS Gönderme Paneli</title>
+  <title>SMS API - Yönetim Paneli</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       padding: 20px;
     }
     .container {
-      width: 100%;
-      max-width: 600px;
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      overflow: hidden;
+      max-width: 1000px;
+      margin: 0 auto;
     }
     .header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
+      background: white;
+      border-radius: 12px;
       padding: 30px;
-      text-align: center;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     }
     .header h1 {
-      font-size: 24px;
-      margin-bottom: 8px;
+      color: #667eea;
+      margin-bottom: 10px;
     }
-    .status-bar {
-      background: rgba(0,0,0,0.2);
-      padding: 10px;
-      font-size: 13px;
-      border-radius: 6px;
-      margin-top: 10px;
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
     }
-    .content {
-      padding: 30px;
-    }
-    .alert {
+    .stat {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
       padding: 15px;
       border-radius: 8px;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .stat-label {
+      font-size: 12px;
+      opacity: 0.9;
+      margin-top: 5px;
+    }
+    .panel {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
       margin-bottom: 20px;
-      font-size: 13px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     }
-    .alert.error {
-      background: #f8d7da;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
-    }
-    .section {
-      margin-bottom: 25px;
-    }
-    .section h2 {
-      font-size: 14px;
+    .panel h2 {
       color: #333;
-      margin-bottom: 12px;
+      margin-bottom: 15px;
+      font-size: 18px;
+      border-bottom: 2px solid #667eea;
+      padding-bottom: 10px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      color: #333;
       font-weight: 600;
+      margin-bottom: 5px;
+      font-size: 13px;
     }
     input, textarea {
       width: 100%;
-      padding: 12px;
+      padding: 10px;
       border: 2px solid #e0e0e0;
-      border-radius: 8px;
-      font-size: 14px;
-      margin-bottom: 8px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: inherit;
     }
     input:focus, textarea:focus {
       outline: none;
       border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
     }
     textarea {
       resize: vertical;
-      min-height: 100px;
+      min-height: 80px;
+    }
+    .char-count {
+      font-size: 12px;
+      color: #999;
+      margin-top: 5px;
     }
     .btn {
-      width: 100%;
-      padding: 12px;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
       border: none;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
+      padding: 10px 20px;
+      border-radius: 6px;
       cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
       transition: transform 0.2s;
     }
     .btn:hover:not(:disabled) {
@@ -99,41 +113,73 @@
       opacity: 0.6;
       cursor: not-allowed;
     }
+    .btn-secondary {
+      background: #f0f0f0;
+      color: #333;
+    }
+    .btn-danger {
+      background: #ff6b6b;
+    }
+    .sms-item {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      border-left: 4px solid #667eea;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .sms-info {
+      flex: 1;
+    }
+    .sms-phone {
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 5px;
+    }
+    .sms-message {
+      color: #666;
+      font-size: 13px;
+      margin-bottom: 5px;
+    }
+    .sms-time {
+      font-size: 12px;
+      color: #999;
+    }
+    .sms-actions {
+      display: flex;
+      gap: 5px;
+      margin-left: 15px;
+    }
     .message {
       padding: 12px;
-      border-radius: 8px;
+      border-radius: 6px;
       margin-bottom: 15px;
       font-size: 13px;
-      animation: slideIn 0.3s ease;
-    }
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
     }
     .message.success {
       background: #d4edda;
       color: #155724;
-      border: 1px solid #c3e6cb;
     }
     .message.error {
       background: #f8d7da;
       color: #721c24;
-      border: 1px solid #f5c6cb;
     }
     .tabs {
       display: flex;
       gap: 10px;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
       border-bottom: 2px solid #e0e0e0;
     }
     .tab-btn {
-      padding: 10px 20px;
+      padding: 10px 15px;
       background: none;
       border: none;
-      border-bottom: 3px solid transparent;
       color: #999;
       font-weight: 600;
       cursor: pointer;
+      border-bottom: 3px solid transparent;
     }
     .tab-btn.active {
       color: #667eea;
@@ -145,196 +191,305 @@
     .tab-content.active {
       display: block;
     }
-    .helper {
-      font-size: 12px;
-      color: #666;
-      margin-top: 6px;
+    .template-item {
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .template-name {
+      font-weight: 600;
+      color: #333;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #999;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <h1>📱 SMS Gönderme Paneli</h1>
-      <div class="status-bar" id="statusBar">Durum kontrol ediliyor...</div>
+      <h1>📱 Kendi SMS API'nız</h1>
+      <p style="color: #666; font-size: 13px;">Mesajları kaydedin, takip edin ve yönetin</p>
+      <div class="stats" id="stats"></div>
     </div>
 
-    <div class="content">
+    <div class="panel">
       <div id="message"></div>
-      <div id="alertBox"></div>
-
+      
       <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('single')">Tek SMS</button>
-        <button class="tab-btn" onclick="switchTab('bulk')">Toplu SMS</button>
+        <button class="tab-btn active" onclick="switchTab('send')">SMS Gönder</button>
+        <button class="tab-btn" onclick="switchTab('history')">Geçmiş</button>
+        <button class="tab-btn" onclick="switchTab('templates')">Şablonlar</button>
       </div>
 
-      <!-- Tek SMS Tab -->
-      <div id="single" class="tab-content active">
-        <div class="section">
-          <h2>Alıcı Telefon Numarası</h2>
-          <input type="tel" id="singlePhone" placeholder="+90 5XX XXX XX XX">
-          <div class="helper">Ülke kodu ile başlamalı (örn: +90 5XX XXX XX XX)</div>
+      <!-- Send Tab -->
+      <div id="send" class="tab-content active">
+        <h2>SMS Gönder</h2>
+        
+        <div class="form-group">
+          <label>Telefon Numarası</label>
+          <input type="tel" id="phone" placeholder="+90 5XX XXX XX XX">
         </div>
 
-        <div class="section">
-          <h2>Mesaj</h2>
-          <textarea id="singleMessage" placeholder="Mesajınızı yazın..."></textarea>
-          <div class="helper" id="charCount">0 / 160 karakter</div>
+        <div class="form-group">
+          <label>Mesaj</label>
+          <textarea id="message-text" placeholder="Mesajınız..."></textarea>
+          <div class="char-count">
+            <span id="charCount">0</span> / 160 karakter
+          </div>
         </div>
 
-        <button class="btn" id="sendBtn" onclick="sendSingle()">📤 SMS Gönder</button>
+        <button class="btn" onclick="sendSMS()">📤 SMS Gönder</button>
       </div>
 
-      <!-- Toplu SMS Tab -->
-      <div id="bulk" class="tab-content">
-        <div class="section">
-          <h2>Telefon Numaraları (Her satırda bir)</h2>
-          <textarea id="bulkPhones" placeholder="+90 5XX XXX XX XX
-+90 5YY YYY YY YY"></textarea>
-          <div class="helper" id="phoneCount">0 numara</div>
+      <!-- History Tab -->
+      <div id="history" class="tab-content">
+        <h2>SMS Geçmişi</h2>
+        <button class="btn btn-secondary" style="margin-bottom: 15px;" onclick="loadHistory()">🔄 Yenile</button>
+        <button class="btn btn-danger" style="margin-bottom: 15px;" onclick="clearAllSMS()">🗑️ Tüm SMS'i Sil</button>
+        <div id="historyList" class="empty-state">Yükleniyor...</div>
+      </div>
+
+      <!-- Templates Tab -->
+      <div id="templates" class="tab-content">
+        <h2>Mesaj Şablonları</h2>
+        
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 15px;">
+          <div class="form-group">
+            <label>Şablon Adı</label>
+            <input type="text" id="templateName" placeholder="Örn: Hoş Geldiniz">
+          </div>
+
+          <div class="form-group">
+            <label>Mesaj</label>
+            <textarea id="templateMessage" placeholder="Mesaj şablonu..."></textarea>
+          </div>
+
+          <button class="btn" onclick="saveTemplate()">💾 Şablonu Kaydet</button>
         </div>
 
-        <div class="section">
-          <h2>Mesaj</h2>
-          <textarea id="bulkMessage" placeholder="Mesajınızı yazın..."></textarea>
-        </div>
-
-        <button class="btn" id="bulkSendBtn" onclick="sendBulk()">📤 Toplu SMS Gönder</button>
+        <h3 style="color: #333; margin-top: 20px; margin-bottom: 10px;">Kaydedilen Şablonlar</h3>
+        <div id="templatesList" class="empty-state">Şablon yok</div>
       </div>
     </div>
   </div>
 
   <script>
-    async function checkStatus() {
-      try {
-        const res = await fetch('/api/status');
-        const data = await res.json();
-        const bar = document.getElementById('statusBar');
-        
-        if (data.ready) {
-          bar.textContent = '✅ Twilio Bağlı - SMS Göndermek Hazır';
-          bar.style.background = 'rgba(76, 175, 80, 0.2)';
-          document.querySelectorAll('.btn').forEach(b => b.disabled = false);
-        } else {
-          bar.textContent = '❌ ' + data.status;
-          bar.style.background = 'rgba(244, 67, 54, 0.2)';
-          document.querySelectorAll('.btn').forEach(b => b.disabled = true);
-          
-          const alert = document.getElementById('alertBox');
-          alert.innerHTML = `<div class="alert error">
-            <strong>⚠️ SMS Gönderilemez</strong><br>
-            Twilio credentials doğru değil. Lütfen:<br>
-            1. twilio.com adresinden Account SID'nizi kopyalayın<br>
-            2. Auth Token'ınızı kopyalayın<br>
-            3. Twilio telefon numaranızı kopyalayın<br>
-            4. Replit Secrets panelinden güncelleyin
-          </div>`;
-        }
-      } catch (e) {
-        console.error('Status check error:', e);
+    const messageEl = document.getElementById('message');
+    const charCountEl = document.getElementById('charCount');
+    const messageTextEl = document.getElementById('message-text');
+    const phoneEl = document.getElementById('phone');
+
+    messageTextEl.addEventListener('input', function() {
+      charCountEl.textContent = this.value.length;
+      if (this.value.length > 160) {
+        this.value = this.value.substring(0, 160);
       }
-    }
+    });
 
     function switchTab(tab) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
       document.getElementById(tab).classList.add('active');
       event.target.classList.add('active');
+
+      if (tab === 'history') loadHistory();
+      if (tab === 'templates') loadTemplates();
     }
 
     function showMessage(text, type = 'success') {
-      const el = document.getElementById('message');
-      el.innerHTML = `<div class="message ${type}">${text}</div>`;
-      setTimeout(() => el.innerHTML = '', 5000);
+      messageEl.innerHTML = `<div class="message ${type}">${text}</div>`;
+      setTimeout(() => messageEl.innerHTML = '', 4000);
     }
 
-    document.getElementById('singleMessage')?.addEventListener('input', function() {
-      document.getElementById('charCount').textContent = `${this.value.length} / 160 karakter`;
-    });
-
-    document.getElementById('bulkPhones')?.addEventListener('input', function() {
-      const phones = this.value.trim().split('\n').filter(p => p.trim());
-      document.getElementById('phoneCount').textContent = `${phones.length} numara`;
-    });
-
-    async function sendSingle() {
-      const phone = document.getElementById('singlePhone').value.trim();
-      const message = document.getElementById('singleMessage').value.trim();
+    async function sendSMS() {
+      const phone = phoneEl.value.trim();
+      const message = messageTextEl.value.trim();
 
       if (!phone || !message) {
         showMessage('❌ Telefon ve mesaj gerekli', 'error');
         return;
       }
 
-      const btn = document.getElementById('sendBtn');
-      btn.disabled = true;
-      btn.textContent = '⏳ Gönderiliyor...';
-
       try {
-        const res = await fetch('/api/send-sms', {
+        const res = await fetch('/api/sms/send', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ phone, message })
         });
 
         const data = await res.json();
-        if (res.ok && data.success) {
+        if (data.success) {
           showMessage(`✅ ${data.message}`, 'success');
-          document.getElementById('singleMessage').value = '';
-        } else {
-          showMessage(`❌ ${data.error}: ${data.details}`, 'error');
+          phoneEl.value = '';
+          messageTextEl.value = '';
+          charCountEl.textContent = '0';
+          loadStats();
         }
       } catch (e) {
-        showMessage(`❌ ${e.message}`, 'error');
-      } finally {
-        btn.disabled = false;
-        btn.textContent = '📤 SMS Gönder';
+        showMessage(`❌ Hata: ${e.message}`, 'error');
       }
     }
 
-    async function sendBulk() {
-      const phonesText = document.getElementById('bulkPhones').value.trim();
-      const message = document.getElementById('bulkMessage').value.trim();
+    async function loadHistory() {
+      try {
+        const res = await fetch('/api/sms');
+        const data = await res.json();
+        const list = document.getElementById('historyList');
 
-      if (!phonesText || !message) {
-        showMessage('❌ Numaralar ve mesaj gerekli', 'error');
-        return;
+        if (data.sms.length === 0) {
+          list.innerHTML = '<div class="empty-state">SMS yok</div>';
+          return;
+        }
+
+        list.innerHTML = data.sms.map(sms => `
+          <div class="sms-item">
+            <div class="sms-info">
+              <div class="sms-phone">${sms.phone}</div>
+              <div class="sms-message">${sms.message}</div>
+              <div class="sms-time">${new Date(sms.timestamp).toLocaleString('tr-TR')}</div>
+            </div>
+            <div class="sms-actions">
+              <button class="btn btn-danger" onclick="deleteSMS('${sms.id}')">Sil</button>
+            </div>
+          </div>
+        `).join('');
+      } catch (e) {
+        document.getElementById('historyList').innerHTML = `<div class="empty-state">Hata: ${e.message}</div>`;
       }
+    }
 
-      const phones = phonesText.split('\n').map(p => p.trim()).filter(p => p);
-      if (phones.length === 0) {
-        showMessage('❌ En az bir telefon gerekli', 'error');
-        return;
+    async function deleteSMS(id) {
+      try {
+        await fetch(`/api/sms/${id}`, { method: 'DELETE' });
+        loadHistory();
+        loadStats();
+      } catch (e) {
+        showMessage(`❌ Hata: ${e.message}`, 'error');
       }
+    }
 
-      const btn = document.getElementById('bulkSendBtn');
-      btn.disabled = true;
-      btn.textContent = `⏳ ${phones.length} numaraya gönderiliyor...`;
+    async function clearAllSMS() {
+      if (!confirm('Tüm SMS\'leri silmek istediğinize emin misiniz?')) return;
 
       try {
-        const res = await fetch('/api/send-bulk', {
+        await fetch('/api/sms', { method: 'DELETE' });
+        loadHistory();
+        loadStats();
+        showMessage('✅ Tüm SMS silindi', 'success');
+      } catch (e) {
+        showMessage(`❌ Hata: ${e.message}`, 'error');
+      }
+    }
+
+    async function loadStats() {
+      try {
+        const res = await fetch('/api/sms/stats');
+        const data = await res.json();
+
+        document.getElementById('stats').innerHTML = `
+          <div class="stat">
+            <div class="stat-value">${data.total}</div>
+            <div class="stat-label">Toplam SMS</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">${data.today}</div>
+            <div class="stat-label">Bugün</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">${data.byType.manual}</div>
+            <div class="stat-label">Manual</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">${data.byType.automated}</div>
+            <div class="stat-label">Otomatik</div>
+          </div>
+        `;
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function saveTemplate() {
+      const name = document.getElementById('templateName').value.trim();
+      const message = document.getElementById('templateMessage').value.trim();
+
+      if (!name || !message) {
+        showMessage('❌ İsim ve mesaj gerekli', 'error');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/templates', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phones, message })
+          body: JSON.stringify({ name, message })
         });
 
         const data = await res.json();
         if (data.success) {
-          showMessage(`✅ ${data.sent} başarılı, ${data.failed} başarısız`, 'success');
-          document.getElementById('bulkMessage').value = '';
-          document.getElementById('bulkPhones').value = '';
-        } else {
-          showMessage(`❌ ${data.error}`, 'error');
+          showMessage('✅ Şablon kaydedildi', 'success');
+          document.getElementById('templateName').value = '';
+          document.getElementById('templateMessage').value = '';
+          loadTemplates();
         }
       } catch (e) {
-        showMessage(`❌ ${e.message}`, 'error');
-      } finally {
-        btn.disabled = false;
-        btn.textContent = '📤 Toplu SMS Gönder';
+        showMessage(`❌ Hata: ${e.message}`, 'error');
       }
     }
 
-    checkStatus();
+    async function loadTemplates() {
+      try {
+        const res = await fetch('/api/templates');
+        const data = await res.json();
+        const list = document.getElementById('templatesList');
+
+        if (data.templates.length === 0) {
+          list.innerHTML = '<div class="empty-state">Şablon yok</div>';
+          return;
+        }
+
+        list.innerHTML = data.templates.map(t => `
+          <div class="template-item">
+            <div>
+              <div class="template-name">${t.name}</div>
+              <div style="font-size: 12px; color: #999; margin-top: 5px;">${t.message}</div>
+            </div>
+            <div style="display: flex; gap: 5px;">
+              <button class="btn btn-secondary" onclick="useTemplate('${t.name}', '${t.message.replace(/'/g, "\\'")}')">Kullan</button>
+              <button class="btn btn-danger" onclick="deleteTemplate('${t.id}')">Sil</button>
+            </div>
+          </div>
+        `).join('');
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function useTemplate(name, message) {
+      messageTextEl.value = message;
+      charCountEl.textContent = message.length;
+      document.querySelectorAll('.tab-btn')[0].click();
+      phoneEl.focus();
+    }
+
+    async function deleteTemplate(id) {
+      try {
+        await fetch(`/api/templates/${id}`, { method: 'DELETE' });
+        loadTemplates();
+      } catch (e) {
+        showMessage(`❌ Hata: ${e.message}`, 'error');
+      }
+    }
+
+    // Initial load
+    loadStats();
   </script>
 </body>
 </html>

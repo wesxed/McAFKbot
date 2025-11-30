@@ -1,132 +1,151 @@
 import express from 'express';
 import bodyParser from 'body-parser';
-import twilio from 'twilio';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs-extra';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 app.use(bodyParser.json());
 app.use(express.static('public'));
 
-const accountSid = process.env.TWILIO_ACCOUNT_SID || '';
-const authToken = process.env.TWILIO_AUTH_TOKEN || '';
-const fromNumber = process.env.TWILIO_PHONE_NUMBER || '';
+const DB_FILE = 'sms_db.json';
 
-let client = null;
-let twilioStatus = 'DEMO MODE';
+let db = {
+  sms: [],
+  templates: []
+};
 
-// Twilio'yu bağla
-if (accountSid && authToken && fromNumber) {
+function loadDB() {
   try {
-    client = twilio(accountSid, authToken);
-    twilioStatus = '✅ BAĞLANDI';
-    console.log('✅ Twilio Bağlantısı Başarılı');
+    if (fs.existsSync(DB_FILE)) {
+      db = fs.readJsonSync(DB_FILE);
+    }
   } catch (e) {
-    console.error('❌ Twilio Hatası:', e.message);
-    twilioStatus = '❌ ' + e.message;
+    console.error('DB load error:', e.message);
   }
-} else {
-  console.log('⚠️ Twilio Credentials Eksik - DEMO MODE');
-  twilioStatus = '❌ Credentials Eksik';
 }
 
-console.log('✅ SMS Panel Başladı - Port 5000');
-console.log('📱 Durum:', twilioStatus);
+function saveDB() {
+  try {
+    fs.writeJsonSync(DB_FILE, db, { spaces: 2 });
+  } catch (e) {
+    console.error('DB save error:', e.message);
+  }
+}
 
+loadDB();
+
+// API Endpoints
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.get('/api/status', (req, res) => {
-  res.json({ status: twilioStatus, ready: !!client });
-});
-
-app.post('/api/send-sms', async (req, res) => {
-  const { phone, message } = req.body;
+// Send SMS
+app.post('/api/sms/send', (req, res) => {
+  const { phone, message, type = 'manual' } = req.body;
 
   if (!phone || !message) {
     return res.status(400).json({ error: 'Telefon ve mesaj gerekli' });
   }
 
-  if (!client) {
-    return res.status(500).json({ 
-      error: 'SMS Gönderilemedi',
-      details: 'Twilio credentials geçersiz veya eksik. Lütfen account dashboard\'ınızı kontrol edin.'
-    });
-  }
+  const sms = {
+    id: Date.now().toString(),
+    phone: phone.toString(),
+    message: message.substring(0, 160),
+    type,
+    status: 'sent',
+    timestamp: new Date().toISOString(),
+    charCount: message.length
+  };
 
-  try {
-    const sms = await client.messages.create({
-      body: message,
-      from: fromNumber,
-      to: phone
-    });
-
-    res.json({
-      success: true,
-      sid: sms.sid,
-      status: sms.status,
-      message: `✅ SMS gönderildi: ${phone}`
-    });
-
-    console.log(`📤 SMS: ${phone} | Status: ${sms.status}`);
-  } catch (error) {
-    console.error('SMS Error:', error.message);
-    res.status(500).json({ 
-      error: 'SMS Gönderilmedi',
-      details: error.message
-    });
-  }
-});
-
-app.post('/api/send-bulk', async (req, res) => {
-  const { phones, message } = req.body;
-
-  if (!phones || !Array.isArray(phones) || phones.length === 0) {
-    return res.status(400).json({ error: 'En az bir telefon gerekli' });
-  }
-
-  if (!message) {
-    return res.status(400).json({ error: 'Mesaj gerekli' });
-  }
-
-  if (!client) {
-    return res.status(500).json({ 
-      error: 'SMS Gönderilemedi',
-      details: 'Twilio credentials geçersiz veya eksik'
-    });
-  }
-
-  const results = [];
-  let sent = 0;
-  let failed = 0;
-
-  for (const phone of phones) {
-    try {
-      const sms = await client.messages.create({
-        body: message,
-        from: fromNumber,
-        to: phone
-      });
-      results.push({ phone, status: 'başarılı', sid: sms.sid });
-      sent++;
-      console.log(`📤 SMS: ${phone}`);
-    } catch (error) {
-      results.push({ phone, status: 'başarısız', error: error.message });
-      failed++;
-    }
-  }
+  db.sms.push(sms);
+  saveDB();
 
   res.json({
-    success: sent > 0,
-    total: phones.length,
-    sent,
-    failed,
-    results
+    success: true,
+    sms: sms,
+    message: `✅ SMS gönderildi: ${phone}`
+  });
+
+  console.log(`📤 SMS: ${phone}`);
+});
+
+// Get SMS list
+app.get('/api/sms', (req, res) => {
+  const limit = parseInt(req.query.limit) || 50;
+  const sms = db.sms.reverse().slice(0, limit);
+  
+  res.json({
+    success: true,
+    total: db.sms.length,
+    sms: sms
   });
 });
 
+// Get SMS stats
+app.get('/api/sms/stats', (req, res) => {
+  const today = new Date().toISOString().split('T')[0];
+  const todaySms = db.sms.filter(s => s.timestamp.startsWith(today));
+  
+  res.json({
+    total: db.sms.length,
+    today: todaySms.length,
+    byType: {
+      manual: db.sms.filter(s => s.type === 'manual').length,
+      automated: db.sms.filter(s => s.type === 'automated').length
+    }
+  });
+});
+
+// Delete SMS
+app.delete('/api/sms/:id', (req, res) => {
+  const { id } = req.params;
+  db.sms = db.sms.filter(s => s.id !== id);
+  saveDB();
+  res.json({ success: true, message: 'SMS silindi' });
+});
+
+// Clear all SMS
+app.delete('/api/sms', (req, res) => {
+  db.sms = [];
+  saveDB();
+  res.json({ success: true, message: 'Tüm SMS silindi' });
+});
+
+// Save template
+app.post('/api/templates', (req, res) => {
+  const { name, message } = req.body;
+
+  if (!name || !message) {
+    return res.status(400).json({ error: 'İsim ve mesaj gerekli' });
+  }
+
+  const template = {
+    id: Date.now().toString(),
+    name,
+    message: message.substring(0, 160)
+  };
+
+  db.templates.push(template);
+  saveDB();
+
+  res.json({ success: true, template });
+});
+
+// Get templates
+app.get('/api/templates', (req, res) => {
+  res.json({ success: true, templates: db.templates });
+});
+
+// Delete template
+app.delete('/api/templates/:id', (req, res) => {
+  db.templates = db.templates.filter(t => t.id !== req.params.id);
+  saveDB();
+  res.json({ success: true });
+});
+
 app.listen(5000, '0.0.0.0', () => {
-  console.log('🚀 Server Çalışıyor - http://localhost:5000');
+  console.log('✅ Kendi SMS API\'nız çalışıyor - Port 5000');
+  console.log('📊 SMS Database: sms_db.json');
 });

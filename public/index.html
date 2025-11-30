@@ -3,363 +3,386 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tactical Arena - Team Battle</title>
+  <title>FPS Arena - First Person Shooter</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Arial', sans-serif;
-      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      background: #000;
+      overflow: hidden;
+      color: #0f0;
+    }
+    #canvas {
+      display: block;
+      width: 100%;
+      height: 100vh;
+    }
+    #hud {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      color: #0f0;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      text-shadow: 0 0 10px #0f0;
+      z-index: 100;
+    }
+    .hud-item {
+      margin: 5px 0;
+      background: rgba(0, 50, 0, 0.7);
+      padding: 5px 10px;
+      border: 1px solid #0f0;
+    }
+    #crosshair {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px;
+      height: 40px;
+      border: 2px solid #0f0;
+      border-radius: 50%;
+      z-index: 50;
+    }
+    .join-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #001a00, #003300);
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100vh;
-      color: #fff;
+      z-index: 200;
     }
-    .container {
-      width: 100%;
-      max-width: 1200px;
-      padding: 20px;
-    }
-    .header {
+    .join-panel {
+      border: 2px solid #0f0;
+      padding: 40px;
+      background: rgba(0, 20, 0, 0.9);
       text-align: center;
+      color: #0f0;
+      font-family: 'Courier New', monospace;
+    }
+    .join-panel h1 {
       margin-bottom: 20px;
+      text-shadow: 0 0 20px #0f0;
     }
-    .header h1 {
-      font-size: 2.5em;
-      background: linear-gradient(90deg, #00d4ff, #0099ff);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 10px;
-    }
-    .game-area {
-      display: flex;
-      gap: 20px;
-    }
-    canvas {
-      border: 3px solid #00d4ff;
-      background: #0a0e27;
-      border-radius: 8px;
-      flex: 1;
-      display: block;
-      max-width: 1000px;
-    }
-    .sidebar {
-      width: 250px;
-      background: rgba(0, 20, 40, 0.8);
-      border: 2px solid #0099ff;
-      border-radius: 8px;
-      padding: 15px;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-    .panel {
-      background: rgba(0, 50, 100, 0.5);
-      padding: 12px;
-      border-radius: 6px;
-      border-left: 3px solid #00d4ff;
-    }
-    .panel h3 {
-      color: #00d4ff;
-      font-size: 0.9em;
-      margin-bottom: 8px;
-      text-transform: uppercase;
-    }
-    .stat {
-      font-size: 0.85em;
-      margin: 5px 0;
-      color: #aaa;
-    }
-    .stat-value {
-      color: #fff;
-      font-weight: bold;
-    }
-    .team-red { color: #ff4444; }
-    .team-blue { color: #4488ff; }
-    input, button {
-      width: 100%;
+    .join-panel input {
+      width: 200px;
       padding: 10px;
-      margin: 5px 0;
-      border: 1px solid #0099ff;
-      background: rgba(0, 150, 255, 0.1);
-      color: #fff;
-      border-radius: 4px;
+      margin: 10px;
+      background: rgba(0, 50, 0, 0.8);
+      border: 1px solid #0f0;
+      color: #0f0;
+      font-family: 'Courier New', monospace;
+    }
+    .join-panel button {
+      padding: 10px 30px;
+      margin-top: 20px;
+      background: rgba(0, 100, 0, 0.8);
+      border: 2px solid #0f0;
+      color: #0f0;
       cursor: pointer;
+      font-size: 16px;
+      font-family: 'Courier New', monospace;
       transition: 0.2s;
     }
-    button:hover {
-      background: rgba(0, 150, 255, 0.3);
-      border-color: #00d4ff;
+    .join-panel button:hover {
+      background: #0f0;
+      color: #000;
+      text-shadow: none;
     }
-    .join-section {
-      display: none;
-    }
-    .join-section.active {
-      display: block;
-    }
-    .scoreboard {
-      max-height: 200px;
+    #scoreboard {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(0, 50, 0, 0.8);
+      border: 1px solid #0f0;
+      padding: 15px;
+      color: #0f0;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      max-height: 300px;
       overflow-y: auto;
-      font-size: 0.8em;
+      z-index: 100;
     }
-    .player-item {
-      padding: 5px;
-      background: rgba(0, 100, 200, 0.2);
-      margin: 3px 0;
-      border-radius: 3px;
+    .scoreboard-player {
+      padding: 3px 5px;
+      border-bottom: 1px solid rgba(0, 255, 0, 0.3);
     }
-    .loading {
-      text-align: center;
-      font-size: 0.9em;
-      color: #888;
+    #radar {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      width: 150px;
+      height: 150px;
+      border: 1px solid #0f0;
+      background: rgba(0, 20, 0, 0.8);
+      z-index: 100;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>⚔️ TACTICAL ARENA</h1>
-      <p>Team-based strategic combat</p>
-    </div>
-
-    <div class="game-area">
-      <canvas id="gameCanvas" width="1000" height="600"></canvas>
-      
-      <div class="sidebar">
-        <div class="join-section active" id="joinSection">
-          <div class="panel">
-            <h3>Join Game</h3>
-            <input type="text" id="nickname" placeholder="Your nickname" maxlength="15">
-            <select id="team" style="width: 100%; padding: 8px; background: rgba(0, 150, 255, 0.1); border: 1px solid #0099ff; color: #fff;">
-              <option value="auto">Random Team</option>
-              <option value="red">Red Team</option>
-              <option value="blue">Blue Team</option>
-            </select>
-            <button onclick="joinGame()">JOIN BATTLE</button>
-          </div>
-        </div>
-
-        <div class="panel" id="statsPanel" style="display: none;">
-          <h3>Your Stats</h3>
-          <div class="stat">Health: <span class="stat-value" id="health">100</span>/100</div>
-          <div class="stat">Ammo: <span class="stat-value" id="ammo">120</span></div>
-          <div class="stat">Kills: <span class="stat-value" id="kills">0</span></div>
-          <div class="stat">Deaths: <span class="stat-value" id="deaths">0</span></div>
-          <div class="stat">Team: <span id="teamDisplay"></span></div>
-        </div>
-
-        <div class="panel">
-          <h3>Leaderboard</h3>
-          <div class="scoreboard" id="scoreboard">
-            <div class="loading">Waiting for players...</div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <h3>Controls</h3>
-          <small>
-            🎮 WASD - Move<br>
-            🖱️ Mouse - Aim<br>
-            🔫 Click - Shoot<br>
-            <br>
-            Destroy enemy team!
-          </small>
-        </div>
-      </div>
+  <div class="join-screen" id="joinScreen">
+    <div class="join-panel">
+      <h1>⚔️ FPS ARENA</h1>
+      <p>Enter your name to start</p>
+      <input type="text" id="nickname" placeholder="Nickname" maxlength="20">
+      <button onclick="startGame()">ENTER BATTLE</button>
     </div>
   </div>
 
+  <canvas id="canvas"></canvas>
+  
+  <div id="radar"></div>
+  
+  <div id="crosshair"></div>
+  
+  <div id="hud">
+    <div class="hud-item">AMMO: <span id="ammo">300</span></div>
+    <div class="hud-item">HEALTH: <span id="health">100</span>/100</div>
+    <div class="hud-item">KILLS: <span id="kills">0</span></div>
+    <div class="hud-item">SCORE: <span id="score">0</span></div>
+  </div>
+
+  <div id="scoreboard"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    
     let playerId = null;
-    let playerTeam = null;
-    let gameRunning = false;
-    let players = [];
-    let bullets = [];
-    let playerStats = { health: 100, ammo: 120, kills: 0, deaths: 0 };
-    
-    const keys = { w: false, a: false, s: false, d: false };
-    let mouseX = canvas.width / 2;
-    let mouseY = canvas.height / 2;
+    let scene, camera, renderer;
+    let playerPos = { x: 0, y: 1.6, z: 0 };
+    let playerAngle = 0;
+    let playerPitch = 0;
+    let velocity = { x: 0, y: 0, z: 0 };
+    let gameState = { players: [], enemies: [], bullets: [] };
+    let localStats = { ammo: 300, health: 100, kills: 0, score: 0 };
 
-    window.addEventListener('keydown', (e) => {
-      if (e.key.toLowerCase() === 'w') keys.w = true;
-      if (e.key.toLowerCase() === 'a') keys.a = true;
-      if (e.key.toLowerCase() === 's') keys.s = true;
-      if (e.key.toLowerCase() === 'd') keys.d = true;
-    });
+    const keys = {};
+    let mouseX = 0, mouseY = 0;
 
-    window.addEventListener('keyup', (e) => {
-      if (e.key.toLowerCase() === 'w') keys.w = false;
-      if (e.key.toLowerCase() === 'a') keys.a = false;
-      if (e.key.toLowerCase() === 's') keys.s = false;
-      if (e.key.toLowerCase() === 'd') keys.d = false;
-    });
-
-    canvas.addEventListener('mousemove', (e) => {
-      const rect = canvas.getBoundingClientRect();
-      mouseX = e.clientX - rect.left;
-      mouseY = e.clientY - rect.top;
-    });
-
-    canvas.addEventListener('click', shoot);
-
-    async function joinGame() {
+    async function startGame() {
       const nickname = document.getElementById('nickname').value || 'Player';
-      const team = document.getElementById('team').value;
-      
-      if (!nickname) return;
-
       const res = await fetch('/api/join', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nickname, team })
+        body: JSON.stringify({ nickname })
       });
-
       const data = await res.json();
       playerId = data.playerId;
-      playerTeam = data.player.team;
-      gameRunning = true;
       
-      document.getElementById('joinSection').style.display = 'none';
-      document.getElementById('statsPanel').style.display = 'block';
-      document.getElementById('teamDisplay').innerHTML = `<span class="team-${playerTeam}">${playerTeam.toUpperCase()}</span>`;
-      
+      document.getElementById('joinScreen').style.display = 'none';
+      initGame();
       gameLoop();
     }
 
+    function initGame() {
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x1a1a2e);
+      scene.fog = new THREE.Fog(0x1a1a2e, 200, 500);
+
+      camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.set(playerPos.x, playerPos.y, playerPos.z);
+
+      renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas'), antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+
+      // Lighting
+      const ambLight = new THREE.AmbientLight(0xffffff, 0.6);
+      scene.add(ambLight);
+      const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
+      dirLight.position.set(50, 50, 50);
+      scene.add(dirLight);
+
+      // Ground
+      const groundGeo = new THREE.PlaneGeometry(200, 200);
+      const groundMat = new THREE.MeshLambertMaterial({ color: 0x2a4a2a });
+      const ground = new THREE.Mesh(groundGeo, groundMat);
+      ground.rotation.x = -Math.PI / 2;
+      ground.position.y = 0;
+      scene.add(ground);
+
+      // Walls
+      const wallMat = new THREE.MeshLambertMaterial({ color: 0x333366 });
+      const wallGeo = new THREE.BoxGeometry(200, 50, 2);
+      const wall1 = new THREE.Mesh(wallGeo, wallMat);
+      wall1.position.set(0, 25, 100);
+      scene.add(wall1);
+      const wall2 = new THREE.Mesh(wallGeo, wallMat);
+      wall2.position.set(0, 25, -100);
+      scene.add(wall2);
+
+      // Enemy model
+      window.enemyObjects = new Map();
+
+      window.addEventListener('keydown', (e) => keys[e.key.toLowerCase()] = true);
+      window.addEventListener('keyup', (e) => keys[e.key.toLowerCase()] = false);
+      window.addEventListener('mousemove', (e) => {
+        mouseX = e.movementX;
+        mouseY = e.movementY;
+      });
+      window.addEventListener('click', shoot);
+      window.addEventListener('contextmenu', (e) => e.preventDefault());
+
+      document.addEventListener('click', () => {
+        renderer.domElement.requestPointerLock();
+      });
+    }
+
     async function shoot() {
-      if (!gameRunning || !playerId) return;
+      if (!playerId) return;
       
-      const angle = Math.atan2(mouseY - 300, mouseX - 500);
+      const start = new THREE.Vector3(playerPos.x, playerPos.y, playerPos.z);
+      const dir = new THREE.Vector3(0, 0, -1);
+      dir.applyAxisAngle(new THREE.Vector3(0, 1, 0), playerAngle);
+      dir.applyAxisAngle(new THREE.Vector3(1, 0, 0), playerPitch);
+
       await fetch('/api/shoot', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ playerId, angle })
+        body: JSON.stringify({
+          playerId,
+          startX: start.x,
+          startY: start.y,
+          startZ: start.z,
+          dirX: dir.x,
+          dirY: dir.y,
+          dirZ: dir.z
+        })
       });
+      localStats.ammo--;
     }
 
     async function gameLoop() {
+      // Input
+      const speed = 0.3;
+      if (keys['w']) {
+        playerPos.x -= Math.sin(playerAngle) * speed;
+        playerPos.z -= Math.cos(playerAngle) * speed;
+      }
+      if (keys['s']) {
+        playerPos.x += Math.sin(playerAngle) * speed;
+        playerPos.z += Math.cos(playerAngle) * speed;
+      }
+      if (keys['a']) {
+        playerPos.x -= Math.cos(playerAngle) * speed;
+        playerPos.z += Math.sin(playerAngle) * speed;
+      }
+      if (keys['d']) {
+        playerPos.x += Math.cos(playerAngle) * speed;
+        playerPos.z -= Math.sin(playerAngle) * speed;
+      }
+
+      playerAngle -= mouseX * 0.003;
+      playerPitch -= mouseY * 0.003;
+      playerPitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, playerPitch));
+      mouseX = 0;
+      mouseY = 0;
+
+      // Send state
+      await fetch('/api/move', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          playerId,
+          x: playerPos.x,
+          y: playerPos.y,
+          z: playerPos.z,
+          angle: playerAngle,
+          pitch: playerPitch
+        })
+      });
+
+      // Get state
       const res = await fetch('/api/state');
       const state = await res.json();
-      players = state.players;
-      bullets = state.bullets;
+      gameState = state;
 
-      const me = players.find(p => p.id === playerId);
-      if (me) {
-        playerStats.health = me.health;
-        playerStats.ammo = me.ammo;
-        playerStats.kills = me.kills;
-        playerStats.deaths = me.deaths;
+      // Update camera
+      camera.position.copy(playerPos);
+      camera.rotation.order = 'YXZ';
+      camera.rotation.y = playerAngle;
+      camera.rotation.x = playerPitch;
 
-        let nx = me.x;
-        let ny = me.y;
-        if (keys.w) ny -= 4;
-        if (keys.s) ny += 4;
-        if (keys.a) nx -= 4;
-        if (keys.d) nx += 4;
-
-        await fetch('/api/move', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ playerId, x: nx, y: ny, angle: Math.atan2(mouseY - me.y, mouseX - me.x) })
-        });
-      }
-
-      updateUI();
-      draw(me);
-
-      if (gameRunning) setTimeout(gameLoop, 30);
-    }
-
-    function updateUI() {
-      document.getElementById('health').textContent = Math.max(0, playerStats.health);
-      document.getElementById('ammo').textContent = playerStats.ammo;
-      document.getElementById('kills').textContent = playerStats.kills;
-      document.getElementById('deaths').textContent = playerStats.deaths;
-
-      const sorted = [...players].sort((a, b) => b.kills - a.kills);
-      const scoreHTML = sorted.slice(0, 10).map(p => 
-        `<div class="player-item"><span class="team-${p.team}">${p.nickname}</span> ${p.kills}K-${p.deaths}D ${p.health}❤</div>`
-      ).join('');
-      document.getElementById('scoreboard').innerHTML = scoreHTML || 'No players';
-    }
-
-    function draw(me) {
-      ctx.fillStyle = '#0a0e27';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // Grid
-      ctx.strokeStyle = 'rgba(0, 100, 200, 0.1)';
-      ctx.lineWidth = 1;
-      for (let i = 0; i < canvas.width; i += 50) {
-        ctx.beginPath();
-        ctx.moveTo(i, 0);
-        ctx.lineTo(i, canvas.height);
-        ctx.stroke();
-      }
-      for (let i = 0; i < canvas.height; i += 50) {
-        ctx.beginPath();
-        ctx.moveTo(0, i);
-        ctx.lineTo(canvas.width, i);
-        ctx.stroke();
-      }
-
-      // Team zones
-      ctx.fillStyle = 'rgba(255, 68, 68, 0.05)';
-      ctx.fillRect(0, 0, 200, canvas.height);
-      ctx.fillStyle = 'rgba(68, 136, 255, 0.05)';
-      ctx.fillRect(canvas.width - 200, 0, 200, canvas.height);
-
-      // Players
-      players.forEach(p => {
-        if (!p.alive) return;
-        ctx.fillStyle = p.team === 'red' ? '#ff6666' : '#6699ff';
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, 15, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Aim line
-        if (p.id === playerId) {
-          ctx.strokeStyle = 'rgba(0, 212, 255, 0.5)';
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.moveTo(p.x, p.y);
-          ctx.lineTo(p.x + Math.cos(p.angle) * 100, p.y + Math.sin(p.angle) * 100);
-          ctx.stroke();
+      // Clear old objects
+      scene.children = scene.children.filter(obj => {
+        if (obj.name && (obj.name.startsWith('enemy') || obj.name.startsWith('bullet'))) {
+          scene.remove(obj);
+          return false;
         }
-
-        // Health bar
-        ctx.fillStyle = '#222';
-        ctx.fillRect(p.x - 15, p.y - 25, 30, 5);
-        ctx.fillStyle = p.health > 50 ? '#66ff66' : '#ffaa00';
-        ctx.fillRect(p.x - 15, p.y - 25, (p.health / 100) * 30, 5);
-
-        ctx.fillStyle = '#fff';
-        ctx.font = '10px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(p.nickname, p.x, p.y + 25);
+        return true;
       });
 
-      // Bullets
-      bullets.forEach(b => {
-        ctx.fillStyle = '#ffff00';
-        ctx.beginPath();
-        ctx.arc(b.x, b.y, 3, 0, Math.PI * 2);
-        ctx.fill();
+      // Draw enemies
+      gameState.enemies.forEach(e => {
+        const geo = new THREE.BoxGeometry(1, 2, 1);
+        const mat = new THREE.MeshLambertMaterial({ color: 0xff4444 });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.position.set(e.x, e.y, e.z);
+        mesh.name = 'enemy_' + e.id;
+        scene.add(mesh);
       });
 
-      // Crosshair
+      // Draw bullets
+      gameState.bullets.forEach(b => {
+        const geo = new THREE.SphereGeometry(0.1, 4, 4);
+        const mat = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.position.set(b.x, b.y, b.z);
+        mesh.name = 'bullet_' + Math.random();
+        scene.add(mesh);
+      });
+
+      // Update HUD
+      document.getElementById('ammo').textContent = localStats.ammo;
+      document.getElementById('kills').textContent = localStats.kills;
+      document.getElementById('score').textContent = localStats.score;
+
+      const me = gameState.players.find(p => p.id === playerId);
       if (me) {
-        ctx.strokeStyle = 'rgba(0, 212, 255, 0.7)';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(mouseX, mouseY, 20, 0, Math.PI * 2);
-        ctx.stroke();
+        localStats.health = me.health;
+        localStats.kills = me.kills;
+        localStats.score = me.score;
+        document.getElementById('health').textContent = Math.max(0, me.health);
       }
+
+      // Scoreboard
+      const sorted = gameState.players.sort((a, b) => b.score - a.score);
+      document.getElementById('scoreboard').innerHTML = '<strong>LEADERBOARD</strong><br>' + 
+        sorted.slice(0, 5).map(p => `<div class="scoreboard-player">${p.nickname} - ${p.score}</div>`).join('');
+
+      // Radar
+      const radar = document.getElementById('radar');
+      const radarCtx = radar.getContext ? radar.getContext('2d') : null;
+      if (radarCtx) {
+        radarCtx.fillStyle = 'rgba(0, 20, 0, 0.8)';
+        radarCtx.fillRect(0, 0, 150, 150);
+        radarCtx.strokeStyle = '#0f0';
+        radarCtx.strokeRect(0, 0, 150, 150);
+
+        gameState.enemies.slice(0, 10).forEach(e => {
+          const rx = 75 + (e.x / 100) * 70;
+          const rz = 75 + (e.z / 100) * 70;
+          radarCtx.fillStyle = '#f00';
+          radarCtx.fillRect(rx - 2, rz - 2, 4, 4);
+        });
+
+        radarCtx.fillStyle = '#0f0';
+        radarCtx.fillRect(73, 73, 4, 4);
+      }
+
+      renderer.render(scene, camera);
+      requestAnimationFrame(gameLoop);
     }
+
+    window.addEventListener('resize', () => {
+      if (renderer) {
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+      }
+    });
   </script>
 </body>
 </html>

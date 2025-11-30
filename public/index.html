@@ -3,121 +3,345 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-  <title>CS Mobile - Tactical FPS</title>
+  <title>CS Mobile - Tactical Warfare</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-user-select: none; user-select: none; }
     html, body { width: 100%; height: 100%; overflow: hidden; }
-    body { font-family: Arial, sans-serif; background: #000; }
+    body { font-family: 'Arial', sans-serif; background: #000; }
     #canvas { display: block; width: 100%; height: 100%; touch-action: none; }
     
-    .ui-layer { position: absolute; z-index: 100; color: #0f0; font-family: 'Courier New', monospace; text-shadow: 0 0 5px #0f0; }
-    #hud { top: 10px; left: 10px; font-size: 12px; }
-    .hud-row { margin: 4px 0; background: rgba(0, 30, 0, 0.7); padding: 3px 6px; border: 1px solid #0f0; }
-    
-    #minimap { bottom: 60px; right: 10px; width: 120px; height: 120px; background: rgba(0, 0, 0, 0.8); border: 2px solid #0f0; }
-    
+    #hud {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 100px;
+      background: linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.3));
+      color: #fff;
+      font-family: 'Courier New', monospace;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding: 0 20px 10px 20px;
+      border-top: 1px solid rgba(255,255,0,0.2);
+    }
+
+    .hud-left, .hud-center, .hud-right {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .hud-item {
+      font-size: 14px;
+      color: #ffff00;
+      text-shadow: 0 0 5px rgba(255,255,0,0.5);
+    }
+
+    .ammo-display {
+      font-size: 24px;
+      font-weight: bold;
+      color: #ffff00;
+    }
+
+    .weapon-name {
+      font-size: 12px;
+      color: #aaa;
+    }
+
+    #teamList {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.8);
+      border: 1px solid rgba(255, 255, 0, 0.3);
+      padding: 10px;
+      color: #fff;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      max-width: 200px;
+    }
+
+    .team-player {
+      padding: 3px;
+      margin: 2px 0;
+      border-left: 3px solid #ffff00;
+      padding-left: 6px;
+    }
+
+    .team-player.dead {
+      opacity: 0.5;
+      color: #ff6666;
+    }
+
+    #topbar {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      display: flex;
+      justify-content: space-between;
+      color: #fff;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+    }
+
+    .score-display {
+      background: rgba(0, 0, 0, 0.7);
+      padding: 5px 15px;
+      border: 1px solid rgba(255, 255, 0, 0.3);
+      text-align: center;
+    }
+
+    .score-team-a { color: #ff6666; }
+    .score-team-b { color: #6699ff; }
+
+    .timer {
+      background: rgba(0, 0, 0, 0.7);
+      padding: 5px 15px;
+      border: 1px solid rgba(255, 255, 0, 0.3);
+    }
+
+    #crosshair {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 30px;
+      height: 30px;
+      border: 2px solid rgba(255, 255, 0, 0.6);
+      border-radius: 50%;
+      z-index: 50;
+      pointer-events: none;
+    }
+
+    .crosshair-dot {
+      width: 2px;
+      height: 2px;
+      background: rgba(255, 255, 0, 0.8);
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    #minimap {
+      position: absolute;
+      top: 50px;
+      right: 10px;
+      width: 140px;
+      height: 140px;
+      background: rgba(0, 0, 0, 0.8);
+      border: 1px solid rgba(255, 255, 0, 0.3);
+    }
+
     #controls {
-      bottom: 0; left: 0; right: 0; width: 100%;
-      display: flex; justify-content: space-between; align-items: flex-end;
-      height: 80px; background: rgba(0, 0, 0, 0.5); border-top: 1px solid #0f0;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 100px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding: 10px;
+      gap: 10px;
     }
-    
+
     .joystick-area {
-      width: 100px; height: 100px; position: relative; margin: 10px;
-      background: rgba(0, 50, 0, 0.5); border: 1px solid #0f0;
+      width: 90px;
+      height: 90px;
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(255, 255, 0, 0.3);
+      position: relative;
+      border-radius: 10px;
     }
-    .joystick-center { position: absolute; width: 30px; height: 30px; background: #0f0; border-radius: 50%; }
-    
+
+    .joystick-center {
+      position: absolute;
+      width: 25px;
+      height: 25px;
+      background: rgba(255, 255, 0, 0.4);
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 0, 0.6);
+    }
+
     .button-area {
-      margin: 10px; display: flex; gap: 5px;
+      display: flex;
+      gap: 8px;
+      margin-bottom: 5px;
     }
+
     .btn {
-      width: 50px; height: 50px; background: rgba(0, 100, 0, 0.7); border: 1px solid #0f0;
-      color: #0f0; cursor: pointer; font-weight: bold; border-radius: 5px;
-      touch-action: manipulation; -webkit-touch-callout: none;
+      width: 50px;
+      height: 50px;
+      background: rgba(0, 100, 0, 0.6);
+      border: 1px solid rgba(255, 255, 0, 0.3);
+      color: #ffff00;
+      cursor: pointer;
+      font-weight: bold;
+      border-radius: 5px;
+      font-size: 20px;
+      touch-action: manipulation;
     }
-    .btn:active { background: #0f0; color: #000; }
-    
+
+    .btn:active {
+      background: rgba(255, 255, 0, 0.3);
+    }
+
     .join-screen {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: linear-gradient(135deg, #001a00, #003300);
-      display: flex; justify-content: center; align-items: center;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      display: flex;
+      justify-content: center;
+      align-items: center;
       z-index: 200;
     }
+
     .join-panel {
-      border: 2px solid #0f0; padding: 20px; background: rgba(0, 20, 0, 0.95);
-      text-align: center; color: #0f0; font-family: 'Courier New', monospace;
+      border: 2px solid #ffff00;
+      padding: 30px;
+      background: rgba(0, 0, 0, 0.9);
+      text-align: center;
+      color: #ffff00;
+      font-family: 'Courier New', monospace;
     }
-    .join-panel h1 { margin-bottom: 15px; font-size: 24px; }
+
+    .join-panel h1 {
+      font-size: 32px;
+      margin-bottom: 20px;
+      text-shadow: 0 0 20px #ffff00;
+    }
+
     .join-panel input {
-      width: 150px; padding: 8px; margin: 8px; background: rgba(0, 50, 0, 0.8);
-      border: 1px solid #0f0; color: #0f0; font-family: 'Courier New', monospace;
+      width: 200px;
+      padding: 10px;
+      margin: 10px;
+      background: rgba(0, 50, 0, 0.8);
+      border: 1px solid #ffff00;
+      color: #ffff00;
+      font-family: 'Courier New', monospace;
     }
+
     .join-panel button {
-      padding: 8px 20px; margin-top: 10px; background: rgba(0, 100, 0, 0.8);
-      border: 1px solid #0f0; color: #0f0; cursor: pointer; font-weight: bold;
+      padding: 10px 30px;
+      margin-top: 15px;
+      background: rgba(0, 100, 0, 0.8);
+      border: 2px solid #ffff00;
+      color: #ffff00;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
     }
-    
-    #shop {
-      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      background: rgba(0, 20, 0, 0.95); border: 2px solid #0f0; padding: 15px;
-      max-height: 80vh; overflow-y: auto; display: none; z-index: 150; color: #0f0;
-      font-family: 'Courier New', monospace; font-size: 12px;
+
+    .buy-menu {
+      position: absolute;
+      bottom: 110px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.9);
+      border: 1px solid rgba(255, 255, 0, 0.3);
+      padding: 10px;
+      display: none;
+      z-index: 100;
+      max-height: 150px;
+      overflow-y: auto;
+      color: #ffff00;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
     }
-    .shop-item { padding: 5px; margin: 5px 0; background: rgba(0, 50, 0, 0.5); border: 1px solid #0f0; cursor: pointer; }
-    .shop-item:active { background: #0f0; color: #000; }
+
+    .buy-item {
+      padding: 5px;
+      margin: 3px 0;
+      background: rgba(0, 50, 0, 0.5);
+      border: 1px solid rgba(255, 255, 0, 0.2);
+      cursor: pointer;
+    }
+
+    .buy-item:active {
+      background: rgba(255, 255, 0, 0.2);
+    }
   </style>
 </head>
 <body>
   <div class="join-screen" id="joinScreen">
     <div class="join-panel">
-      <h1>CS MOBILE</h1>
+      <h1>⚔️ CS MOBILE</h1>
+      <p>Tactical Warfare</p>
       <input type="text" id="nickname" placeholder="Nickname" maxlength="15">
-      <button onclick="startGame()">PLAY</button>
+      <button onclick="startGame()">ENTER BATTLE</button>
     </div>
   </div>
 
   <canvas id="canvas"></canvas>
 
-  <div id="hud" class="ui-layer">
-    <div class="hud-row">HP: <span id="health">100</span>/100</div>
-    <div class="hud-row">$: <span id="money">2400</span></div>
-    <div class="hud-row" id="ammoDisplay">AMMO: 20</div>
-    <div class="hud-row">K: <span id="kills">0</span> D: <span id="deaths">0</span></div>
-    <div class="hud-row" id="bombStatus"></div>
+  <div id="topbar">
+    <div class="score-display">
+      ROUND <span id="roundNum">1</span>
+      <span class="timer" id="timer">60:00</span>
+    </div>
+    <div>
+      <span class="score-team-a" id="scoreA">0</span> - <span class="score-team-b" id="scoreB">0</span>
+    </div>
   </div>
 
-  <canvas id="minimap" class="ui-layer"></canvas>
+  <div id="teamList"></div>
+  <canvas id="minimap"></canvas>
 
-  <div id="shop" class="ui-layer">
-    <h3>SHOP</h3>
-    <div class="shop-item" onclick="buyWeapon('rifle')">RIFLE $2900</div>
-    <div class="shop-item" onclick="buyWeapon('shotgun')">SHOTGUN $1200</div>
-    <div class="shop-item" onclick="buyWeapon('sniper')">SNIPER $4750</div>
+  <div id="crosshair">
+    <div class="crosshair-dot"></div>
+  </div>
+
+  <div id="hud">
+    <div class="hud-left">
+      <div class="hud-item">$<span id="money">2400</span></div>
+      <div class="hud-item">❤ <span id="health">100</span>%</div>
+      <div class="hud-item">🛡 <span id="armor">100</span>%</div>
+    </div>
+    <div class="hud-center">
+      <div class="ammo-display"><span id="ammo">20</span> | <span id="clip">30</span></div>
+      <div class="weapon-name" id="weaponName">Glock-18</div>
+    </div>
+    <div class="hud-right">
+      <div class="hud-item">K: <span id="kills">0</span></div>
+      <div class="hud-item">D: <span id="deaths">0</span></div>
+    </div>
+  </div>
+
+  <div id="buyMenu" class="buy-menu">
+    <div class="buy-item" onclick="buyWeapon('ar')">M4A1 - $3100</div>
+    <div class="buy-item" onclick="buyWeapon('rifle')">AK-47 - $2900</div>
+    <div class="buy-item" onclick="buyWeapon('shotgun')">XM1014 - $1200</div>
+    <div class="buy-item" onclick="buyWeapon('sniper')">AWP - $4750</div>
   </div>
 
   <div id="controls">
     <div class="joystick-area" id="moveJoystick">
-      <div class="joystick-center" id="moveStick" style="left: 35px; top: 35px;"></div>
+      <div class="joystick-center" id="moveStick"></div>
     </div>
     <div class="joystick-area" id="lookJoystick">
-      <div class="joystick-center" id="lookStick" style="left: 35px; top: 35px;"></div>
+      <div class="joystick-center" id="lookStick"></div>
     </div>
     <div class="button-area">
-      <button class="btn" id="shootBtn" ontouchstart="shoot()" ontouchend="">🔫</button>
-      <button class="btn" id="shopBtn" ontouchstart="toggleShop()">🛒</button>
+      <button class="btn" ontouchstart="shoot()" ontouchend="">🔫</button>
+      <button class="btn" id="buyBtn" ontouchstart="toggleBuy()">🛒</button>
     </div>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script>
     let playerId = null, gameId = 'default';
-    let scene, camera, renderer, playerPos = { x: 0, y: 2, z: 0 };
+    let scene, camera, renderer, playerPos = { x: 0, y: 1.6, z: 0 };
     let playerAngle = 0, playerPitch = 0;
     let gameState = { players: [], bombPlanted: false };
-    let stats = { health: 100, money: 2400, ammo: 20, kills: 0, deaths: 0 };
-    
+    let stats = { health: 100, armor: 100, money: 2400, ammo: 20, kills: 0, deaths: 0 };
     let moveInput = { x: 0, z: 0 }, lookInput = { x: 0, y: 0 };
+
+    const weaponModels = {};
 
     async function startGame() {
       const nickname = document.getElementById('nickname').value || 'Player';
@@ -138,41 +362,59 @@
 
     function initGame() {
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x1a1a2e);
-      scene.fog = new THREE.Fog(0x1a1a2e, 300, 500);
+      scene.background = new THREE.Color(0x87CEEB);
+      scene.fog = new THREE.Fog(0x87CEEB, 500, 800);
 
-      camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.1, 1000);
       
       renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas'), antialias: true });
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
 
       // Lighting
-      scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-      const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
-      dirLight.position.set(50, 50, 50);
+      const ambLight = new THREE.AmbientLight(0xffffff, 0.7);
+      scene.add(ambLight);
+      const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+      dirLight.position.set(100, 100, 100);
+      dirLight.castShadow = true;
       scene.add(dirLight);
 
       // Ground
-      const groundGeo = new THREE.PlaneGeometry(200, 200);
-      const groundMat = new THREE.MeshLambertMaterial({ color: 0x2a3a2a });
+      const groundGeo = new THREE.PlaneGeometry(300, 300);
+      const groundMat = new THREE.MeshLambertMaterial({ color: 0x888888 });
       const ground = new THREE.Mesh(groundGeo, groundMat);
       ground.rotation.x = -Math.PI / 2;
+      ground.receiveShadow = true;
       scene.add(ground);
 
-      // Map structures
-      const boxMat = new THREE.MeshLambertMaterial({ color: 0x444466 });
-      const createBox = (x, y, z, w, h, d) => {
-        const box = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), boxMat);
+      // Buildings and structures
+      const buildingMat = new THREE.MeshLambertMaterial({ color: 0xcccccc });
+      const createBuilding = (x, y, z, w, h, d) => {
+        const box = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), buildingMat);
         box.position.set(x, y, z);
+        box.castShadow = true;
+        box.receiveShadow = true;
         scene.add(box);
       };
-      
-      createBox(-50, 10, 0, 15, 20, 80);
-      createBox(50, 10, 0, 15, 20, 80);
-      createBox(0, 10, 50, 80, 20, 15);
-      createBox(0, 10, -50, 80, 20, 15);
-      createBox(0, 5, 0, 30, 3, 30);
+
+      createBuilding(-100, 15, 0, 40, 30, 80);
+      createBuilding(100, 15, 0, 40, 30, 80);
+      createBuilding(0, 10, 100, 80, 20, 40);
+      createBuilding(0, 8, -100, 80, 16, 40);
+      createBuilding(0, 5, 0, 60, 2, 60);
+
+      // Containers/crates
+      for (let i = 0; i < 8; i++) {
+        const x = (Math.random() - 0.5) * 120;
+        const z = (Math.random() - 0.5) * 120;
+        const crateGeo = new THREE.BoxGeometry(3, 3, 3);
+        const crateMat = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+        const crate = new THREE.Mesh(crateGeo, crateMat);
+        crate.position.set(x, 1.5, z);
+        crate.castShadow = true;
+        scene.add(crate);
+      }
 
       setupControls();
     }
@@ -199,19 +441,20 @@
       if (!touch) {
         if (type === 'move') moveInput = { x: 0, z: 0 };
         else lookInput = { x: 0, y: 0 };
+        if (type === 'move') document.getElementById('moveStick').style.transform = 'translate(-50%, -50%)';
+        else document.getElementById('lookStick').style.transform = 'translate(-50%, -50%)';
         return;
       }
 
       const rect = area.getBoundingClientRect();
-      const x = (touch.clientX - rect.left) / rect.width - 0.5;
-      const y = (touch.clientY - rect.top) / rect.height - 0.5;
+      const x = ((touch.clientX - rect.left) / rect.width - 0.5) * 2;
+      const y = ((touch.clientY - rect.top) / rect.height - 0.5) * 2;
 
-      if (type === 'move') moveInput = { x: x * 2, z: -y * 2 };
-      else lookInput = { x: x * 0.1, y: -y * 0.1 };
+      if (type === 'move') moveInput = { x: x * 1.5, z: -y * 1.5 };
+      else lookInput = { x: x * 0.08, y: -y * 0.08 };
 
-      const stick = type === 'move' ? document.getElementById('moveStick') : document.getElementById('lookStick');
-      stick.style.left = (50 + x * 35) + 'px';
-      stick.style.top = (50 + y * 35) + 'px';
+      const stick = document.getElementById(type === 'move' ? 'moveStick' : 'lookStick');
+      stick.style.transform = `translate(calc(-50% + ${x * 30}px), calc(-50% + ${y * 30}px))`;
     }
 
     async function shoot() {
@@ -236,19 +479,20 @@
       const data = await res.json();
       stats.money = data.money;
       stats.ammo = data.ammo;
+      document.getElementById('weaponName').textContent = data.weaponName;
     }
 
-    function toggleShop() {
-      const shop = document.getElementById('shop');
-      shop.style.display = shop.style.display === 'none' ? 'block' : 'none';
+    function toggleBuy() {
+      const menu = document.getElementById('buyMenu');
+      menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
     }
 
     async function gameLoop() {
-      const speed = 0.25;
+      const speed = 0.2;
       playerPos.x += moveInput.x * speed;
       playerPos.z += moveInput.z * speed;
       playerAngle += lookInput.x;
-      playerPitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, playerPitch + lookInput.y));
+      playerPitch = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, playerPitch + lookInput.y));
 
       await fetch('/api/move', {
         method: 'POST',
@@ -263,6 +507,7 @@
       const me = state.players.find(p => p.id === playerId);
       if (me) {
         stats.health = me.health;
+        stats.armor = me.armor;
         stats.kills = me.kills;
         stats.deaths = me.deaths;
         stats.money = me.money;
@@ -270,12 +515,21 @@
       }
 
       // Update UI
-      document.getElementById('health').textContent = Math.max(0, stats.health);
+      document.getElementById('health').textContent = Math.max(0, Math.floor(stats.health));
+      document.getElementById('armor').textContent = Math.max(0, Math.floor(stats.armor));
       document.getElementById('money').textContent = stats.money;
-      document.getElementById('ammoDisplay').textContent = `AMMO: ${stats.ammo}`;
+      document.getElementById('ammo').textContent = stats.ammo;
       document.getElementById('kills').textContent = stats.kills;
       document.getElementById('deaths').textContent = stats.deaths;
-      document.getElementById('bombStatus').textContent = state.bombPlanted ? '💣 BOMB!' : '';
+      document.getElementById('scoreA').textContent = state.game.teamAScore;
+      document.getElementById('scoreB').textContent = state.game.teamBScore;
+      document.getElementById('roundNum').textContent = state.game.round;
+
+      // Team list
+      const teamListHtml = '<strong style="color: #ffff00; display: block; margin-bottom: 5px;">TEAM</strong>' +
+        state.teamAPlayers.map(p => `<div class="team-player ${!p.alive ? 'dead' : ''}">${p.nickname} ${p.alive ? '●' : '✕'}</div>`).join('') +
+        state.teamBPlayers.map(p => `<div class="team-player ${!p.alive ? 'dead' : ''}">${p.nickname} ${p.alive ? '●' : '✕'}</div>`).join('');
+      document.getElementById('teamList').innerHTML = teamListHtml;
 
       // Camera
       camera.position.copy(playerPos);
@@ -283,7 +537,7 @@
       camera.rotation.y = playerAngle;
       camera.rotation.x = playerPitch;
 
-      // Clear objects
+      // Clear enemies
       scene.children = scene.children.filter(obj => {
         if (obj.name && (obj.name.startsWith('enemy') || obj.name.startsWith('bomb'))) {
           scene.remove(obj);
@@ -296,39 +550,33 @@
       state.players.forEach(p => {
         if (!p.alive || p.id === playerId) return;
         const mat = new THREE.MeshLambertMaterial({ color: p.team === 'A' ? 0xff6666 : 0x6699ff });
-        const mesh = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.8, 0.8), mat);
+        const mesh = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 1.8, 8), mat);
         mesh.position.set(p.x, p.y, p.z);
+        mesh.castShadow = true;
         mesh.name = 'enemy_' + p.id;
         scene.add(mesh);
       });
-
-      // Draw bomb
-      if (state.bombPlanted) {
-        const bombMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-        const bomb = new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 8), bombMat);
-        bomb.position.set(state.bombPos.x, state.bombPos.y, state.bombPos.z);
-        bomb.name = 'bomb';
-        scene.add(bomb);
-      }
 
       // Minimap
       const mmCanvas = document.getElementById('minimap');
       if (mmCanvas) {
         const mmCtx = mmCanvas.getContext('2d');
-        mmCtx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-        mmCtx.fillRect(0, 0, 120, 120);
-        mmCtx.strokeStyle = '#0f0';
-        mmCtx.strokeRect(0, 0, 120, 120);
+        mmCtx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        mmCtx.fillRect(0, 0, 140, 140);
+        mmCtx.strokeStyle = 'rgba(255, 255, 0, 0.5)';
+        mmCtx.strokeRect(0, 0, 140, 140);
 
-        state.players.slice(0, 10).forEach(p => {
-          const rx = 60 + (p.x / 100) * 50;
-          const rz = 60 + (p.z / 100) * 50;
+        state.players.forEach(p => {
+          const rx = 70 + (p.x / 150) * 60;
+          const rz = 70 + (p.z / 150) * 60;
           mmCtx.fillStyle = p.team === 'A' ? '#ff6666' : '#6699ff';
-          mmCtx.fillRect(rx - 2, rz - 2, 4, 4);
+          if (p.id === playerId) {
+            mmCtx.fillStyle = '#ffff00';
+            mmCtx.fillRect(rx - 2, rz - 2, 4, 4);
+          } else {
+            mmCtx.fillRect(rx - 2, rz - 2, 4, 4);
+          }
         });
-
-        mmCtx.fillStyle = '#0f0';
-        mmCtx.fillRect(58, 58, 4, 4);
       }
 
       renderer.render(scene, camera);

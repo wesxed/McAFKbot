@@ -126,17 +126,12 @@
       border-radius: 6px;
       margin-bottom: 10px;
       border-left: 4px solid #667eea;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
     }
-    .sms-info {
-      flex: 1;
-    }
-    .sms-phone {
+    .sms-from-to {
       font-weight: bold;
       color: #333;
       margin-bottom: 5px;
+      font-size: 13px;
     }
     .sms-message {
       color: #666;
@@ -146,11 +141,6 @@
     .sms-time {
       font-size: 12px;
       color: #999;
-    }
-    .sms-actions {
-      display: flex;
-      gap: 5px;
-      margin-left: 15px;
     }
     .message {
       padding: 12px;
@@ -191,31 +181,28 @@
     .tab-content.active {
       display: block;
     }
-    .template-item {
-      background: #f8f9fa;
-      padding: 10px;
-      border-radius: 6px;
-      margin-bottom: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .template-name {
-      font-weight: 600;
-      color: #333;
-    }
     .empty-state {
       text-align: center;
       padding: 40px;
       color: #999;
+    }
+    .timer {
+      display: inline-block;
+      background: #fff3cd;
+      color: #856404;
+      padding: 8px 12px;
+      border-radius: 4px;
+      margin-left: 10px;
+      font-size: 12px;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <h1>📱 Kendi SMS API'nız</h1>
-      <p style="color: #666; font-size: 13px;">Mesajları kaydedin, takip edin ve yönetin</p>
+      <h1>📱 SMS API - Yönetim Paneli</h1>
+      <p style="color: #666; font-size: 13px;">Mesajları gönder, kaydet ve yönet</p>
       <div class="stats" id="stats"></div>
     </div>
 
@@ -233,7 +220,7 @@
         <h2>SMS Gönder</h2>
         
         <div class="form-group">
-          <label>Telefon Numarası</label>
+          <label>Alıcı Telefon Numarası</label>
           <input type="tel" id="phone" placeholder="+90 5XX XXX XX XX">
         </div>
 
@@ -245,14 +232,14 @@
           </div>
         </div>
 
-        <button class="btn" onclick="sendSMS()">📤 SMS Gönder</button>
+        <button class="btn" id="sendBtn" onclick="sendSMS()">📤 SMS Gönder (5 saniye delay)</button>
       </div>
 
       <!-- History Tab -->
       <div id="history" class="tab-content">
         <h2>SMS Geçmişi</h2>
         <button class="btn btn-secondary" style="margin-bottom: 15px;" onclick="loadHistory()">🔄 Yenile</button>
-        <button class="btn btn-danger" style="margin-bottom: 15px;" onclick="clearAllSMS()">🗑️ Tüm SMS'i Sil</button>
+        <button class="btn btn-danger" style="margin-bottom: 15px;" onclick="clearAllSMS()">🗑️ Tümünü Sil</button>
         <div id="historyList" class="empty-state">Yükleniyor...</div>
       </div>
 
@@ -285,6 +272,7 @@
     const charCountEl = document.getElementById('charCount');
     const messageTextEl = document.getElementById('message-text');
     const phoneEl = document.getElementById('phone');
+    const sendBtn = document.getElementById('sendBtn');
 
     messageTextEl.addEventListener('input', function() {
       charCountEl.textContent = this.value.length;
@@ -305,7 +293,7 @@
 
     function showMessage(text, type = 'success') {
       messageEl.innerHTML = `<div class="message ${type}">${text}</div>`;
-      setTimeout(() => messageEl.innerHTML = '', 4000);
+      setTimeout(() => messageEl.innerHTML = '', 5000);
     }
 
     async function sendSMS() {
@@ -317,6 +305,9 @@
         return;
       }
 
+      sendBtn.disabled = true;
+      sendBtn.textContent = '⏳ 5 saniye bekleniyor...';
+
       try {
         const res = await fetch('/api/sms/send', {
           method: 'POST',
@@ -327,13 +318,28 @@
         const data = await res.json();
         if (data.success) {
           showMessage(`✅ ${data.message}`, 'success');
-          phoneEl.value = '';
-          messageTextEl.value = '';
-          charCountEl.textContent = '0';
-          loadStats();
+          
+          let countdown = 5;
+          const interval = setInterval(() => {
+            countdown--;
+            sendBtn.textContent = `📤 SMS Gönder (${countdown}s)`;
+            
+            if (countdown === 0) {
+              clearInterval(interval);
+              sendBtn.disabled = false;
+              sendBtn.textContent = '📤 SMS Gönder (5 saniye delay)';
+              phoneEl.value = '';
+              messageTextEl.value = '';
+              charCountEl.textContent = '0';
+              loadStats();
+              loadHistory();
+            }
+          }, 1000);
         }
       } catch (e) {
         showMessage(`❌ Hata: ${e.message}`, 'error');
+        sendBtn.disabled = false;
+        sendBtn.textContent = '📤 SMS Gönder (5 saniye delay)';
       }
     }
 
@@ -350,28 +356,13 @@
 
         list.innerHTML = data.sms.map(sms => `
           <div class="sms-item">
-            <div class="sms-info">
-              <div class="sms-phone">${sms.phone}</div>
-              <div class="sms-message">${sms.message}</div>
-              <div class="sms-time">${new Date(sms.timestamp).toLocaleString('tr-TR')}</div>
-            </div>
-            <div class="sms-actions">
-              <button class="btn btn-danger" onclick="deleteSMS('${sms.id}')">Sil</button>
-            </div>
+            <div class="sms-from-to">${sms.from} → ${sms.to}</div>
+            <div class="sms-message">"${sms.message}"</div>
+            <div class="sms-time">${new Date(sms.timestamp).toLocaleString('tr-TR')}</div>
           </div>
         `).join('');
       } catch (e) {
         document.getElementById('historyList').innerHTML = `<div class="empty-state">Hata: ${e.message}</div>`;
-      }
-    }
-
-    async function deleteSMS(id) {
-      try {
-        await fetch(`/api/sms/${id}`, { method: 'DELETE' });
-        loadHistory();
-        loadStats();
-      } catch (e) {
-        showMessage(`❌ Hata: ${e.message}`, 'error');
       }
     }
 
@@ -407,8 +398,8 @@
             <div class="stat-label">Manual</div>
           </div>
           <div class="stat">
-            <div class="stat-value">${data.byType.automated}</div>
-            <div class="stat-label">Otomatik</div>
+            <div class="stat-value">${data.sender}</div>
+            <div class="stat-label">Gönderici</div>
           </div>
         `;
       } catch (e) {
@@ -456,13 +447,13 @@
         }
 
         list.innerHTML = data.templates.map(t => `
-          <div class="template-item">
+          <div style="background: #f8f9fa; padding: 10px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
             <div>
-              <div class="template-name">${t.name}</div>
+              <div style="font-weight: 600; color: #333;">${t.name}</div>
               <div style="font-size: 12px; color: #999; margin-top: 5px;">${t.message}</div>
             </div>
             <div style="display: flex; gap: 5px;">
-              <button class="btn btn-secondary" onclick="useTemplate('${t.name}', '${t.message.replace(/'/g, "\\'")}')">Kullan</button>
+              <button class="btn btn-secondary" onclick="useTemplate('${t.message.replace(/'/g, "\\'")}')">Kullan</button>
               <button class="btn btn-danger" onclick="deleteTemplate('${t.id}')">Sil</button>
             </div>
           </div>
@@ -472,7 +463,7 @@
       }
     }
 
-    function useTemplate(name, message) {
+    function useTemplate(message) {
       messageTextEl.value = message;
       charCountEl.textContent = message.length;
       document.querySelectorAll('.tab-btn')[0].click();

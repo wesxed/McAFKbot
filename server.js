@@ -10,6 +10,7 @@ app.use(bodyParser.json());
 app.use(express.static('public'));
 
 const DB_FILE = 'sms_db.json';
+const SENDER_NUMBER = '+7999000001'; // +7 numarası
 
 let db = {
   sms: [],
@@ -41,34 +42,39 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Send SMS
-app.post('/api/sms/send', (req, res) => {
+// Send SMS with 5 second delay
+app.post('/api/sms/send', async (req, res) => {
   const { phone, message, type = 'manual' } = req.body;
 
   if (!phone || !message) {
     return res.status(400).json({ error: 'Telefon ve mesaj gerekli' });
   }
 
-  const sms = {
-    id: Date.now().toString(),
-    phone: phone.toString(),
-    message: message.substring(0, 160),
-    type,
-    status: 'sent',
-    timestamp: new Date().toISOString(),
-    charCount: message.length
-  };
-
-  db.sms.push(sms);
-  saveDB();
-
+  // Send immediate response
   res.json({
     success: true,
-    sms: sms,
-    message: `✅ SMS gönderildi: ${phone}`
+    message: `⏳ SMS 5 saniye içinde gönderilecek: ${phone}`,
+    scheduled: true
   });
 
-  console.log(`📤 SMS: ${phone}`);
+  // Schedule SMS sending after 5 seconds
+  setTimeout(() => {
+    const sms = {
+      id: Date.now().toString(),
+      from: SENDER_NUMBER,
+      to: phone.toString(),
+      message: message.substring(0, 160),
+      type,
+      status: 'delivered',
+      timestamp: new Date().toISOString(),
+      charCount: message.length
+    };
+
+    db.sms.push(sms);
+    saveDB();
+
+    console.log(`✅ SMS gönderildi: ${SENDER_NUMBER} -> ${phone}`);
+  }, 5000);
 });
 
 // Get SMS list
@@ -91,6 +97,7 @@ app.get('/api/sms/stats', (req, res) => {
   res.json({
     total: db.sms.length,
     today: todaySms.length,
+    sender: SENDER_NUMBER,
     byType: {
       manual: db.sms.filter(s => s.type === 'manual').length,
       automated: db.sms.filter(s => s.type === 'automated').length
@@ -146,6 +153,7 @@ app.delete('/api/templates/:id', (req, res) => {
 });
 
 app.listen(5000, '0.0.0.0', () => {
-  console.log('✅ Kendi SMS API\'nız çalışıyor - Port 5000');
-  console.log('📊 SMS Database: sms_db.json');
+  console.log('✅ Kendi SMS API çalışıyor - Port 5000');
+  console.log(`📱 Gönderici: ${SENDER_NUMBER}`);
+  console.log('⏱️ Delay: 5 saniye');
 });

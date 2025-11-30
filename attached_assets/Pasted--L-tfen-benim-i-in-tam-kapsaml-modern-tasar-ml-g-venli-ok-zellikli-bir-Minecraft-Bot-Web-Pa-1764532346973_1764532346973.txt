@@ -1,0 +1,133 @@
+“Lütfen benim için tam kapsamlı, modern tasarımlı, güvenli, çok özellikli bir Minecraft Bot + Web Panel + AI Destekli sistem kur. Aşağıdaki özelliklerin hepsi eksiksiz olarak oluşturulsun:
+
+⸻
+
+📌 1) GENEL PROJE İSTEKLERİ
+	•	Node.js tabanlı, üretime hazır, tamamen çalışır bir proje oluştur.
+	•	Tüm gerekli dosyaları otomatik olarak oluştur:
+server.js, botManager.js, routes, controllers, public, views, database, middleware, auth, config.
+	•	Replit uyumlu package.json + .replit (run = "npm start")
+	•	.env.example dosyası ekle (kişisel bilgiler olmasın).
+	•	Replit başlatılınca panel otomatik açılacak şekilde yapılandır.
+
+⸻
+
+📌 2) KAYIT SİSTEMİ + KULLANICI ID + ATERNOS TARZI ERİŞİM
+	•	Kullanıcılar web panelden kayıt olsun.
+	•	Her kayıt olana benzersiz bir USER_ID oluştur.
+	•	Kullanıcı paneline erişim yalnızca ID & giriş bilgisiyle olsun.
+	•	Her kullanıcı kendi botlarını yönetebilsin.
+	•	Admin paneli ayrıca bulunsun.
+	•	Kullanıcı verileri:
+username, email, hashedPassword, user_id, ip, oluşturma tarihi
+olarak database/users.json içinde saklansın.
+	•	MongoDB support olursa otomatik algıla ve DB’yi oraya taşı.
+
+⸻
+
+📌 3) MODERN TASARIM + TEMA + ANİMASYONLAR
+	•	Panel çok modern olsun:
+	•	Glow efektler
+	•	Aternos benzeri koyu tema
+	•	Gradient animasyonlu butonlar
+	•	Login ekranında neon glow inputlar
+	•	Dashboard animasyonlu yüklenme efekti
+	•	Tema değiştirilebilir olsun (dark / neon / cyber).
+
+⸻
+
+📌 4) BOT ÖZELLİKLERİ
+	•	Mineflayer altyapısı ile çalışan çok sürüm destekli (1.8–1.21+) AFK bot oluştur.
+	•	Crack sunucularına offline login ile giriş yapsın.
+	•	Premium gerektirmesin.
+	•	Her kullanıcı birden fazla bot ekleyebilsin.
+	•	Her bot için ayarlar:
+	•	username
+	•	version auto
+	•	host & port
+	•	auto-auth (register / login)
+	•	afk davranış profili
+	•	selamlama ayarları
+	•	ChatGPT Q&A modu
+
+⸻
+
+📌 5) BOTUN SUNUCUDA İNSAN GİBİ DAVRANMASI
+
+Bot asla bot olduğu anlaşılmayacak şekilde:
+
+➤ İnsan davranışı:
+	•	Rastgele yürüyüş
+	•	Rastgele sağ-sol dönüş
+	•	Gecikmeli ve doğal tepkiler
+	•	Yavaş adım algısı
+	•	Rasgele idle hareketleri
+	•	Yorulmuş gibi duraklamalar
+
+➤ Oyuncu girince ülkeye göre selam:
+	•	Giren oyuncunun IP → ülke bilgisi API’si ile çözülsün.
+	•	Ülkeye göre selam versin:
+	•	Türkiye → “Hoş geldin kardeşim!”
+	•	Almanya → “Willkommen!”
+	•	Fransa → “Bonjour !”
+	•	ABD → “Welcome!”
+	•	Rusya → “Privet!”
+	•	vb.
+
+➤ Oyuncu IP → cihaz güvenlik kontrolü
+	•	Aynı oyuncu tekrar girince tanısın.
+	•	“Tekrar hoş geldin !” desin.
+
+⸻
+
+📌 6) CHATGPT DESTEKLİ MİNECRAFT SORU CEVAP
+	•	Bot oyunculardan mesaj algılasın.
+	•	Minecraft ile ilgili soru sorulursa ChatGPT API’ye gönder.
+	•	Cevabı doğal bir Minecraft oyuncusu gibi iletsin:
+	•	gecikmeli yazma
+	•	insan yazımı tarzında cevap
+	•	AI mod açık/kapalı kontrolü panele ekle.
+
+⸻
+
+📌 7) LOG + STATÜ GÖRÜNTÜLEME + CANLI GÖRÜNTÜ
+	•	Her bot için:
+	•	canlı durum (online / offline)
+	•	ping göstergesi
+	•	sunucuda kaç kişi olduğu
+	•	botun bulunduğu koordinat
+	•	son mesajlar
+	•	Loglar WebSocket ile panelde akış şeklinde gösterilsin.
+
+⸻
+
+📌 8) GÜVENLİK
+	•	bcrypt ile şifreleri hashle.
+	•	Admin için ayrı rol ekle.
+	•	Rate limit → brute force engelleme.
+	•	Helmet, CORS korumaları aktif.
+	•	Session + token sistemi.
+	•	Gereken tüm middleware dosyaları oluşturulsun.
+
+⸻
+
+📌 9) STARTUP DAVRANIŞI
+
+Replit çalışınca:
+	•	Otomatik npm install
+	•	Proje açılınca “PROJE HAZIR” mesajı
+	•	Panel URL’si göster
+	•	.env.example içindeki ayarlar göster:
+	•	OPENAI_API_KEY
+	•	ADMIN_USER
+	•	ADMIN_PASS
+	•	MONGO_URI (opsiyonel)
+	•	COOKIE_SECRET
+
+⸻
+
+📌 10) TAMAMLANINCA
+
+Proje otomatik olarak bütün dosyaları oluşturup şunu yaz:
+
+“PROJE HAZIR – PANEL BAŞLATILDI

@@ -1,5 +1,6 @@
 import express from 'express';
 import bodyParser from 'body-parser';
+import twilio from 'twilio';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs-extra';
@@ -10,7 +11,27 @@ app.use(bodyParser.json());
 app.use(express.static('public'));
 
 const DB_FILE = 'sms_db.json';
-const SENDER_NUMBER = '+7999000001'; // +7 numarası
+
+// Twilio credentials
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+const fromNumber = process.env.TWILIO_PHONE_NUMBER;
+
+let client = null;
+let twilioReady = false;
+
+// Initialize Twilio
+if (accountSid && authToken && fromNumber) {
+  try {
+    client = twilio(accountSid, authToken);
+    twilioReady = true;
+    console.log('✅ Twilio Bağlı');
+  } catch (e) {
+    console.log('❌ Twilio Error:', e.message);
+  }
+} else {
+  console.log('⚠️ Twilio Credentials Eksik');
+}
 
 let db = {
   sms: [],
@@ -37,12 +58,11 @@ function saveDB() {
 
 loadDB();
 
-// API Endpoints
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Send SMS with 5 second delay
+// Send SMS with Twilio
 app.post('/api/sms/send', async (req, res) => {
   const { phone, message, type = 'manual' } = req.body;
 
@@ -58,22 +78,49 @@ app.post('/api/sms/send', async (req, res) => {
   });
 
   // Schedule SMS sending after 5 seconds
-  setTimeout(() => {
-    const sms = {
-      id: Date.now().toString(),
-      from: SENDER_NUMBER,
-      to: phone.toString(),
-      message: message.substring(0, 160),
-      type,
-      status: 'delivered',
-      timestamp: new Date().toISOString(),
-      charCount: message.length
-    };
+  setTimeout(async () => {
+    try {
+      let twilioStatus = 'pending';
+      let sid = 'LOCAL_' + Date.now();
 
-    db.sms.push(sms);
-    saveDB();
+      // If Twilio is ready, send real SMS
+      if (twilioReady && client) {
+        try {
+          const result = await client.messages.create({
+            body: message.substring(0, 160),
+            from: fromNumber,
+            to: phone
+          });
+          
+          twilioStatus = result.status;
+          sid = result.sid;
+          console.log(`✅ Twilio SMS gönderildi: ${phone} | SID: ${sid}`);
+        } catch (twilioError) {
+          console.error(`❌ Twilio Error: ${twilioError.message}`);
+          twilioStatus = 'failed';
+        }
+      } else {
+        console.log(`📤 SMS Kaydedildi (Twilio Yok): ${phone}`);
+      }
 
-    console.log(`✅ SMS gönderildi: ${SENDER_NUMBER} -> ${phone}`);
+      // Save to database
+      const sms = {
+        id: sid,
+        from: fromNumber || '+7999000001',
+        to: phone.toString(),
+        message: message.substring(0, 160),
+        type,
+        status: twilioStatus,
+        timestamp: new Date().toISOString(),
+        charCount: message.length
+      };
+
+      db.sms.push(sms);
+      saveDB();
+
+    } catch (e) {
+      console.error('SMS Error:', e.message);
+    }
   }, 5000);
 });
 
@@ -97,7 +144,8 @@ app.get('/api/sms/stats', (req, res) => {
   res.json({
     total: db.sms.length,
     today: todaySms.length,
-    sender: SENDER_NUMBER,
+    twilio: twilioReady ? '✅ Aktif' : '❌ Yok',
+    sender: fromNumber || '+7999000001',
     byType: {
       manual: db.sms.filter(s => s.type === 'manual').length,
       automated: db.sms.filter(s => s.type === 'automated').length
@@ -153,7 +201,7 @@ app.delete('/api/templates/:id', (req, res) => {
 });
 
 app.listen(5000, '0.0.0.0', () => {
-  console.log('✅ Kendi SMS API çalışıyor - Port 5000');
-  console.log(`📱 Gönderici: ${SENDER_NUMBER}`);
-  console.log('⏱️ Delay: 5 saniye');
+  console.log('✅ SMS API çalışıyor - Port 5000');
+  console.log('📊 Database: sms_db.json');
+  console.log(`📱 Twilio: ${twilioReady ? '✅ Aktif' : '❌ Yapılandırılmamış'}`);
 });

@@ -1,5 +1,6 @@
 import express from 'express';
 import bodyParser from 'body-parser';
+import twilio from 'twilio';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -8,31 +9,37 @@ const app = express();
 app.use(bodyParser.json());
 app.use(express.static('public'));
 
-const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const authToken = process.env.TWILIO_AUTH_TOKEN;
-const fromNumber = process.env.TWILIO_PHONE_NUMBER;
+const accountSid = process.env.TWILIO_ACCOUNT_SID || '';
+const authToken = process.env.TWILIO_AUTH_TOKEN || '';
+const fromNumber = process.env.TWILIO_PHONE_NUMBER || '';
 
-// Initialize Twilio client only if credentials are valid
 let client = null;
-let twilioReady = false;
+let twilioStatus = 'DEMO MODE';
 
-if (accountSid && authToken && fromNumber && accountSid.startsWith('AC')) {
+// Twilio'yu bağla
+if (accountSid && authToken && fromNumber) {
   try {
-    const twilio = await import('twilio');
-    client = twilio.default(accountSid, authToken);
-    twilioReady = true;
-    console.log('✅ Twilio Bağlantısı: ✅ Bağlı');
+    client = twilio(accountSid, authToken);
+    twilioStatus = '✅ BAĞLANDI';
+    console.log('✅ Twilio Bağlantısı Başarılı');
   } catch (e) {
-    console.log('⚠️ Twilio yüklenemedi:', e.message);
+    console.error('❌ Twilio Hatası:', e.message);
+    twilioStatus = '❌ ' + e.message;
   }
 } else {
-  console.log('⚠️ Twilio Credentials eksik veya geçersiz - DEMO MOD');
+  console.log('⚠️ Twilio Credentials Eksik - DEMO MODE');
+  twilioStatus = '❌ Credentials Eksik';
 }
 
 console.log('✅ SMS Panel Başladı - Port 5000');
+console.log('📱 Durum:', twilioStatus);
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.get('/api/status', (req, res) => {
+  res.json({ status: twilioStatus, ready: !!client });
 });
 
 app.post('/api/send-sms', async (req, res) => {
@@ -42,12 +49,10 @@ app.post('/api/send-sms', async (req, res) => {
     return res.status(400).json({ error: 'Telefon ve mesaj gerekli' });
   }
 
-  if (!twilioReady) {
-    return res.json({
-      success: true,
-      sid: 'DEMO_' + Date.now(),
-      status: 'queued',
-      message: `✅ DEMO MOD: SMS gönderiliş simüle edildi: ${phone}\n⚠️ Gerçek SMS göndermek için Twilio credentials gerekli`
+  if (!client) {
+    return res.status(500).json({ 
+      error: 'SMS Gönderilemedi',
+      details: 'Twilio credentials geçersiz veya eksik. Lütfen account dashboard\'ınızı kontrol edin.'
     });
   }
 
@@ -65,12 +70,12 @@ app.post('/api/send-sms', async (req, res) => {
       message: `✅ SMS gönderildi: ${phone}`
     });
 
-    console.log(`📤 SMS gönderildi: ${phone} | SID: ${sms.sid}`);
+    console.log(`📤 SMS: ${phone} | Status: ${sms.status}`);
   } catch (error) {
-    console.error('SMS Hatası:', error.message);
+    console.error('SMS Error:', error.message);
     res.status(500).json({ 
-      error: error.message,
-      details: 'SMS gönderilemedi. Telefon numarasını kontrol et (+90 formatında)'
+      error: 'SMS Gönderilmedi',
+      details: error.message
     });
   }
 });
@@ -86,20 +91,10 @@ app.post('/api/send-bulk', async (req, res) => {
     return res.status(400).json({ error: 'Mesaj gerekli' });
   }
 
-  if (!twilioReady) {
-    const results = phones.map(phone => ({
-      phone,
-      status: 'başarılı (DEMO)',
-      sid: 'DEMO_' + Date.now()
-    }));
-
-    return res.json({
-      success: true,
-      total: phones.length,
-      sent: phones.length,
-      failed: 0,
-      results,
-      note: '⚠️ DEMO MOD - Gerçek SMS göndermek için Twilio credentials gerekli'
+  if (!client) {
+    return res.status(500).json({ 
+      error: 'SMS Gönderilemedi',
+      details: 'Twilio credentials geçersiz veya eksik'
     });
   }
 
@@ -116,16 +111,15 @@ app.post('/api/send-bulk', async (req, res) => {
       });
       results.push({ phone, status: 'başarılı', sid: sms.sid });
       sent++;
-      console.log(`📤 SMS gönderildi: ${phone}`);
+      console.log(`📤 SMS: ${phone}`);
     } catch (error) {
       results.push({ phone, status: 'başarısız', error: error.message });
       failed++;
-      console.error(`❌ SMS başarısız: ${phone}`);
     }
   }
 
   res.json({
-    success: true,
+    success: sent > 0,
     total: phones.length,
     sent,
     failed,
@@ -134,5 +128,5 @@ app.post('/api/send-bulk', async (req, res) => {
 });
 
 app.listen(5000, '0.0.0.0', () => {
-  console.log('🚀 Server çalışıyor - http://localhost:5000');
+  console.log('🚀 Server Çalışıyor - http://localhost:5000');
 });

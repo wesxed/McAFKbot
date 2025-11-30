@@ -38,6 +38,16 @@
       "status": "delivered",
       "timestamp": "2025-11-30T19:17:08.425Z",
       "charCount": 2
+    },
+    {
+      "id": "LOCAL_1764530721433",
+      "from": "Acvv",
+      "to": "+905523331614",
+      "message": "Sa",
+      "type": "manual",
+      "status": "pending",
+      "timestamp": "2025-11-30T19:25:21.433Z",
+      "charCount": 2
     }
   ],
   "templates": []

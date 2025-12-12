@@ -1457,8 +1457,16 @@
                 <label class="form-label">Password</label>
                 <input type="password" class="input" id="loginPassword" placeholder="Enter password" required data-testid="input-login-password">
               </div>
+              <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
+                <input type="checkbox" id="rememberDevice" style="width: auto;">
+                <label for="rememberDevice" style="margin: 0; color: var(--text-secondary); font-size: 13px;">Remember this device for 30 days</label>
+              </div>
               <button type="submit" class="btn btn-primary" style="width: 100%;" data-testid="button-submit-login">Login</button>
             </form>
+            <div style="display: flex; gap: 16px; justify-content: center; margin-top: 16px;">
+              <a href="#" onclick="showResetPasswordModal()" style="color: var(--accent); font-size: 13px; text-decoration: none;">Forgot Password?</a>
+              <a href="#" onclick="showCodeLoginModal()" style="color: var(--accent); font-size: 13px; text-decoration: none;">Login with Code</a>
+            </div>
             <div class="auth-footer">
               Don't have an account? <a href="#" onclick="navigateTo('register')">Register</a>
             </div>
@@ -1838,6 +1846,189 @@
       showToast('Logged out', 'success');
       navigateTo('home');
       updateNavbar();
+    }
+
+    function showResetPasswordModal() {
+      const modal = document.getElementById('modal');
+      const overlay = document.getElementById('modalOverlay');
+
+      modal.innerHTML = `
+        <div class="modal-header">
+          <h2 class="modal-title font-display">Reset Password</h2>
+          <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div id="resetStep1">
+            <form onsubmit="requestPasswordReset(event)">
+              <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input type="email" class="input" id="resetEmail" placeholder="your@email.com" required data-testid="input-reset-email">
+              </div>
+              <button type="submit" class="btn btn-primary" style="width: 100%;" data-testid="button-request-reset">Send Reset Code</button>
+            </form>
+          </div>
+          <div id="resetStep2" class="hidden">
+            <form onsubmit="confirmPasswordReset(event)">
+              <div class="form-group">
+                <label class="form-label">Reset Code (6 digits)</label>
+                <input type="text" class="input" id="resetCode" placeholder="123456" maxlength="6" required data-testid="input-reset-code">
+              </div>
+              <div class="form-group">
+                <label class="form-label">New Password</label>
+                <input type="password" class="input" id="newPassword" placeholder="Enter new password" required data-testid="input-new-password">
+              </div>
+              <button type="submit" class="btn btn-primary" style="width: 100%;" data-testid="button-confirm-reset">Reset Password</button>
+            </form>
+          </div>
+        </div>
+      `;
+
+      overlay.classList.remove('hidden');
+    }
+
+    let resetEmailTemp = '';
+
+    async function requestPasswordReset(e) {
+      e.preventDefault();
+      const email = document.getElementById('resetEmail').value;
+      resetEmailTemp = email;
+
+      try {
+        const res = await fetch('/api/auth/request-reset', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          document.getElementById('resetStep1').classList.add('hidden');
+          document.getElementById('resetStep2').classList.remove('hidden');
+          showToast('Reset code sent! Check console for demo.', 'success');
+        } else {
+          showToast(data.error || 'Failed to send reset code', 'error');
+        }
+      } catch (e) {
+        showToast('Connection error', 'error');
+      }
+    }
+
+    async function confirmPasswordReset(e) {
+      e.preventDefault();
+      const code = document.getElementById('resetCode').value;
+      const newPassword = document.getElementById('newPassword').value;
+
+      try {
+        const res = await fetch('/api/auth/reset-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: resetEmailTemp, code, newPassword })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          closeModal();
+          showToast('Password reset successful! You can now login.', 'success');
+          navigateTo('login');
+        } else {
+          showToast(data.error || 'Failed to reset password', 'error');
+        }
+      } catch (e) {
+        showToast('Connection error', 'error');
+      }
+    }
+
+    function showCodeLoginModal() {
+      const modal = document.getElementById('modal');
+      const overlay = document.getElementById('modalOverlay');
+
+      modal.innerHTML = `
+        <div class="modal-header">
+          <h2 class="modal-title font-display">Login with Code</h2>
+          <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div id="codeStep1">
+            <form onsubmit="requestLoginCode(event)">
+              <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input type="email" class="input" id="codeEmail" placeholder="your@email.com" required data-testid="input-code-email">
+              </div>
+              <button type="submit" class="btn btn-primary" style="width: 100%;" data-testid="button-request-code">Send Login Code</button>
+            </form>
+          </div>
+          <div id="codeStep2" class="hidden">
+            <form onsubmit="confirmCodeLogin(event)">
+              <div class="form-group">
+                <label class="form-label">Login Code (6 digits)</label>
+                <input type="text" class="input" id="loginCode" placeholder="123456" maxlength="6" required data-testid="input-login-code">
+              </div>
+              <button type="submit" class="btn btn-primary" style="width: 100%;" data-testid="button-confirm-code">Login</button>
+            </form>
+          </div>
+        </div>
+      `;
+
+      overlay.classList.remove('hidden');
+    }
+
+    let codeEmailTemp = '';
+
+    async function requestLoginCode(e) {
+      e.preventDefault();
+      const email = document.getElementById('codeEmail').value;
+      codeEmailTemp = email;
+
+      try {
+        const res = await fetch('/api/auth/request-verification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          document.getElementById('codeStep1').classList.add('hidden');
+          document.getElementById('codeStep2').classList.remove('hidden');
+          showToast('Login code sent! Check console for demo.', 'success');
+        } else {
+          showToast(data.error || 'Failed to send login code', 'error');
+        }
+      } catch (e) {
+        showToast('Connection error', 'error');
+      }
+    }
+
+    async function confirmCodeLogin(e) {
+      e.preventDefault();
+      const code = document.getElementById('loginCode').value;
+
+      try {
+        const res = await fetch('/api/auth/login-with-code', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: codeEmailTemp, code })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          sessionId = data.sessionId;
+          localStorage.setItem('sessionId', sessionId);
+          currentUser = data.user;
+          closeModal();
+          showToast('Login successful!', 'success');
+          navigateTo('home');
+          updateNavbar();
+        } else {
+          showToast(data.error || 'Failed to login', 'error');
+        }
+      } catch (e) {
+        showToast('Connection error', 'error');
+      }
     }
 
     async function updateProfile(e) {

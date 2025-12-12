@@ -3,6 +3,7 @@ import cors from 'cors';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -19,6 +20,8 @@ const bots = new Map();
 const tickets = new Map();
 const logs = new Map();
 const visitors = new Map();
+const verificationTokens = new Map();
+const resetTokens = new Map();
 
 let visitorCount = 0;
 let onlineUsers = 0;
@@ -32,8 +35,16 @@ function generateInviteCode() {
   return 'ZS-' + crypto.randomBytes(4).toString('hex').toUpperCase();
 }
 
+function generateVerificationCode() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
 function hashPassword(password) {
-  return crypto.createHash('sha256').update(password).digest('hex');
+  return bcrypt.hashSync(password, 10);
+}
+
+function verifyPassword(password, hash) {
+  return bcrypt.compareSync(password, hash);
 }
 
 function createLog(action, userId, details) {
@@ -175,7 +186,7 @@ app.post('/api/auth/login', (req, res) => {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
   
-  if (user.password !== hashPassword(password)) {
+  if (!verifyPassword(password, user.password)) {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
   
@@ -205,6 +216,151 @@ app.post('/api/auth/logout', (req, res) => {
     onlineUsers = Math.max(0, onlineUsers - 1);
   }
   res.json({ success: true });
+});
+
+app.post('/api/auth/request-verification', (req, res) => {
+  const { email } = req.body;
+  
+  const user = Array.from(users.values()).find(u => u.email === email);
+  if (!user) {
+    return res.status(404).json({ error: 'Email not found' });
+  }
+  
+  const code = generateVerificationCode();
+  verificationTokens.set(email, {
+    code,
+    userId: user.id,
+    createdAt: Date.now(),
+    expiresAt: Date.now() + 10 * 60 * 1000
+  });
+  
+  console.log(`📧 Verification code for ${email}: ${code}`);
+  createLog('verification_request', user.id, `Verification code sent to ${email}`);
+  
+  res.json({ 
+    success: true, 
+    message: 'Verification code sent',
+    code: code
+  });
+});
+
+app.post('/api/auth/verify-email', (req, res) => {
+  const { email, code } = req.body;
+  
+  const token = verificationTokens.get(email);
+  if (!token) {
+    return res.status(400).json({ error: 'No verification pending for this email' });
+  }
+  
+  if (Date.now() > token.expiresAt) {
+    verificationTokens.delete(email);
+    return res.status(400).json({ error: 'Verification code expired' });
+  }
+  
+  if (token.code !== code) {
+    return res.status(400).json({ error: 'Invalid verification code' });
+  }
+  
+  const user = users.get(token.userId);
+  if (user && !user.achievements.includes('verified')) {
+    user.achievements.push('verified');
+  }
+  
+  verificationTokens.delete(email);
+  createLog('email_verified', token.userId, `Email ${email} verified`);
+  
+  res.json({ success: true, message: 'Email verified successfully' });
+});
+
+app.post('/api/auth/request-reset', (req, res) => {
+  const { email } = req.body;
+  
+  const user = Array.from(users.values()).find(u => u.email === email);
+  if (!user) {
+    return res.json({ success: true, message: 'If email exists, reset code sent' });
+  }
+  
+  const code = generateVerificationCode();
+  resetTokens.set(email, {
+    code,
+    userId: user.id,
+    createdAt: Date.now(),
+    expiresAt: Date.now() + 15 * 60 * 1000
+  });
+  
+  console.log(`🔑 Password reset code for ${email}: ${code}`);
+  createLog('reset_request', user.id, `Password reset requested for ${email}`);
+  
+  res.json({ 
+    success: true, 
+    message: 'If email exists, reset code sent',
+    code: code
+  });
+});
+
+app.post('/api/auth/reset-password', (req, res) => {
+  const { email, code, newPassword } = req.body;
+  
+  if (!newPassword || newPassword.length < 6) {
+    return res.status(400).json({ error: 'Password must be at least 6 characters' });
+  }
+  
+  const token = resetTokens.get(email);
+  if (!token) {
+    return res.status(400).json({ error: 'No reset pending for this email' });
+  }
+  
+  if (Date.now() > token.expiresAt) {
+    resetTokens.delete(email);
+    return res.status(400).json({ error: 'Reset code expired' });
+  }
+  
+  if (token.code !== code) {
+    return res.status(400).json({ error: 'Invalid reset code' });
+  }
+  
+  const user = users.get(token.userId);
+  if (user) {
+    user.password = hashPassword(newPassword);
+  }
+  
+  resetTokens.delete(email);
+  createLog('password_reset', token.userId, `Password reset for ${email}`);
+  
+  res.json({ success: true, message: 'Password reset successfully' });
+});
+
+app.post('/api/auth/login-with-code', (req, res) => {
+  const { email, code } = req.body;
+  
+  const token = verificationTokens.get(email);
+  if (!token || token.code !== code || Date.now() > token.expiresAt) {
+    return res.status(401).json({ error: 'Invalid or expired code' });
+  }
+  
+  const user = users.get(token.userId);
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+  
+  if (user.banned) {
+    return res.status(403).json({ error: 'Account is banned' });
+  }
+  
+  user.lastLogin = new Date().toISOString();
+  
+  const sessionId = generateId();
+  sessions.set(sessionId, { userId: user.id, createdAt: new Date().toISOString() });
+  onlineUsers++;
+  
+  verificationTokens.delete(email);
+  createLog('login_with_code', user.id, `User ${user.username} logged in with code`);
+  
+  res.json({ 
+    success: true, 
+    sessionId, 
+    user: { ...user, password: undefined }
+  });
 });
 
 function authMiddleware(req, res, next) {

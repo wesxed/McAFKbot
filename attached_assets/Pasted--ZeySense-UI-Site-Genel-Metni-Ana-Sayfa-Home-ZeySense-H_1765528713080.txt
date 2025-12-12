@@ -1,0 +1,248 @@
+🌑 ZeySense UI / Site Genel Metni
+
+⸻
+
+🏠 Ana Sayfa (Home)
+
+ZeySense Hub
+Minecraft AFK Bot Sistemi + Advanced Account System
+Gamesense tarzı premium panel deneyimi.
+
+Butonlar:
+	•	Login
+	•	Register
+	•	Rules
+	•	Downloads
+	•	Profile
+	•	AFK Bot Panel
+	•	Admin Panel (Admin/Owner görünür)
+
+⸻
+
+🔐 Register Sayfası
+
+Kayıt İçeriği:
+	•	Gmail adresi
+	•	6 haneli doğrulama kodu (zeysense@gmail.com tarafından gönderilir)
+	•	Invite kodu (Owner + Admin tarafından oluşturulur)
+	•	Kullanıcı adı
+	•	Şifre
+
+Kurallar:
+	•	Aynı Gmail sadece 1 hesap açabilir
+	•	Invite kodu tek kullanımlıktır
+	•	Kayıt olan cihaz 30 gün boyunca otomatik giriş yapar
+	•	Owner hesabı davet istemez
+
+⸻
+
+🔑 Login Sayfası
+	•	Gmail
+	•	Şifre
+	•	“Bu cihazı 30 gün hatırla” seçeneği
+	•	Şifre Sıfırlama
+	•	Kod ile giriş
+
+⸻
+
+👑 Owner Hesabı (Özel)
+
+Owner:
+	•	Kullanıcı adı: karos
+	•	Şifre: ruzgar20101903
+	•	Gmail: karos@gmail.com
+
+Owner ayrıcalıkları:
+	•	Admin ekleme / silme
+	•	Invite oluşturma
+	•	Kullanıcıları banlama
+	•	Kullanıcı süresi ekleme
+	•	HWID reset
+	•	Loader ve Bot sistemlerini yönetme
+	•	Admin yetkilerini kontrol etme
+	•	Log görüntüleme
+
+⸻
+
+🟩 Admin Paneli Metni
+
+Admin Dashboard
+	•	User Manager
+	•	Ban Manager
+	•	HWID Reset
+	•	Invite Usage
+	•	Loader Access
+	•	AFK Bot Kontrol
+	•	Ticket & Live Chat
+	•	Activity Logs
+
+Admin Yetkileri:
+	•	Kullanıcı ban / unban
+	•	Loader izin aç/kapat
+	•	HWID reset
+	•	Profil foto aşırı içerik kaldırma
+	•	Ticket cevaplama
+	•	AFK botları kontrol etme
+
+Admin Yapamayacakları:
+	•	Admin oluşturma
+	•	Owner ayarlarını değiştirme
+
+⸻
+
+👤 Profil Sistemi (User Profile)
+
+Profil sayfası bölümleri:
+
+Üst Alan:
+	•	Profil fotoğrafı (yüklenebilir)
+	•	Kullanıcı adı
+	•	Rol rozeti:
+	•	Owner (Altın)
+	•	Admin (Yeşil)
+	•	Member (Gri)
+	•	Hesap oluşturma tarihi
+	•	Son giriş
+	•	HWID durumu
+	•	Loader erişim durumu
+
+Hakkımda (Bio):
+	•	Kısa açıklama
+	•	Sosyal medya linkleri
+	•	Discord
+	•	YouTube
+	•	GitHub
+
+İstatistikler:
+	•	Loader açılma sayısı
+	•	AFK Bot oturum sayısı
+	•	Kullanım süresi
+	•	Forum mesajları
+	•	Hesap seviyesi
+
+⸻
+
+🟪 PROFİL BAŞARILARI (Achievements Rozetleri)
+
+Üçüncü seçeneğin eklenmiş hali
+
+Rozetler:
+	•	Verified User – mail doğrulamış
+	•	Old Member – 6 ay hesabı olan
+	•	Loader Master – 100 açılış
+	•	Bot Controller – AFK Bot kullanan
+	•	Supporter – uzun süreli üye
+	•	Admin – yönetici
+	•	Owner – kurucu
+
+Profil sayfasının altında bir “ROZETLER” bölümü görünür.
+
+⸻
+
+🟦 Profil Ayarları (Edit Profile)
+
+Kullanıcı düzenleyebilir:
+	•	Profil fotoğrafı
+	•	Kullanıcı adı (1 kez)
+	•	Biyografi
+	•	Tema → Dark / Light
+	•	Yeşil accent seçenekleri
+	•	Sosyal medya linkleri
+
+⸻
+
+🎮 Minecraft AFK Bot Sistemi (Tam Metin İçerik)
+
+(Üçüncü kez eklenen sistem + çok daha detaylı)
+
+AFK Bot Paneli Başlığı:
+ZeySense AFK Bot Control
+
+⸻
+
+Bot Özellikleri (Metin olarak)
+
+✔ Her Minecraft sürümüne bağlanabilir
+✔ Premium bot bağlantısı
+✔ Proxy desteği
+✔ Otomatik yeniden bağlanma (sunucu kick atınca 3 saniyede döner)
+✔ Otomatik AFK döngüsü
+✔ Komut gönderme (Admin ve Owner)
+✔ Sunucu TPS okuma
+✔ Oyuncu algılama
+✔ Anti-AFK hareket sistemi
+✔ Yön değiştirme / slot koruma
+✔ Ölürse yeniden giriş
+✔ Her 5 dakikada canlılık ping kontrolü
+
+⸻
+
+Bot Paneli İçeriği
+
+Bot Yönetim Kartı:
+	•	Bot adı
+	•	Bot durumu: Online / Reconnecting / Offline
+	•	Giriş yapılan sunucu
+	•	Sürüm (1.8 → 1.21 hepsine uyumlu metin)
+	•	Bağlantı süresi
+	•	Oyuncu sayısı
+	•	Ping
+
+Kontrol Butonları:
+	•	Start Bot
+	•	Stop Bot
+	•	Restart Bot
+	•	Force Reconnect
+	•	Send Command
+	•	Set Behavior (Idle / Rotate / Jump / Random Walk / Auto Chat)
+
+Log Ekranı:
+	•	Bot giriş logları
+	•	Sunucu mesajları
+	•	Kick nedenleri
+	•	Otomatik reconnect logları
+	•	Timeout logları
+
+⸻
+
+📡 Canlı Destek (Live Chat)
+
+Panelde:
+	•	Kullanıcı → Admin/Owner mesaj atar
+	•	Admin → cevap verir
+	•	Ticket sistemi
+	•	Aktif mesajlar görünür
+	•	Kullanıcı geçmiş ticket’larını görür
+
+⸻
+
+🧱 Navigasyon (Tüm Site Menüsü)
+	•	Home
+	•	Login
+	•	Register
+	•	Profile
+	•	Edit Profile
+	•	Achievements
+	•	AFK Bot Panel
+	•	Loader Panel
+	•	Settings
+	•	Admin Panel (Admin/Owner)
+	•	Owner Control (Owner)
+
+⸻
+
+🟣 Owner Paneli Metni
+
+Owner Control Center
+
+Bölümler:
+	•	Create Admin
+	•	Remove Admin
+	•	Invite Generator
+	•	User Time Add
+	•	User Role Change
+	•	Ban System
+	•	Logs
+	•	Bot System Override
+	•	Account Deletion
+	•	Emergency Lockdown

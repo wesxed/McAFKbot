@@ -1,630 +1,2462 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-  <title>CS2 Mobile - Counter-Strike</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZeySense Hub - Minecraft AFK Bot System</title>
+  <meta name="description" content="ZeySense Hub - Premium Minecraft AFK Bot sistemi ve gelişmiş hesap yönetimi. GameSense tarzı premium panel deneyimi.">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-user-select: none; user-select: none; }
-    html, body { width: 100%; height: 100%; overflow: hidden; }
-    body { font-family: 'Arial', sans-serif; background: #000; }
-    #canvas { display: block; width: 100%; height: 100%; touch-action: none; }
-    
-    #hud {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 100px;
-      background: linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.3));
-      color: #fff;
-      font-family: 'Courier New', monospace;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      padding: 0 20px 10px 20px;
-      border-top: 1px solid rgba(255,255,0,0.2);
+    :root {
+      --bg-primary: #0a0a0f;
+      --bg-secondary: #12121a;
+      --bg-card: #1a1a24;
+      --bg-hover: #22222e;
+      --accent: #00ff88;
+      --accent-dim: #00cc6a;
+      --accent-glow: rgba(0, 255, 136, 0.3);
+      --text-primary: #ffffff;
+      --text-secondary: #a0a0b0;
+      --text-muted: #606070;
+      --border: #2a2a3a;
+      --danger: #ff4444;
+      --warning: #ffaa00;
+      --success: #00ff88;
+      --owner-gold: #ffd700;
+      --admin-green: #00ff88;
+      --member-gray: #808090;
     }
 
-    .hud-left, .hud-center, .hud-right {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
 
-    .hud-item {
-      font-size: 14px;
-      color: #ffff00;
-      text-shadow: 0 0 5px rgba(255,255,0,0.5);
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
     }
 
-    .ammo-display {
-      font-size: 24px;
-      font-weight: bold;
-      color: #ffff00;
-    }
+    .font-display { font-family: 'Rajdhani', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
 
-    .weapon-name {
-      font-size: 12px;
-      color: #aaa;
-    }
-
-    #teamList {
-      position: absolute;
-      top: 40px;
-      right: 10px;
-      background: rgba(0, 0, 0, 0.85);
-      border: 1px solid rgba(255, 255, 0, 0.3);
-      padding: 8px;
-      color: #fff;
-      font-family: 'Courier New', monospace;
-      font-size: 11px;
-      max-width: 180px;
-    }
-
-    .team-player {
-      padding: 2px;
-      margin: 1px 0;
-      border-left: 2px solid #ffff00;
-      padding-left: 5px;
-    }
-
-    .team-player.dead {
-      opacity: 0.4;
-      color: #ff6666;
-    }
-
-    #topbar {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      right: 10px;
-      display: flex;
-      justify-content: space-between;
-      color: #fff;
-      font-family: 'Courier New', monospace;
-      font-size: 14px;
-    }
-
-    .score-display {
-      background: rgba(0, 0, 0, 0.7);
-      padding: 5px 15px;
-      border: 1px solid rgba(255, 255, 0, 0.3);
-      text-align: center;
-    }
-
-    .score-team-a { color: #ff6666; font-weight: bold; }
-    .score-team-b { color: #6699ff; font-weight: bold; }
-
-    #crosshair {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 30px;
-      height: 30px;
-      border: 2px solid rgba(255, 255, 0, 0.6);
-      border-radius: 50%;
-      z-index: 50;
-      pointer-events: none;
-    }
-
-    .crosshair-dot {
-      width: 2px;
-      height: 2px;
-      background: rgba(255, 255, 0, 0.8);
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    }
-
-    #minimap {
-      position: absolute;
-      top: 50px;
-      right: 10px;
-      width: 140px;
-      height: 140px;
-      background: rgba(0, 0, 0, 0.8);
-      border: 1px solid rgba(255, 255, 0, 0.3);
-    }
-
-    #controls {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 100px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      padding: 10px;
-      gap: 10px;
-    }
-
-    .joystick-area {
-      width: 90px;
-      height: 90px;
-      background: rgba(0, 0, 0, 0.6);
-      border: 1px solid rgba(255, 255, 0, 0.3);
-      position: relative;
-      border-radius: 10px;
-    }
-
-    .joystick-center {
-      position: absolute;
-      width: 25px;
-      height: 25px;
-      background: rgba(255, 255, 0, 0.4);
-      border-radius: 50%;
-      border: 1px solid rgba(255, 255, 0, 0.6);
-    }
-
-    .button-area {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 5px;
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 24px;
     }
 
     .btn {
-      width: 50px;
-      height: 50px;
-      background: rgba(0, 100, 0, 0.6);
-      border: 1px solid rgba(255, 255, 0, 0.3);
-      color: #ffff00;
-      cursor: pointer;
-      font-weight: bold;
-      border-radius: 5px;
-      font-size: 20px;
-      touch-action: manipulation;
-    }
-
-    .btn:active {
-      background: rgba(255, 255, 0, 0.3);
-    }
-
-    .join-screen {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(135deg, #1a1a2e, #16213e);
-      display: flex;
-      justify-content: center;
+      display: inline-flex;
       align-items: center;
-      z-index: 200;
-    }
-
-    .join-panel {
-      border: 2px solid #ffff00;
-      padding: 30px;
-      background: rgba(0, 0, 0, 0.9);
-      text-align: center;
-      color: #ffff00;
-      font-family: 'Courier New', monospace;
-    }
-
-    .join-panel h1 {
-      font-size: 32px;
-      margin-bottom: 20px;
-      text-shadow: 0 0 20px #ffff00;
-    }
-
-    .join-panel input {
-      width: 200px;
-      padding: 10px;
-      margin: 10px;
-      background: rgba(0, 50, 0, 0.8);
-      border: 1px solid #ffff00;
-      color: #ffff00;
-      font-family: 'Courier New', monospace;
-    }
-
-    .join-panel button {
-      padding: 10px 30px;
-      margin-top: 15px;
-      background: rgba(0, 100, 0, 0.8);
-      border: 2px solid #ffff00;
-      color: #ffff00;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: 14px;
       cursor: pointer;
-      font-size: 16px;
-      font-weight: bold;
+      transition: all 0.2s ease;
+      text-decoration: none;
     }
 
-    .buy-menu {
-      position: absolute;
-      bottom: 110px;
-      left: 10px;
-      background: rgba(0, 0, 0, 0.9);
-      border: 1px solid rgba(255, 255, 0, 0.3);
-      padding: 8px;
-      display: none;
-      z-index: 100;
-      max-height: 130px;
-      overflow-y: auto;
-      color: #ffff00;
-      font-family: 'Courier New', monospace;
-      font-size: 10px;
+    .btn-primary {
+      background: var(--accent);
+      color: var(--bg-primary);
     }
 
-    .buy-item {
-      padding: 4px;
-      margin: 2px 0;
-      background: rgba(0, 50, 0, 0.5);
-      border: 1px solid rgba(255, 255, 0, 0.2);
-      cursor: pointer;
+    .btn-primary:hover {
+      background: var(--accent-dim);
+      box-shadow: 0 0 20px var(--accent-glow);
     }
 
-    .buy-item:active {
-      background: rgba(255, 255, 0, 0.2);
+    .btn-secondary {
+      background: var(--bg-card);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
     }
 
-    #fps {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      color: #00ff00;
-      font-family: 'Courier New', monospace;
+    .btn-secondary:hover {
+      background: var(--bg-hover);
+      border-color: var(--accent);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-small {
+      padding: 8px 16px;
       font-size: 12px;
     }
 
-    #bombStatus {
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      color: #ff0000;
-      font-family: 'Courier New', monospace;
+    .btn-icon {
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      border-radius: 8px;
+    }
+
+    .input {
+      width: 100%;
+      padding: 14px 16px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
       font-size: 14px;
-      font-weight: bold;
-      text-shadow: 0 0 10px #ff0000;
+      transition: all 0.2s ease;
+    }
+
+    .input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .badge-owner {
+      background: rgba(255, 215, 0, 0.2);
+      color: var(--owner-gold);
+      border: 1px solid var(--owner-gold);
+    }
+
+    .badge-admin {
+      background: rgba(0, 255, 136, 0.2);
+      color: var(--admin-green);
+      border: 1px solid var(--admin-green);
+    }
+
+    .badge-member {
+      background: rgba(128, 128, 144, 0.2);
+      color: var(--member-gray);
+      border: 1px solid var(--member-gray);
+    }
+
+    .badge-online {
+      background: rgba(0, 255, 136, 0.2);
+      color: var(--success);
+    }
+
+    .badge-offline {
+      background: rgba(255, 68, 68, 0.2);
+      color: var(--danger);
+    }
+
+    .hidden { display: none !important; }
+
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 70px;
+      background: rgba(10, 10, 15, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+    }
+
+    .navbar .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    .navbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .navbar-logo {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 20px;
+      color: var(--bg-primary);
+    }
+
+    .navbar-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 24px;
+      color: var(--text-primary);
+    }
+
+    .navbar-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-link {
+      padding: 10px 16px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .nav-link:hover, .nav-link.active {
+      color: var(--accent);
+      background: rgba(0, 255, 136, 0.1);
+    }
+
+    .navbar-user {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      background: var(--bg-hover);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--accent);
+      border: 2px solid var(--accent);
+    }
+
+    .main-content {
+      padding-top: 90px;
+      min-height: 100vh;
+    }
+
+    .hero {
+      position: relative;
+      padding: 100px 0;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 20% 50%, var(--accent-glow) 0%, transparent 50%),
+        radial-gradient(circle at 80% 50%, rgba(0, 100, 255, 0.1) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 72px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, var(--text-primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-subtitle {
+      font-size: 20px;
+      color: var(--text-secondary);
+      margin-bottom: 40px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .stats-bar {
+      display: flex;
+      justify-content: center;
+      gap: 48px;
+      margin-top: 60px;
+      padding: 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    .page {
+      padding: 40px 0;
+    }
+
+    .page-header {
+      margin-bottom: 32px;
+    }
+
+    .page-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 36px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .page-subtitle {
+      color: var(--text-secondary);
+      font-size: 16px;
+    }
+
+    .auth-container {
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 40px 0;
+    }
+
+    .auth-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px;
+    }
+
+    .auth-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .auth-logo {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 28px;
+      color: var(--bg-primary);
+      margin: 0 auto 16px;
+      box-shadow: 0 0 30px var(--accent-glow);
+    }
+
+    .auth-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .form-error {
+      color: var(--danger);
+      font-size: 12px;
+      margin-top: 6px;
+    }
+
+    .auth-footer {
+      text-align: center;
+      margin-top: 24px;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .auth-footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .auth-footer a:hover {
+      text-decoration: underline;
+    }
+
+    .sidebar-layout {
+      display: flex;
+      gap: 24px;
+    }
+
+    .sidebar {
+      width: 280px;
+      flex-shrink: 0;
+    }
+
+    .sidebar-nav {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      position: sticky;
+      top: 90px;
+    }
+
+    .sidebar-section {
+      margin-bottom: 24px;
+    }
+
+    .sidebar-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .sidebar-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+      padding: 0 12px;
+    }
+
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .sidebar-link:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+    .sidebar-link.active {
+      background: rgba(0, 255, 136, 0.1);
+      color: var(--accent);
+      border-left: 3px solid var(--accent);
+      margin-left: -3px;
+    }
+
+    .sidebar-link svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .content-area {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .profile-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 24px;
+      padding: 32px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      margin-bottom: 24px;
+    }
+
+    .profile-avatar {
+      width: 120px;
+      height: 120px;
+      background: var(--bg-hover);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 48px;
+      color: var(--accent);
+      border: 4px solid var(--accent);
+      flex-shrink: 0;
+    }
+
+    .profile-info {
+      flex: 1;
+    }
+
+    .profile-name {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .profile-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    .profile-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .profile-bio {
+      color: var(--text-secondary);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .profile-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 16px;
+    }
+
+    .profile-stat {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .profile-stat-value {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .profile-stat-label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    .achievements-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    .achievement-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+
+    .achievement-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .achievement-icon {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 12px;
+      background: var(--bg-hover);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .achievement-name {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .achievement-desc {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .bot-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+    }
+
+    .bot-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      transition: all 0.2s ease;
+    }
+
+    .bot-card:hover {
+      border-color: var(--accent);
+    }
+
+    .bot-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .bot-name {
+      font-weight: 600;
+      font-size: 18px;
+    }
+
+    .bot-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .status-dot.online {
+      background: var(--success);
+      box-shadow: 0 0 8px var(--success);
+      animation: pulse 2s infinite;
+    }
+
+    .status-dot.offline {
+      background: var(--text-muted);
+    }
+
+    .status-dot.reconnecting {
+      background: var(--warning);
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .bot-info {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .bot-info-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .bot-info-label {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .bot-info-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+
+    .bot-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .bot-logs {
+      margin-top: 16px;
+      max-height: 150px;
+      overflow-y: auto;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .bot-log-entry {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-secondary);
+      padding: 4px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .bot-log-entry:last-child {
+      border-bottom: none;
+    }
+
+    .bot-log-time {
+      color: var(--text-muted);
+      margin-right: 8px;
+    }
+
+    .table-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .table th,
+    .table td {
+      padding: 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .table th {
+      background: var(--bg-secondary);
+      font-weight: 600;
+      font-size: 12px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .table tr:hover td {
+      background: var(--bg-hover);
+    }
+
+    .visitors-list {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .visitor-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .visitor-item:last-child {
+      border-bottom: none;
+    }
+
+    .visitor-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .visitor-avatar {
+      width: 32px;
+      height: 32px;
+      background: var(--bg-hover);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: var(--accent);
+    }
+
+    .visitor-name {
+      font-weight: 500;
+    }
+
+    .visitor-action {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .visitor-time {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .ticket-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .ticket-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .ticket-card:hover {
+      border-color: var(--accent);
+    }
+
+    .ticket-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .ticket-subject {
+      font-weight: 600;
+    }
+
+    .ticket-status {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .ticket-status.open {
+      background: rgba(0, 255, 136, 0.2);
+      color: var(--success);
+    }
+
+    .ticket-status.closed {
+      background: rgba(128, 128, 144, 0.2);
+      color: var(--member-gray);
+    }
+
+    .ticket-preview {
+      font-size: 13px;
+      color: var(--text-secondary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .chat-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      height: 500px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .chat-message {
+      display: flex;
+      gap: 12px;
+      max-width: 80%;
+    }
+
+    .chat-message.own {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .chat-message-avatar {
+      width: 32px;
+      height: 32px;
+      background: var(--bg-hover);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+
+    .chat-message-content {
+      background: var(--bg-secondary);
+      padding: 12px 16px;
+      border-radius: 12px;
+      border-top-left-radius: 4px;
+    }
+
+    .chat-message.own .chat-message-content {
+      background: var(--accent);
+      color: var(--bg-primary);
+      border-top-left-radius: 12px;
+      border-top-right-radius: 4px;
+    }
+
+    .chat-message-sender {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .chat-message-text {
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .chat-message-time {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .chat-input-area {
+      padding: 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 12px;
+    }
+
+    .chat-input-area .input {
+      flex: 1;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      padding: 20px;
+    }
+
+    .modal {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      max-width: 500px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 24px;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    .modal-close:hover {
+      color: var(--text-primary);
+    }
+
+    .modal-body {
+      padding: 24px;
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+
+    .rules-content {
+      line-height: 1.8;
+    }
+
+    .rules-content h3 {
+      color: var(--accent);
+      margin: 24px 0 12px;
+      font-family: 'Rajdhani', sans-serif;
+    }
+
+    .rules-content ul {
+      margin-left: 24px;
+      color: var(--text-secondary);
+    }
+
+    .rules-content li {
+      margin: 8px 0;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-secondary);
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    .empty-state-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 3000;
+      animation: slideIn 0.3s ease;
+      max-width: 400px;
+    }
+
+    .toast.success {
+      border-color: var(--success);
+    }
+
+    .toast.error {
+      border-color: var(--danger);
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .hero-title {
+        font-size: 40px;
+      }
+
+      .stats-bar {
+        flex-direction: column;
+        gap: 24px;
+      }
+
+      .sidebar-layout {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+      }
+
+      .profile-header {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .navbar-nav {
+        display: none;
+      }
+
+      .bot-info {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="join-screen" id="joinScreen">
-    <div class="join-panel">
-      <h1>⚔️ CS2 MOBILE</h1>
-      <p>Counter-Strike Evolution</p>
-      <input type="text" id="nickname" placeholder="Nickname" maxlength="15">
-      <button onclick="startGame()">ENTER BATTLE</button>
+  <nav class="navbar">
+    <div class="container">
+      <a href="#" class="navbar-brand" onclick="navigateTo('home')">
+        <div class="navbar-logo">ZS</div>
+        <span class="navbar-title">ZeySense Hub</span>
+      </a>
+      <div class="navbar-nav" id="mainNav">
+        <a href="#" class="nav-link active" data-page="home" onclick="navigateTo('home')">Home</a>
+        <a href="#" class="nav-link" data-page="rules" onclick="navigateTo('rules')">Rules</a>
+        <a href="#" class="nav-link" data-page="downloads" onclick="navigateTo('downloads')">Downloads</a>
+      </div>
+      <div class="navbar-user" id="navbarUser">
+        <button class="btn btn-secondary btn-small" data-testid="button-login" onclick="navigateTo('login')">Login</button>
+        <button class="btn btn-primary btn-small" data-testid="button-register" onclick="navigateTo('register')">Register</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main-content" id="mainContent">
+  </main>
+
+  <div class="modal-overlay hidden" id="modalOverlay">
+    <div class="modal" id="modal">
     </div>
   </div>
 
-  <canvas id="canvas"></canvas>
-
-  <div id="fps">FPS: 60</div>
-  <div id="bombStatus"></div>
-
-  <div id="topbar">
-    <div class="score-display">
-      <span class="score-team-a" id="scoreA">0</span> - <span class="score-team-b" id="scoreB">0</span>
-    </div>
+  <div class="toast hidden" id="toast">
+    <span id="toastMessage"></span>
   </div>
 
-  <div id="teamList"></div>
-  <canvas id="minimap"></canvas>
-
-  <div id="crosshair">
-    <div class="crosshair-dot"></div>
-  </div>
-
-  <div id="hud">
-    <div class="hud-left">
-      <div class="hud-item">$<span id="money">2400</span></div>
-      <div class="hud-item">❤ <span id="health">100</span>/100</div>
-    </div>
-    <div class="hud-center">
-      <div class="ammo-display"><span id="ammo">12</span></div>
-      <div class="weapon-name" id="weaponName">Glock-18</div>
-    </div>
-    <div class="hud-right">
-      <div class="hud-item">K: <span id="kills">0</span></div>
-      <div class="hud-item">D: <span id="deaths">0</span></div>
-    </div>
-  </div>
-
-  <div id="buyMenu" class="buy-menu">
-    <div class="buy-item" onclick="buyWeapon('ar')">M4A1-S - $3100</div>
-    <div class="buy-item" onclick="buyWeapon('rifle')">AK-47 - $2900</div>
-    <div class="buy-item" onclick="buyWeapon('shotgun')">XM1014 - $1200</div>
-    <div class="buy-item" onclick="buyWeapon('sniper')">AWP - $4750</div>
-  </div>
-
-  <div id="controls">
-    <div class="joystick-area" id="moveJoystick">
-      <div class="joystick-center" id="moveStick"></div>
-    </div>
-    <div class="joystick-area" id="lookJoystick">
-      <div class="joystick-center" id="lookStick"></div>
-    </div>
-    <div class="button-area">
-      <button class="btn" ontouchstart="shoot()" ontouchend="">🔫</button>
-      <button class="btn" id="buyBtn" ontouchstart="toggleBuy()">🛒</button>
-    </div>
-  </div>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script>
-    let playerId = null, gameId = 'default';
-    let scene, camera, renderer, playerPos = { x: 0, y: 1.6, z: 0 };
-    let playerVel = { x: 0, y: 0, z: 0 };
-    let playerAngle = 0, playerPitch = 0;
-    let gameState = { players: [], bombPlanted: false, bombTimer: 0 };
-    let stats = { health: 100, money: 2400, ammo: 12, kills: 0, deaths: 0 };
-    let moveInput = { x: 0, z: 0 }, lookInput = { x: 0, y: 0 };
-    let lastUpdateTime = 0, fpsCounter = 0, lastFpsTime = 0;
-    let playerMeshes = new Map();
-    const GRAVITY = 0.015;
-    const FRICTION = 0.85;
-    const MOVE_SPEED = 0.25;
+    let currentUser = null;
+    let sessionId = localStorage.getItem('sessionId');
+    let currentPage = 'home';
+    let stats = { totalUsers: 0, onlineUsers: 0, totalBots: 0, botsOnline: 0, visitorCount: 0, recentVisitors: [] };
+    let userBots = [];
+    let tickets = [];
 
-    async function startGame() {
-      const nickname = document.getElementById('nickname').value || 'Player';
-      const res = await fetch('/api/join', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nickname, gameId })
-      });
-      const data = await res.json();
-      playerId = data.playerId;
-      gameId = data.gameId;
-      stats.money = data.player.money;
-      
-      document.getElementById('joinScreen').style.display = 'none';
-      initGame();
-      gameLoop();
-    }
+    const achievementData = {
+      verified: { name: 'Verified User', icon: '✓', desc: 'Email verified' },
+      old_member: { name: 'Old Member', icon: '🏆', desc: '6+ month account' },
+      loader_master: { name: 'Loader Master', icon: '🔧', desc: '100+ loader opens' },
+      bot_controller: { name: 'Bot Controller', icon: '🤖', desc: 'Used AFK Bot' },
+      supporter: { name: 'Supporter', icon: '💎', desc: 'Long-term member' },
+      admin: { name: 'Admin', icon: '🛡️', desc: 'Administrator' },
+      owner: { name: 'Owner', icon: '👑', desc: 'Founder' }
+    };
 
-    function initGame() {
-      scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x87CEEB);
-      scene.fog = new THREE.Fog(0x87CEEB, 250, 400);
-
-      camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-      
-      renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas'), antialias: false, precision: 'lowp' });
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
-
-      const ambLight = new THREE.AmbientLight(0xffffff, 0.9);
-      scene.add(ambLight);
-
-      // de_dust2 inspired map
-      const groundGeo = new THREE.PlaneGeometry(400, 400);
-      const groundMat = new THREE.MeshBasicMaterial({ color: 0xAAAA88 });
-      const ground = new THREE.Mesh(groundGeo, groundMat);
-      ground.rotation.x = -Math.PI / 2;
-      scene.add(ground);
-
-      // Walls and structures
-      const wallMat = new THREE.MeshBasicMaterial({ color: 0xBBBBBB });
-      const createWall = (x, y, z, w, h, d) => {
-        const box = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), wallMat);
-        box.position.set(x, y, z);
-        scene.add(box);
-      };
-
-      // Outer walls
-      createWall(-150, 15, 0, 40, 30, 400);
-      createWall(150, 15, 0, 40, 30, 400);
-      createWall(0, 15, 150, 400, 30, 40);
-      createWall(0, 15, -150, 400, 30, 40);
-
-      // Inner structures
-      createWall(-60, 8, 0, 60, 16, 50);
-      createWall(60, 8, 0, 60, 16, 50);
-      createWall(0, 8, -80, 50, 16, 60);
-      createWall(0, 8, 80, 50, 16, 60);
-
-      // Bomb sites
-      createWall(-80, 0.5, -100, 40, 1, 40);
-      createWall(80, 0.5, 100, 40, 1, 40);
-
-      // Crates
-      const crateGeo = new THREE.BoxGeometry(3, 3, 3);
-      const crateMat = new THREE.MeshBasicMaterial({ color: 0x8B4513 });
-      const crateInstances = new THREE.InstancedMesh(crateGeo, crateMat, 12);
-      
-      for (let i = 0; i < 12; i++) {
-        const x = (Math.random() - 0.5) * 200;
-        const z = (Math.random() - 0.5) * 200;
-        const matrix = new THREE.Matrix4();
-        matrix.setPosition(x, 1.5, z);
-        crateInstances.setMatrixAt(i, matrix);
+    async function init() {
+      await fetchStats();
+      if (sessionId) {
+        await checkAuth();
       }
-      scene.add(crateInstances);
-
-      setupControls();
+      renderPage();
+      setInterval(fetchStats, 30000);
     }
 
-    function setupControls() {
-      const moveArea = document.getElementById('moveJoystick');
-      const lookArea = document.getElementById('lookJoystick');
+    async function fetchStats() {
+      try {
+        const res = await fetch('/api/stats');
+        stats = await res.json();
+      } catch (e) {
+        console.error('Failed to fetch stats');
+      }
+    }
 
-      ['touchstart', 'touchmove', 'touchend'].forEach(evt => {
-        moveArea.addEventListener(evt, (e) => handleJoystick(e, moveArea, 'move'), false);
-        lookArea.addEventListener(evt, (e) => handleJoystick(e, lookArea, 'look'), false);
-      });
+    async function checkAuth() {
+      try {
+        const res = await fetch('/api/user/profile', {
+          headers: { 'x-session-id': sessionId }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          currentUser = data.user;
+          updateNavbar();
+        } else {
+          localStorage.removeItem('sessionId');
+          sessionId = null;
+        }
+      } catch (e) {
+        console.error('Auth check failed');
+      }
+    }
 
-      window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
+    function updateNavbar() {
+      const nav = document.getElementById('mainNav');
+      const userArea = document.getElementById('navbarUser');
+
+      if (currentUser) {
+        let navLinks = `
+          <a href="#" class="nav-link" data-page="home" onclick="navigateTo('home')">Home</a>
+          <a href="#" class="nav-link" data-page="profile" onclick="navigateTo('profile')">Profile</a>
+          <a href="#" class="nav-link" data-page="bots" onclick="navigateTo('bots')">AFK Bot Panel</a>
+          <a href="#" class="nav-link" data-page="tickets" onclick="navigateTo('tickets')">Support</a>
+        `;
+
+        if (currentUser.role === 'admin' || currentUser.role === 'owner') {
+          navLinks += `<a href="#" class="nav-link" data-page="admin" onclick="navigateTo('admin')">Admin Panel</a>`;
+        }
+        if (currentUser.role === 'owner') {
+          navLinks += `<a href="#" class="nav-link" data-page="owner" onclick="navigateTo('owner')">Owner Control</a>`;
+        }
+
+        nav.innerHTML = navLinks;
+
+        const initial = currentUser.username.charAt(0).toUpperCase();
+        userArea.innerHTML = `
+          <div class="user-avatar" data-testid="button-user-menu">${initial}</div>
+          <button class="btn btn-secondary btn-small" data-testid="button-logout" onclick="logout()">Logout</button>
+        `;
+      } else {
+        nav.innerHTML = `
+          <a href="#" class="nav-link active" data-page="home" onclick="navigateTo('home')">Home</a>
+          <a href="#" class="nav-link" data-page="rules" onclick="navigateTo('rules')">Rules</a>
+          <a href="#" class="nav-link" data-page="downloads" onclick="navigateTo('downloads')">Downloads</a>
+        `;
+        userArea.innerHTML = `
+          <button class="btn btn-secondary btn-small" data-testid="button-login" onclick="navigateTo('login')">Login</button>
+          <button class="btn btn-primary btn-small" data-testid="button-register" onclick="navigateTo('register')">Register</button>
+        `;
+      }
+
+      document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.toggle('active', link.dataset.page === currentPage);
       });
     }
 
-    function handleJoystick(e, area, type) {
+    function navigateTo(page) {
+      currentPage = page;
+      renderPage();
+      updateNavbar();
+    }
+
+    function renderPage() {
+      const content = document.getElementById('mainContent');
+
+      switch (currentPage) {
+        case 'home':
+          content.innerHTML = renderHome();
+          break;
+        case 'login':
+          content.innerHTML = renderLogin();
+          break;
+        case 'register':
+          content.innerHTML = renderRegister();
+          break;
+        case 'rules':
+          content.innerHTML = renderRules();
+          break;
+        case 'downloads':
+          content.innerHTML = renderDownloads();
+          break;
+        case 'profile':
+          content.innerHTML = currentUser ? renderProfile() : renderLogin();
+          break;
+        case 'bots':
+          content.innerHTML = currentUser ? renderBots() : renderLogin();
+          if (currentUser) loadBots();
+          break;
+        case 'tickets':
+          content.innerHTML = currentUser ? renderTickets() : renderLogin();
+          if (currentUser) loadTickets();
+          break;
+        case 'admin':
+          content.innerHTML = (currentUser && (currentUser.role === 'admin' || currentUser.role === 'owner')) ? renderAdmin() : renderHome();
+          break;
+        case 'owner':
+          content.innerHTML = (currentUser && currentUser.role === 'owner') ? renderOwner() : renderHome();
+          break;
+        default:
+          content.innerHTML = renderHome();
+      }
+    }
+
+    function renderHome() {
+      return `
+        <section class="hero">
+          <div class="container hero-content">
+            <h1 class="hero-title font-display" data-testid="text-hero-title">ZeySense Hub</h1>
+            <p class="hero-subtitle">Minecraft AFK Bot Sistemi + Advanced Account System<br>Gamesense tarzı premium panel deneyimi.</p>
+            <div class="hero-buttons">
+              ${currentUser ? `
+                <button class="btn btn-primary" data-testid="button-bot-panel" onclick="navigateTo('bots')">AFK Bot Panel</button>
+                <button class="btn btn-secondary" data-testid="button-profile" onclick="navigateTo('profile')">Profile</button>
+              ` : `
+                <button class="btn btn-primary" data-testid="button-get-started" onclick="navigateTo('register')">Get Started</button>
+                <button class="btn btn-secondary" data-testid="button-learn-more" onclick="navigateTo('rules')">Learn More</button>
+              `}
+            </div>
+            <div class="stats-bar">
+              <div class="stat-item">
+                <div class="stat-value font-display" data-testid="text-stat-users">${stats.totalUsers || 0}</div>
+                <div class="stat-label">Total Users</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value font-display" data-testid="text-stat-online">${stats.onlineUsers || 0}</div>
+                <div class="stat-label">Online Now</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value font-display" data-testid="text-stat-bots">${stats.botsOnline || 0}</div>
+                <div class="stat-label">Bots Running</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value font-display" data-testid="text-stat-visitors">${stats.visitorCount || 0}</div>
+                <div class="stat-label">Total Visitors</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="page">
+          <div class="container">
+            <div class="page-header">
+              <h2 class="page-title font-display">Recent Visitors</h2>
+              <p class="page-subtitle">Real-time visitor activity on ZeySense Hub</p>
+            </div>
+            <div class="card">
+              <div class="visitors-list" id="visitorsList">
+                ${stats.recentVisitors.length > 0 ? stats.recentVisitors.map(v => `
+                  <div class="visitor-item">
+                    <div class="visitor-info">
+                      <div class="visitor-avatar">${v.name.charAt(0)}</div>
+                      <div>
+                        <div class="visitor-name">${v.name}</div>
+                        <div class="visitor-action">${v.action}</div>
+                      </div>
+                    </div>
+                    <div class="visitor-time">${new Date(v.timestamp).toLocaleTimeString()}</div>
+                  </div>
+                `).join('') : `
+                  <div class="empty-state">
+                    <div class="empty-state-icon">👁️</div>
+                    <div class="empty-state-title">No recent visitors</div>
+                    <p>Visitors will appear here</p>
+                  </div>
+                `}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="page">
+          <div class="container">
+            <div class="page-header">
+              <h2 class="page-title font-display">Bot Features</h2>
+              <p class="page-subtitle">Premium AFK Bot capabilities</p>
+            </div>
+            <div class="bot-grid">
+              <div class="card">
+                <h3 style="color: var(--accent); margin-bottom: 12px;">Multi-Version Support</h3>
+                <p style="color: var(--text-secondary);">Connect to any Minecraft server from 1.8 to 1.21+</p>
+              </div>
+              <div class="card">
+                <h3 style="color: var(--accent); margin-bottom: 12px;">Auto Reconnect</h3>
+                <p style="color: var(--text-secondary);">Automatically reconnect within 3 seconds after kick</p>
+              </div>
+              <div class="card">
+                <h3 style="color: var(--accent); margin-bottom: 12px;">Anti-AFK System</h3>
+                <p style="color: var(--text-secondary);">Smart movement patterns to bypass AFK detection</p>
+              </div>
+              <div class="card">
+                <h3 style="color: var(--accent); margin-bottom: 12px;">Server Monitoring</h3>
+                <p style="color: var(--text-secondary);">Real-time TPS, player count, and ping monitoring</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    function renderLogin() {
+      return `
+        <div class="auth-container">
+          <div class="auth-card">
+            <div class="auth-header">
+              <div class="auth-logo">ZS</div>
+              <h1 class="auth-title font-display">Welcome Back</h1>
+            </div>
+            <form onsubmit="handleLogin(event)">
+              <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" class="input" id="loginEmail" placeholder="your@email.com" required data-testid="input-login-email">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" class="input" id="loginPassword" placeholder="Enter password" required data-testid="input-login-password">
+              </div>
+              <button type="submit" class="btn btn-primary" style="width: 100%;" data-testid="button-submit-login">Login</button>
+            </form>
+            <div class="auth-footer">
+              Don't have an account? <a href="#" onclick="navigateTo('register')">Register</a>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderRegister() {
+      return `
+        <div class="auth-container">
+          <div class="auth-card">
+            <div class="auth-header">
+              <div class="auth-logo">ZS</div>
+              <h1 class="auth-title font-display">Create Account</h1>
+            </div>
+            <form onsubmit="handleRegister(event)">
+              <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" class="input" id="regEmail" placeholder="your@email.com" required data-testid="input-register-email">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Username</label>
+                <input type="text" class="input" id="regUsername" placeholder="Choose username" required data-testid="input-register-username">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" class="input" id="regPassword" placeholder="Create password" required data-testid="input-register-password">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Invite Code (Optional)</label>
+                <input type="text" class="input" id="regInvite" placeholder="ZS-XXXXXXXX" data-testid="input-register-invite">
+              </div>
+              <button type="submit" class="btn btn-primary" style="width: 100%;" data-testid="button-submit-register">Create Account</button>
+            </form>
+            <div class="auth-footer">
+              Already have an account? <a href="#" onclick="navigateTo('login')">Login</a>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderRules() {
+      return `
+        <div class="page">
+          <div class="container" style="max-width: 800px;">
+            <div class="page-header">
+              <h1 class="page-title font-display">Rules & Guidelines</h1>
+              <p class="page-subtitle">Please read and follow these rules</p>
+            </div>
+            <div class="card rules-content">
+              <h3>Account Rules</h3>
+              <ul>
+                <li>Each email can only register one account</li>
+                <li>Invite codes are single-use only</li>
+                <li>Do not share your account credentials</li>
+                <li>HWID is locked to your device after first login</li>
+              </ul>
+
+              <h3>Bot Usage</h3>
+              <ul>
+                <li>Only use bots on servers where it's allowed</li>
+                <li>Do not use bots for malicious purposes</li>
+                <li>Report any bugs or issues to support</li>
+                <li>Keep your bot names appropriate</li>
+              </ul>
+
+              <h3>Community</h3>
+              <ul>
+                <li>Be respectful to other users</li>
+                <li>No spam or advertising</li>
+                <li>Follow staff instructions</li>
+                <li>Report violations through tickets</li>
+              </ul>
+
+              <h3>Violations</h3>
+              <ul>
+                <li>First offense: Warning</li>
+                <li>Second offense: Temporary ban</li>
+                <li>Third offense: Permanent ban</li>
+                <li>Severe violations: Immediate permanent ban</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderDownloads() {
+      return `
+        <div class="page">
+          <div class="container" style="max-width: 800px;">
+            <div class="page-header">
+              <h1 class="page-title font-display">Downloads</h1>
+              <p class="page-subtitle">Get the ZeySense Loader</p>
+            </div>
+            <div class="card" style="text-align: center; padding: 60px;">
+              <div style="font-size: 64px; margin-bottom: 24px;">📦</div>
+              <h2 style="margin-bottom: 16px;" class="font-display">ZeySense Loader v2.0</h2>
+              <p style="color: var(--text-secondary); margin-bottom: 32px;">Windows 10/11 | 64-bit required</p>
+              ${currentUser ? `
+                ${currentUser.loaderAccess ? `
+                  <button class="btn btn-primary" data-testid="button-download">Download Loader</button>
+                ` : `
+                  <p style="color: var(--danger);">Loader access disabled. Contact support.</p>
+                `}
+              ` : `
+                <p style="color: var(--warning); margin-bottom: 16px;">Login required to download</p>
+                <button class="btn btn-primary" onclick="navigateTo('login')">Login to Download</button>
+              `}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderProfile() {
+      const roleClass = currentUser.role === 'owner' ? 'badge-owner' : currentUser.role === 'admin' ? 'badge-admin' : 'badge-member';
+      const roleLabel = currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1);
+
+      return `
+        <div class="page">
+          <div class="container">
+            <div class="profile-header">
+              <div class="profile-avatar">${currentUser.username.charAt(0).toUpperCase()}</div>
+              <div class="profile-info">
+                <div class="profile-name">
+                  ${currentUser.username}
+                  <span class="badge ${roleClass}">${currentUser.role === 'owner' ? '👑' : currentUser.role === 'admin' ? '🛡️' : ''} ${roleLabel}</span>
+                </div>
+                <div class="profile-meta">
+                  <span class="profile-meta-item">📅 Joined ${new Date(currentUser.createdAt).toLocaleDateString()}</span>
+                  <span class="profile-meta-item">🕐 Last login ${new Date(currentUser.lastLogin).toLocaleDateString()}</span>
+                  <span class="profile-meta-item">${currentUser.hwid ? '🔒 HWID Locked' : '🔓 HWID Not Set'}</span>
+                  ${currentUser.loaderAccess ? '<span class="profile-meta-item" style="color: var(--success);">✓ Loader Access</span>' : '<span class="profile-meta-item" style="color: var(--danger);">✗ No Loader Access</span>'}
+                </div>
+                <p class="profile-bio">${currentUser.bio || 'No bio set. Edit your profile to add one.'}</p>
+              </div>
+            </div>
+
+            <div class="profile-stats">
+              <div class="profile-stat">
+                <div class="profile-stat-value font-display">${currentUser.stats.loaderOpens}</div>
+                <div class="profile-stat-label">Loader Opens</div>
+              </div>
+              <div class="profile-stat">
+                <div class="profile-stat-value font-display">${currentUser.stats.botSessions}</div>
+                <div class="profile-stat-label">Bot Sessions</div>
+              </div>
+              <div class="profile-stat">
+                <div class="profile-stat-value font-display">${Math.floor(currentUser.stats.usageTime / 60)}h</div>
+                <div class="profile-stat-label">Usage Time</div>
+              </div>
+              <div class="profile-stat">
+                <div class="profile-stat-value font-display">${currentUser.stats.forumPosts}</div>
+                <div class="profile-stat-label">Forum Posts</div>
+              </div>
+            </div>
+
+            <div style="margin-top: 32px;">
+              <h2 class="page-title font-display" style="font-size: 24px; margin-bottom: 16px;">Achievements</h2>
+              <div class="achievements-grid">
+                ${currentUser.achievements.map(a => {
+                  const ach = achievementData[a] || { name: a, icon: '🏅', desc: 'Achievement' };
+                  return `
+                    <div class="achievement-card">
+                      <div class="achievement-icon">${ach.icon}</div>
+                      <div class="achievement-name">${ach.name}</div>
+                      <div class="achievement-desc">${ach.desc}</div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+
+            <div style="margin-top: 32px;">
+              <h2 class="page-title font-display" style="font-size: 24px; margin-bottom: 16px;">Edit Profile</h2>
+              <div class="card">
+                <form onsubmit="updateProfile(event)">
+                  <div class="form-group">
+                    <label class="form-label">Bio</label>
+                    <textarea class="input" id="profileBio" rows="3" placeholder="Tell us about yourself" data-testid="input-profile-bio">${currentUser.bio || ''}</textarea>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Discord</label>
+                    <input type="text" class="input" id="profileDiscord" placeholder="username#0000" value="${currentUser.socialLinks?.discord || ''}" data-testid="input-profile-discord">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">YouTube</label>
+                    <input type="text" class="input" id="profileYoutube" placeholder="YouTube channel URL" value="${currentUser.socialLinks?.youtube || ''}" data-testid="input-profile-youtube">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">GitHub</label>
+                    <input type="text" class="input" id="profileGithub" placeholder="GitHub username" value="${currentUser.socialLinks?.github || ''}" data-testid="input-profile-github">
+                  </div>
+                  <button type="submit" class="btn btn-primary" data-testid="button-save-profile">Save Changes</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderBots() {
+      return `
+        <div class="page">
+          <div class="container">
+            <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+              <div>
+                <h1 class="page-title font-display">AFK Bot Panel</h1>
+                <p class="page-subtitle">Manage your Minecraft AFK bots</p>
+              </div>
+              <button class="btn btn-primary" onclick="showCreateBotModal()" data-testid="button-create-bot">+ Create Bot</button>
+            </div>
+            <div class="bot-grid" id="botGrid">
+              <div class="empty-state">
+                <div class="empty-state-icon">🤖</div>
+                <div class="empty-state-title">Loading bots...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderTickets() {
+      return `
+        <div class="page">
+          <div class="container">
+            <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+              <div>
+                <h1 class="page-title font-display">Live Support</h1>
+                <p class="page-subtitle">Get help from our team</p>
+              </div>
+              <button class="btn btn-primary" onclick="showCreateTicketModal()" data-testid="button-create-ticket">+ New Ticket</button>
+            </div>
+            <div class="ticket-list" id="ticketList">
+              <div class="empty-state">
+                <div class="empty-state-icon">💬</div>
+                <div class="empty-state-title">Loading tickets...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderAdmin() {
+      return `
+        <div class="page">
+          <div class="container">
+            <div class="sidebar-layout">
+              <div class="sidebar">
+                <div class="sidebar-nav">
+                  <div class="sidebar-section">
+                    <div class="sidebar-title">Admin Tools</div>
+                    <a class="sidebar-link active" onclick="loadAdminUsers()">👥 User Manager</a>
+                    <a class="sidebar-link" onclick="loadAdminInvites()">🎟️ Invite Codes</a>
+                    <a class="sidebar-link" onclick="loadAdminTickets()">💬 Tickets</a>
+                  </div>
+                </div>
+              </div>
+              <div class="content-area" id="adminContent">
+                <div class="card">
+                  <h2 class="font-display" style="margin-bottom: 20px;">Admin Dashboard</h2>
+                  <p style="color: var(--text-secondary);">Select a tool from the sidebar</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderOwner() {
+      return `
+        <div class="page">
+          <div class="container">
+            <div class="sidebar-layout">
+              <div class="sidebar">
+                <div class="sidebar-nav">
+                  <div class="sidebar-section">
+                    <div class="sidebar-title">Owner Control</div>
+                    <a class="sidebar-link active" onclick="loadOwnerUsers()">👥 User Manager</a>
+                    <a class="sidebar-link" onclick="loadOwnerAdmins()">🛡️ Admin Manager</a>
+                    <a class="sidebar-link" onclick="loadOwnerInvites()">🎟️ Invite Generator</a>
+                    <a class="sidebar-link" onclick="loadOwnerLogs()">📋 Activity Logs</a>
+                  </div>
+                </div>
+              </div>
+              <div class="content-area" id="ownerContent">
+                <div class="card">
+                  <h2 class="font-display" style="margin-bottom: 20px;">Owner Control Center</h2>
+                  <p style="color: var(--text-secondary);">Full system access. Select a tool from the sidebar.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function handleLogin(e) {
       e.preventDefault();
-      const touch = e.touches[0];
-      if (!touch) {
-        if (type === 'move') moveInput = { x: 0, z: 0 };
-        else lookInput = { x: 0, y: 0 };
-        document.getElementById(type === 'move' ? 'moveStick' : 'lookStick').style.transform = 'translate(-50%, -50%)';
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          sessionId = data.sessionId;
+          localStorage.setItem('sessionId', sessionId);
+          currentUser = data.user;
+          showToast('Login successful!', 'success');
+          navigateTo('home');
+          updateNavbar();
+        } else {
+          showToast(data.error || 'Login failed', 'error');
+        }
+      } catch (e) {
+        showToast('Connection error', 'error');
+      }
+    }
+
+    async function handleRegister(e) {
+      e.preventDefault();
+      const email = document.getElementById('regEmail').value;
+      const username = document.getElementById('regUsername').value;
+      const password = document.getElementById('regPassword').value;
+      const inviteCode = document.getElementById('regInvite').value;
+
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, username, password, inviteCode: inviteCode || undefined })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          sessionId = data.sessionId;
+          localStorage.setItem('sessionId', sessionId);
+          currentUser = data.user;
+          showToast('Account created!', 'success');
+          navigateTo('home');
+          updateNavbar();
+        } else {
+          showToast(data.error || 'Registration failed', 'error');
+        }
+      } catch (e) {
+        showToast('Connection error', 'error');
+      }
+    }
+
+    async function logout() {
+      try {
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId })
+        });
+      } catch (e) {}
+
+      localStorage.removeItem('sessionId');
+      sessionId = null;
+      currentUser = null;
+      showToast('Logged out', 'success');
+      navigateTo('home');
+      updateNavbar();
+    }
+
+    async function updateProfile(e) {
+      e.preventDefault();
+      const bio = document.getElementById('profileBio').value;
+      const discord = document.getElementById('profileDiscord').value;
+      const youtube = document.getElementById('profileYoutube').value;
+      const github = document.getElementById('profileGithub').value;
+
+      try {
+        const res = await fetch('/api/user/profile', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-session-id': sessionId
+          },
+          body: JSON.stringify({
+            bio,
+            socialLinks: { discord, youtube, github }
+          })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          currentUser = data.user;
+          showToast('Profile updated!', 'success');
+        } else {
+          showToast('Update failed', 'error');
+        }
+      } catch (e) {
+        showToast('Connection error', 'error');
+      }
+    }
+
+    async function loadBots() {
+      try {
+        const res = await fetch('/api/bots', {
+          headers: { 'x-session-id': sessionId }
+        });
+        const data = await res.json();
+        userBots = data.bots || [];
+        renderBotGrid();
+      } catch (e) {
+        document.getElementById('botGrid').innerHTML = '<div class="empty-state"><div class="empty-state-title">Failed to load bots</div></div>';
+      }
+    }
+
+    function renderBotGrid() {
+      const grid = document.getElementById('botGrid');
+
+      if (userBots.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state" style="grid-column: 1 / -1;">
+            <div class="empty-state-icon">🤖</div>
+            <div class="empty-state-title">No bots yet</div>
+            <p>Create your first AFK bot to get started</p>
+          </div>
+        `;
         return;
       }
 
-      const rect = area.getBoundingClientRect();
-      const x = ((touch.clientX - rect.left) / rect.width - 0.5) * 2;
-      const y = ((touch.clientY - rect.top) / rect.height - 0.5) * 2;
-
-      if (type === 'move') moveInput = { x: x * 1.5, z: -y * 1.5 };
-      else lookInput = { x: x * 0.08, y: -y * 0.08 };
-
-      const stick = document.getElementById(type === 'move' ? 'moveStick' : 'lookStick');
-      stick.style.transform = `translate(calc(-50% + ${x * 30}px), calc(-50% + ${y * 30}px))`;
+      grid.innerHTML = userBots.map(bot => `
+        <div class="bot-card" data-testid="card-bot-${bot.id}">
+          <div class="bot-header">
+            <span class="bot-name">${bot.name}</span>
+            <div class="bot-status">
+              <span class="status-dot ${bot.status}"></span>
+              <span>${bot.status.charAt(0).toUpperCase() + bot.status.slice(1)}</span>
+            </div>
+          </div>
+          <div class="bot-info">
+            <div class="bot-info-item">
+              <span class="bot-info-label">Server</span>
+              <span class="bot-info-value font-mono">${bot.server}</span>
+            </div>
+            <div class="bot-info-item">
+              <span class="bot-info-label">Version</span>
+              <span class="bot-info-value">${bot.version}</span>
+            </div>
+            <div class="bot-info-item">
+              <span class="bot-info-label">Behavior</span>
+              <span class="bot-info-value">${bot.behavior}</span>
+            </div>
+            <div class="bot-info-item">
+              <span class="bot-info-label">Ping</span>
+              <span class="bot-info-value">${bot.ping}ms</span>
+            </div>
+          </div>
+          <div class="bot-actions">
+            ${bot.status === 'offline' ? `
+              <button class="btn btn-primary btn-small" onclick="startBot('${bot.id}')" data-testid="button-start-bot-${bot.id}">Start</button>
+            ` : `
+              <button class="btn btn-danger btn-small" onclick="stopBot('${bot.id}')" data-testid="button-stop-bot-${bot.id}">Stop</button>
+            `}
+            <button class="btn btn-secondary btn-small" onclick="deleteBot('${bot.id}')" data-testid="button-delete-bot-${bot.id}">Delete</button>
+          </div>
+          ${bot.logs && bot.logs.length > 0 ? `
+            <div class="bot-logs">
+              ${bot.logs.slice(-5).map(log => `
+                <div class="bot-log-entry">
+                  <span class="bot-log-time">${new Date(log.time).toLocaleTimeString()}</span>
+                  ${log.message}
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+        </div>
+      `).join('');
     }
 
-    async function shoot() {
-      if (!playerId) return;
-      const dir = new THREE.Vector3(0, 0, -1);
-      dir.applyAxisAngle(new THREE.Vector3(0, 1, 0), playerAngle);
-      dir.applyAxisAngle(new THREE.Vector3(1, 0, 0), playerPitch);
-      
-      await fetch('/api/shoot', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ playerId, dirX: dir.x, dirY: dir.y, dirZ: dir.z })
-      });
+    function showCreateBotModal() {
+      const modal = document.getElementById('modal');
+      const overlay = document.getElementById('modalOverlay');
+
+      modal.innerHTML = `
+        <div class="modal-header">
+          <h2 class="modal-title font-display">Create New Bot</h2>
+          <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form onsubmit="createBot(event)">
+            <div class="form-group">
+              <label class="form-label">Bot Name</label>
+              <input type="text" class="input" id="botName" placeholder="My AFK Bot" data-testid="input-bot-name">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Server Address</label>
+              <input type="text" class="input" id="botServer" placeholder="play.hypixel.net" required data-testid="input-bot-server">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Version</label>
+              <select class="input" id="botVersion" data-testid="select-bot-version">
+                <option value="1.20.4">1.20.4</option>
+                <option value="1.19.4">1.19.4</option>
+                <option value="1.18.2">1.18.2</option>
+                <option value="1.16.5">1.16.5</option>
+                <option value="1.12.2">1.12.2</option>
+                <option value="1.8.9">1.8.9</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Behavior</label>
+              <select class="input" id="botBehavior" data-testid="select-bot-behavior">
+                <option value="idle">Idle</option>
+                <option value="rotate">Rotate</option>
+                <option value="jump">Jump</option>
+                <option value="random_walk">Random Walk</option>
+                <option value="auto_chat">Auto Chat</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;" data-testid="button-submit-bot">Create Bot</button>
+          </form>
+        </div>
+      `;
+
+      overlay.classList.remove('hidden');
     }
 
-    async function buyWeapon(weapon) {
-      const res = await fetch('/api/buy', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ playerId, weapon })
-      });
-      const data = await res.json();
-      stats.money = data.money;
-      stats.ammo = data.ammo;
-      document.getElementById('weaponName').textContent = data.weaponName;
-    }
+    async function createBot(e) {
+      e.preventDefault();
+      const name = document.getElementById('botName').value;
+      const server = document.getElementById('botServer').value;
+      const version = document.getElementById('botVersion').value;
+      const behavior = document.getElementById('botBehavior').value;
 
-    function toggleBuy() {
-      const menu = document.getElementById('buyMenu');
-      menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-    }
-
-    async function gameLoop() {
-      const now = performance.now();
-      lastUpdateTime = now;
-
-      fpsCounter++;
-      if (now - lastFpsTime >= 1000) {
-        document.getElementById('fps').textContent = 'FPS: ' + fpsCounter;
-        fpsCounter = 0;
-        lastFpsTime = now;
-      }
-
-      // Physics
-      playerVel.y -= GRAVITY;
-      if (playerPos.y <= 1.6) {
-        playerPos.y = 1.6;
-        playerVel.y = 0;
-      }
-
-      playerVel.x = moveInput.x * MOVE_SPEED;
-      playerVel.z = moveInput.z * MOVE_SPEED;
-
-      playerPos.x += playerVel.x;
-      playerPos.y += playerVel.y;
-      playerPos.z += playerVel.z;
-
-      playerPos.x = Math.max(-140, Math.min(140, playerPos.x));
-      playerPos.z = Math.max(-140, Math.min(140, playerPos.z));
-
-      playerAngle += lookInput.x;
-      playerPitch = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, playerPitch + lookInput.y));
-
-      if (now % 50 < 25) {
-        await fetch('/api/move', {
+      try {
+        const res = await fetch('/api/bots', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            playerId, 
-            x: playerPos.x, y: playerPos.y, z: playerPos.z,
-            vx: playerVel.x, vy: playerVel.y, vz: playerVel.z,
-            angle: playerAngle, pitch: playerPitch 
-          })
+          headers: {
+            'Content-Type': 'application/json',
+            'x-session-id': sessionId
+          },
+          body: JSON.stringify({ name, server, version, behavior })
         });
+
+        if (res.ok) {
+          closeModal();
+          showToast('Bot created!', 'success');
+          loadBots();
+        } else {
+          showToast('Failed to create bot', 'error');
+        }
+      } catch (e) {
+        showToast('Connection error', 'error');
       }
-
-      const res = await fetch(`/api/state/${gameId}`);
-      const state = await res.json();
-      gameState = state;
-
-      const me = state.players.find(p => p.id === playerId);
-      if (me) {
-        stats.health = me.health;
-        stats.kills = me.kills;
-        stats.deaths = me.deaths;
-        stats.money = me.money;
-        stats.ammo = me.ammo;
-        playerPos.y = me.y;
-      }
-
-      document.getElementById('health').textContent = Math.max(0, Math.floor(stats.health));
-      document.getElementById('money').textContent = stats.money;
-      document.getElementById('ammo').textContent = stats.ammo;
-      document.getElementById('kills').textContent = stats.kills;
-      document.getElementById('deaths').textContent = stats.deaths;
-      document.getElementById('scoreA').textContent = state.game.teamAScore;
-      document.getElementById('scoreB').textContent = state.game.teamBScore;
-
-      if (state.bombPlanted) {
-        document.getElementById('bombStatus').textContent = `💣 BOMB ${state.bombTimer}s`;
-      } else {
-        document.getElementById('bombStatus').textContent = '';
-      }
-
-      const teamListHtml = '<strong style="color: #ffff00; display: block; margin-bottom: 5px;">TEAM</strong>' +
-        state.teamAPlayers.slice(0, 5).map(p => `<div class="team-player ${!p.alive ? 'dead' : ''}">${p.nickname}</div>`).join('') +
-        state.teamBPlayers.slice(0, 5).map(p => `<div class="team-player ${!p.alive ? 'dead' : ''}">${p.nickname}</div>`).join('');
-      document.getElementById('teamList').innerHTML = teamListHtml;
-
-      camera.position.copy(playerPos);
-      camera.rotation.order = 'YXZ';
-      camera.rotation.y = playerAngle;
-      camera.rotation.x = playerPitch;
-
-      for (let mesh of playerMeshes.values()) {
-        scene.remove(mesh);
-        mesh.geometry.dispose();
-        mesh.material.dispose();
-      }
-      playerMeshes.clear();
-
-      const visible = state.players.filter(p => p.alive && p.id !== playerId && 
-        Math.hypot(p.x - playerPos.x, p.z - playerPos.z) < 120).slice(0, 8);
-
-      visible.forEach(p => {
-        const mat = new THREE.MeshBasicMaterial({ color: p.team === 'A' ? 0xff6666 : 0x6699ff });
-        const mesh = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.8, 0.8), mat);
-        mesh.position.set(p.x, p.y, p.z);
-        scene.add(mesh);
-        playerMeshes.set(p.id, mesh);
-      });
-
-      const mmCanvas = document.getElementById('minimap');
-      if (mmCanvas && mmCanvas.getContext) {
-        const mmCtx = mmCanvas.getContext('2d', { willReadFrequently: false });
-        mmCtx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        mmCtx.fillRect(0, 0, 140, 140);
-        mmCtx.strokeStyle = 'rgba(255, 255, 0, 0.5)';
-        mmCtx.strokeRect(0, 0, 140, 140);
-
-        state.players.slice(0, 12).forEach(p => {
-          const rx = 70 + (p.x / 200) * 60;
-          const rz = 70 + (p.z / 200) * 60;
-          mmCtx.fillStyle = p.id === playerId ? '#ffff00' : (p.team === 'A' ? '#ff6666' : '#6699ff');
-          mmCtx.fillRect(rx - 2, rz - 2, 4, 4);
-        });
-      }
-
-      renderer.render(scene, camera);
-      requestAnimationFrame(gameLoop);
     }
+
+    async function startBot(botId) {
+      try {
+        const res = await fetch(`/api/bots/${botId}/start`, {
+          method: 'POST',
+          headers: { 'x-session-id': sessionId }
+        });
+
+        if (res.ok) {
+          showToast('Bot started!', 'success');
+          loadBots();
+        } else {
+          showToast('Failed to start bot', 'error');
+        }
+      } catch (e) {
+        showToast('Connection error', 'error');
+      }
+    }
+
+    async function stopBot(botId) {
+      try {
+        const res = await fetch(`/api/bots/${botId}/stop`, {
+          method: 'POST',
+          headers: { 'x-session-id': sessionId }
+        });
+
+        if (res.ok) {
+          showToast('Bot stopped', 'success');
+          loadBots();
+        } else {
+          showToast('Failed to stop bot', 'error');
+        }
+      } catch (e) {
+        showToast('Connection error', 'error');
+      }
+    }
+
+    async function deleteBot(botId) {
+      if (!confirm('Are you sure you want to delete this bot?')) return;
+
+      try {
+        const res = await fetch(`/api/bots/${botId}`, {
+          method: 'DELETE',
+          headers: { 'x-session-id': sessionId }
+        });
+
+        if (res.ok) {
+          showToast('Bot deleted', 'success');
+          loadBots();
+        } else {
+          showToast('Failed to delete bot', 'error');
+        }
+      } catch (e) {
+        showToast('Connection error', 'error');
+      }
+    }
+
+    async function loadTickets() {
+      try {
+        const res = await fetch('/api/tickets', {
+          headers: { 'x-session-id': sessionId }
+        });
+        const data = await res.json();
+        tickets = data.tickets || [];
+        renderTicketList();
+      } catch (e) {
+        document.getElementById('ticketList').innerHTML = '<div class="empty-state"><div class="empty-state-title">Failed to load tickets</div></div>';
+      }
+    }
+
+    function renderTicketList() {
+      const list = document.getElementById('ticketList');
+
+      if (tickets.length === 0) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">💬</div>
+            <div class="empty-state-title">No tickets yet</div>
+            <p>Create a ticket if you need help</p>
+          </div>
+        `;
+        return;
+      }
+
+      list.innerHTML = tickets.map(ticket => `
+        <div class="ticket-card" onclick="openTicket('${ticket.id}')" data-testid="card-ticket-${ticket.id}">
+          <div class="ticket-header">
+            <span class="ticket-subject">${ticket.subject}</span>
+            <span class="ticket-status ${ticket.status}">${ticket.status}</span>
+          </div>
+          <div class="ticket-preview">${ticket.messages[ticket.messages.length - 1]?.message || ''}</div>
+        </div>
+      `).join('');
+    }
+
+    function showCreateTicketModal() {
+      const modal = document.getElementById('modal');
+      const overlay = document.getElementById('modalOverlay');
+
+      modal.innerHTML = `
+        <div class="modal-header">
+          <h2 class="modal-title font-display">Create New Ticket</h2>
+          <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form onsubmit="createTicket(event)">
+            <div class="form-group">
+              <label class="form-label">Subject</label>
+              <input type="text" class="input" id="ticketSubject" placeholder="What do you need help with?" required data-testid="input-ticket-subject">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Message</label>
+              <textarea class="input" id="ticketMessage" rows="4" placeholder="Describe your issue..." required data-testid="input-ticket-message"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;" data-testid="button-submit-ticket">Submit Ticket</button>
+          </form>
+        </div>
+      `;
+
+      overlay.classList.remove('hidden');
+    }
+
+    async function createTicket(e) {
+      e.preventDefault();
+      const subject = document.getElementById('ticketSubject').value;
+      const message = document.getElementById('ticketMessage').value;
+
+      try {
+        const res = await fetch('/api/tickets', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-session-id': sessionId
+          },
+          body: JSON.stringify({ subject, message })
+        });
+
+        if (res.ok) {
+          closeModal();
+          showToast('Ticket created!', 'success');
+          loadTickets();
+        } else {
+          showToast('Failed to create ticket', 'error');
+        }
+      } catch (e) {
+        showToast('Connection error', 'error');
+      }
+    }
+
+    function openTicket(ticketId) {
+      const ticket = tickets.find(t => t.id === ticketId);
+      if (!ticket) return;
+
+      const modal = document.getElementById('modal');
+      const overlay = document.getElementById('modalOverlay');
+
+      modal.innerHTML = `
+        <div class="modal-header">
+          <h2 class="modal-title font-display">${ticket.subject}</h2>
+          <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="chat-messages" style="max-height: 300px; padding: 20px;">
+          ${ticket.messages.map(msg => `
+            <div class="chat-message ${msg.from === currentUser.username ? 'own' : ''}">
+              <div class="chat-message-avatar">${msg.from.charAt(0)}</div>
+              <div class="chat-message-content">
+                <div class="chat-message-sender">${msg.from} ${msg.isAdmin ? '(Staff)' : ''}</div>
+                <div class="chat-message-text">${msg.message}</div>
+                <div class="chat-message-time">${new Date(msg.timestamp).toLocaleString()}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        ${ticket.status === 'open' ? `
+          <div class="chat-input-area">
+            <input type="text" class="input" id="ticketReply" placeholder="Type your message..." data-testid="input-ticket-reply">
+            <button class="btn btn-primary" onclick="replyTicket('${ticketId}')" data-testid="button-send-reply">Send</button>
+          </div>
+        ` : ''}
+      `;
+
+      overlay.classList.remove('hidden');
+    }
+
+    async function replyTicket(ticketId) {
+      const message = document.getElementById('ticketReply').value;
+      if (!message) return;
+
+      try {
+        const res = await fetch(`/api/tickets/${ticketId}/reply`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-session-id': sessionId
+          },
+          body: JSON.stringify({ message })
+        });
+
+        if (res.ok) {
+          loadTickets();
+          openTicket(ticketId);
+        }
+      } catch (e) {
+        showToast('Failed to send reply', 'error');
+      }
+    }
+
+    async function loadAdminUsers() {
+      const content = document.getElementById('adminContent');
+      content.innerHTML = '<div class="card"><p>Loading users...</p></div>';
+
+      try {
+        const res = await fetch('/api/admin/users', {
+          headers: { 'x-session-id': sessionId }
+        });
+        const data = await res.json();
+
+        content.innerHTML = `
+          <div class="table-container">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Username</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${data.users.map(u => `
+                  <tr>
+                    <td>${u.username}</td>
+                    <td class="font-mono">${u.email}</td>
+                    <td><span class="badge badge-${u.role === 'owner' ? 'owner' : u.role === 'admin' ? 'admin' : 'member'}">${u.role}</span></td>
+                    <td>${u.banned ? '<span style="color: var(--danger);">Banned</span>' : '<span style="color: var(--success);">Active</span>'}</td>
+                    <td>
+                      ${u.role !== 'owner' ? `
+                        ${u.banned ? `
+                          <button class="btn btn-small btn-secondary" onclick="adminUnban('${u.id}')">Unban</button>
+                        ` : `
+                          <button class="btn btn-small btn-danger" onclick="adminBan('${u.id}')">Ban</button>
+                        `}
+                        <button class="btn btn-small btn-secondary" onclick="adminHwidReset('${u.id}')">Reset HWID</button>
+                      ` : ''}
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+      } catch (e) {
+        content.innerHTML = '<div class="card"><p style="color: var(--danger);">Failed to load users</p></div>';
+      }
+    }
+
+    async function adminBan(userId) {
+      try {
+        await fetch(`/api/admin/ban/${userId}`, {
+          method: 'POST',
+          headers: { 'x-session-id': sessionId }
+        });
+        showToast('User banned', 'success');
+        loadAdminUsers();
+      } catch (e) {
+        showToast('Failed to ban user', 'error');
+      }
+    }
+
+    async function adminUnban(userId) {
+      try {
+        await fetch(`/api/admin/unban/${userId}`, {
+          method: 'POST',
+          headers: { 'x-session-id': sessionId }
+        });
+        showToast('User unbanned', 'success');
+        loadAdminUsers();
+      } catch (e) {
+        showToast('Failed to unban user', 'error');
+      }
+    }
+
+    async function adminHwidReset(userId) {
+      try {
+        await fetch(`/api/admin/hwid-reset/${userId}`, {
+          method: 'POST',
+          headers: { 'x-session-id': sessionId }
+        });
+        showToast('HWID reset', 'success');
+        loadAdminUsers();
+      } catch (e) {
+        showToast('Failed to reset HWID', 'error');
+      }
+    }
+
+    async function loadAdminInvites() {
+      const content = document.getElementById('adminContent');
+      content.innerHTML = '<div class="card"><p>Loading invites...</p></div>';
+
+      try {
+        const res = await fetch('/api/admin/invites', {
+          headers: { 'x-session-id': sessionId }
+        });
+        const data = await res.json();
+
+        content.innerHTML = `
+          <div class="card" style="margin-bottom: 20px;">
+            <button class="btn btn-primary" onclick="generateInvite()" data-testid="button-generate-invite">Generate New Invite Code</button>
+          </div>
+          <div class="table-container">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Created</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${data.invites.map(inv => `
+                  <tr>
+                    <td class="font-mono">${inv.code}</td>
+                    <td>${new Date(inv.createdAt).toLocaleDateString()}</td>
+                    <td>${inv.usedBy ? `<span style="color: var(--text-muted);">Used by ${inv.usedBy}</span>` : '<span style="color: var(--success);">Available</span>'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+      } catch (e) {
+        content.innerHTML = '<div class="card"><p style="color: var(--danger);">Failed to load invites</p></div>';
+      }
+    }
+
+    async function generateInvite() {
+      try {
+        const res = await fetch('/api/admin/invite', {
+          method: 'POST',
+          headers: { 'x-session-id': sessionId }
+        });
+        const data = await res.json();
+        showToast(`Invite code: ${data.code}`, 'success');
+        loadAdminInvites();
+      } catch (e) {
+        showToast('Failed to generate invite', 'error');
+      }
+    }
+
+    async function loadAdminTickets() {
+      const content = document.getElementById('adminContent');
+      await loadTickets();
+
+      content.innerHTML = `
+        <div class="ticket-list">
+          ${tickets.length > 0 ? tickets.map(ticket => `
+            <div class="ticket-card" onclick="openTicket('${ticket.id}')">
+              <div class="ticket-header">
+                <span class="ticket-subject">${ticket.subject}</span>
+                <span class="ticket-status ${ticket.status}">${ticket.status}</span>
+              </div>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">From: ${ticket.username}</div>
+              <div class="ticket-preview">${ticket.messages[ticket.messages.length - 1]?.message || ''}</div>
+            </div>
+          `).join('') : '<div class="empty-state"><div class="empty-state-title">No tickets</div></div>'}
+        </div>
+      `;
+    }
+
+    function loadOwnerUsers() { loadAdminUsers(); document.getElementById('adminContent')?.setAttribute('id', 'ownerContent'); loadAdminUsers(); }
+    function loadOwnerAdmins() { loadAdminUsers(); }
+    function loadOwnerInvites() { document.getElementById('adminContent')?.setAttribute('id', 'ownerContent'); loadAdminInvites(); }
+
+    async function loadOwnerLogs() {
+      const content = document.getElementById('ownerContent');
+      content.innerHTML = '<div class="card"><p>Loading logs...</p></div>';
+
+      try {
+        const res = await fetch('/api/owner/logs', {
+          headers: { 'x-session-id': sessionId }
+        });
+        const data = await res.json();
+
+        content.innerHTML = `
+          <div class="table-container">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Action</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${data.logs.map(log => `
+                  <tr>
+                    <td class="font-mono">${new Date(log.timestamp).toLocaleString()}</td>
+                    <td><span class="badge badge-member">${log.action}</span></td>
+                    <td>${log.details}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+      } catch (e) {
+        content.innerHTML = '<div class="card"><p style="color: var(--danger);">Failed to load logs</p></div>';
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.add('hidden');
+    }
+
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      const toastMessage = document.getElementById('toastMessage');
+
+      toast.className = `toast ${type}`;
+      toastMessage.textContent = message;
+      toast.classList.remove('hidden');
+
+      setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 3000);
+    }
+
+    document.getElementById('modalOverlay').addEventListener('click', (e) => {
+      if (e.target.id === 'modalOverlay') closeModal();
+    });
+
+    init();
   </script>
 </body>
 </html>

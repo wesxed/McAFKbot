@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { fileURLToPath } from 'url';
 import path from 'path';
+import crypto from 'crypto';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -11,277 +12,598 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-const WEAPONS = {
-  pistol: { damage: 30, spread: 0.3, price: 0, ammo: 12, name: 'Glock-18', fireRate: 100 },
-  ar: { damage: 30, spread: 0.15, price: 3100, ammo: 30, name: 'M4A1-S', fireRate: 90 },
-  rifle: { damage: 63, spread: 0.2, price: 2900, ammo: 30, name: 'AK-47', fireRate: 100 },
-  shotgun: { damage: 120, spread: 0.5, price: 1200, ammo: 8, name: 'XM1014', fireRate: 250 },
-  sniper: { damage: 200, spread: 0.05, price: 4750, ammo: 10, name: 'AWP Dragon Lore', fireRate: 1500 }
+const users = new Map();
+const sessions = new Map();
+const invites = new Map();
+const bots = new Map();
+const tickets = new Map();
+const logs = new Map();
+const visitors = new Map();
+
+let visitorCount = 0;
+let onlineUsers = 0;
+let botsOnline = 0;
+
+function generateId() {
+  return crypto.randomBytes(8).toString('hex');
+}
+
+function generateInviteCode() {
+  return 'ZS-' + crypto.randomBytes(4).toString('hex').toUpperCase();
+}
+
+function hashPassword(password) {
+  return crypto.createHash('sha256').update(password).digest('hex');
+}
+
+function createLog(action, userId, details) {
+  const logId = generateId();
+  logs.set(logId, {
+    id: logId,
+    action,
+    userId,
+    details,
+    timestamp: new Date().toISOString()
+  });
+}
+
+const ownerUser = {
+  id: 'owner_karos',
+  username: 'karos',
+  email: 'karos@gmail.com',
+  password: hashPassword('ruzgar20101903'),
+  role: 'owner',
+  hwid: null,
+  hwidResetCount: 0,
+  loaderAccess: true,
+  banned: false,
+  createdAt: new Date().toISOString(),
+  lastLogin: new Date().toISOString(),
+  bio: 'ZeySense Hub Founder',
+  avatar: null,
+  socialLinks: { discord: '', youtube: '', github: '' },
+  stats: { loaderOpens: 0, botSessions: 0, usageTime: 0, forumPosts: 0 },
+  achievements: ['owner', 'verified'],
+  expiresAt: null
 };
+users.set(ownerUser.id, ownerUser);
 
-const games = new Map();
-const players = new Map();
-
-function createGame(gameId) {
-  return {
-    id: gameId,
-    round: 1,
-    roundTime: 120,
-    teamAScore: 0,
-    teamBScore: 0,
-    bombPlanted: false,
-    bombX: 0,
-    bombY: 0,
-    bombZ: 0,
-    bombTimer: 0,
-    teamABudget: 2400,
-    teamBBudget: 2400
-  };
+for (let i = 0; i < 5; i++) {
+  const code = generateInviteCode();
+  invites.set(code, { code, createdBy: 'owner_karos', usedBy: null, createdAt: new Date().toISOString() });
 }
 
-function getPlayerSpawn(team, existingPlayers) {
-  const spawns = {
-    A: [
-      { x: -70, y: 1.6, z: -50 },
-      { x: -60, y: 1.6, z: -60 },
-      { x: -50, y: 1.6, z: -55 }
-    ],
-    B: [
-      { x: 70, y: 1.6, z: 50 },
-      { x: 60, y: 1.6, z: 60 },
-      { x: 50, y: 1.6, z: 55 }
-    ]
+function simulateRandomVisitor() {
+  const visitorId = 'visitor_' + generateId();
+  const names = ['Notch', 'Herobrine', 'Steve', 'Alex', 'Dream', 'Technoblade', 'Tommy', 'Wilbur', 'Ph1LzA', 'Sapnap', 'George', 'BadBoyHalo', 'Skeppy', 'CaptainSparklez', 'Stampy'];
+  const actions = ['viewed home page', 'checked bot panel', 'browsed profiles', 'viewed rules', 'checked downloads'];
+  
+  const visitor = {
+    id: visitorId,
+    name: names[Math.floor(Math.random() * names.length)] + Math.floor(Math.random() * 1000),
+    action: actions[Math.floor(Math.random() * actions.length)],
+    timestamp: new Date().toISOString(),
+    ip: `${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`
   };
   
-  const teamSpawns = spawns[team];
-  const spawn = teamSpawns[Math.floor(Math.random() * teamSpawns.length)];
-  return { x: spawn.x + (Math.random() - 0.5) * 10, y: spawn.y, z: spawn.z + (Math.random() - 0.5) * 10 };
+  visitors.set(visitorId, visitor);
+  visitorCount++;
+  
+  if (visitors.size > 100) {
+    const firstKey = visitors.keys().next().value;
+    visitors.delete(firstKey);
+  }
+  
+  console.log(`🌐 Random visitor: ${visitor.name} - ${visitor.action}`);
+  createLog('visitor', null, `${visitor.name} ${visitor.action}`);
 }
 
-app.post('/api/join', (req, res) => {
-  const { nickname, gameId } = req.body;
-  const gid = gameId || 'default';
-  const pid = Math.random().toString(36).substr(2, 9);
+setInterval(simulateRandomVisitor, 180000);
 
-  if (!games.has(gid)) {
-    games.set(gid, createGame(gid));
+for (let i = 0; i < 5; i++) {
+  setTimeout(() => simulateRandomVisitor(), i * 10000);
+}
+
+app.post('/api/auth/register', (req, res) => {
+  const { email, username, password, inviteCode } = req.body;
+  
+  if (!email || !username || !password) {
+    return res.status(400).json({ error: 'All fields are required' });
   }
-
-  const game = games.get(gid);
-  const gamePlayersArray = Array.from(players.values()).filter(p => p.gameId === gid);
-  const teamA = gamePlayersArray.filter(p => p.team === 'A').length;
-  const teamB = gamePlayersArray.filter(p => p.team === 'B').length;
   
-  const team = teamA <= teamB ? 'A' : 'B';
-  const spawn = getPlayerSpawn(team, gamePlayersArray);
-
-  players.set(pid, {
-    id: pid,
-    nickname,
-    gameId: gid,
-    team,
-    x: spawn.x,
-    y: spawn.y,
-    z: spawn.z,
-    vx: 0,
-    vy: 0,
-    vz: 0,
-    angle: team === 'A' ? 0 : Math.PI,
-    pitch: 0,
-    health: 100,
-    armor: 0,
-    money: 2400,
-    weapon: 'pistol',
-    ammo: WEAPONS.pistol.ammo,
-    kills: 0,
-    deaths: 0,
-    alive: true,
-    lastShot: 0,
-    respawnTime: 0
-  });
-
-  res.json({
-    playerId: pid,
-    gameId: gid,
-    player: players.get(pid),
-    game: game
-  });
-});
-
-app.post('/api/move', (req, res) => {
-  const { playerId, x, y, z, vx, vy, vz, angle, pitch } = req.body;
-  const player = players.get(playerId);
-  
-  if (player) {
-    player.x = Math.max(-120, Math.min(120, x));
-    player.y = Math.max(0, Math.min(50, y));
-    player.z = Math.max(-120, Math.min(120, z));
-    player.vx = vx;
-    player.vy = vy;
-    player.vz = vz;
-    player.angle = angle;
-    player.pitch = pitch;
+  const existingUser = Array.from(users.values()).find(u => u.email === email);
+  if (existingUser) {
+    return res.status(400).json({ error: 'Email already registered' });
   }
-  res.json({ ok: true });
-});
-
-app.post('/api/shoot', (req, res) => {
-  const { playerId, dirX, dirY, dirZ } = req.body;
-  const player = players.get(playerId);
-  const now = Date.now();
   
-  if (!player || !player.alive) return res.json({ hit: false, ammo: 0 });
-  
-  const weapon = WEAPONS[player.weapon];
-  if (now - player.lastShot < weapon.fireRate || player.ammo <= 0) {
-    return res.json({ hit: false, ammo: player.ammo });
+  const existingUsername = Array.from(users.values()).find(u => u.username === username);
+  if (existingUsername) {
+    return res.status(400).json({ error: 'Username already taken' });
   }
-
-  player.lastShot = now;
-  player.ammo--;
-
-  const gamePlayersArray = Array.from(players.values()).filter(p => p.gameId === player.gameId);
-  let hitPlayer = null;
-
-  gamePlayersArray.forEach(target => {
-    if (target.id !== playerId && target.alive && target.team !== player.team) {
-      const dx = target.x - player.x;
-      const dy = target.y - player.y;
-      const dz = target.z - player.z;
-      const dist = Math.hypot(dx, dy, dz);
-      
-      if (dist < 2) {
-        const dot = (dx * dirX + dy * dirY + dz * dirZ) / (dist || 1);
-        if (dot > 0.8) {
-          const spreadFactor = 1 + (Math.random() - 0.5) * weapon.spread;
-          let damage = weapon.damage * spreadFactor;
-          damage = Math.max(10, Math.min(damage, weapon.damage * 1.5));
-          
-          target.health -= damage;
-          
-          if (target.health <= 0) {
-            target.alive = false;
-            target.deaths++;
-            player.kills++;
-            player.money += 300;
-          }
-          
-          hitPlayer = target.id;
-        }
-      }
+  
+  if (inviteCode) {
+    const invite = invites.get(inviteCode);
+    if (!invite) {
+      return res.status(400).json({ error: 'Invalid invite code' });
     }
-  });
-
-  res.json({ hit: !!hitPlayer, ammo: player.ammo, health: player.health });
-});
-
-app.post('/api/buy', (req, res) => {
-  const { playerId, weapon } = req.body;
-  const player = players.get(playerId);
-  
-  if (player && WEAPONS[weapon]) {
-    const price = WEAPONS[weapon].price;
-    if (player.money >= price) {
-      player.money -= price;
-      player.weapon = weapon;
-      player.ammo = WEAPONS[weapon].ammo;
+    if (invite.usedBy) {
+      return res.status(400).json({ error: 'Invite code already used' });
     }
+    invite.usedBy = username;
   }
+  
+  const userId = 'user_' + generateId();
+  const user = {
+    id: userId,
+    username,
+    email,
+    password: hashPassword(password),
+    role: 'member',
+    hwid: null,
+    hwidResetCount: 0,
+    loaderAccess: true,
+    banned: false,
+    createdAt: new Date().toISOString(),
+    lastLogin: new Date().toISOString(),
+    bio: '',
+    avatar: null,
+    socialLinks: { discord: '', youtube: '', github: '' },
+    stats: { loaderOpens: 0, botSessions: 0, usageTime: 0, forumPosts: 0 },
+    achievements: ['verified'],
+    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+  };
+  
+  users.set(userId, user);
+  createLog('register', userId, `User ${username} registered`);
+  
+  const sessionId = generateId();
+  sessions.set(sessionId, { userId, createdAt: new Date().toISOString() });
+  onlineUsers++;
+  
   res.json({ 
-    money: player?.money || 0, 
-    weapon: player?.weapon || 'pistol', 
-    ammo: player?.ammo || 0,
-    weaponName: WEAPONS[player?.weapon]?.name || 'Glock-18'
+    success: true, 
+    sessionId, 
+    user: { ...user, password: undefined }
   });
 });
 
-app.post('/api/plant', (req, res) => {
-  const { playerId } = req.body;
-  const player = players.get(playerId);
-  const game = games.get(player?.gameId);
+app.post('/api/auth/login', (req, res) => {
+  const { email, password } = req.body;
   
-  if (player && player.team === 'A' && player.alive && game && !game.bombPlanted) {
-    game.bombPlanted = true;
-    game.bombX = player.x;
-    game.bombY = player.y;
-    game.bombZ = player.z;
-    game.bombTimer = 40;
+  const user = Array.from(users.values()).find(u => u.email === email);
+  if (!user) {
+    return res.status(401).json({ error: 'Invalid credentials' });
   }
-  res.json({ planted: game?.bombPlanted || false });
-});
-
-app.post('/api/defuse', (req, res) => {
-  const { playerId } = req.body;
-  const player = players.get(playerId);
-  const game = games.get(player?.gameId);
   
-  if (player && player.team === 'B' && player.alive && game && game.bombPlanted) {
-    const dist = Math.hypot(player.x - game.bombX, player.z - game.bombZ);
-    if (dist < 3) {
-      game.bombPlanted = false;
-      player.money += 300;
-    }
+  if (user.password !== hashPassword(password)) {
+    return res.status(401).json({ error: 'Invalid credentials' });
   }
-  res.json({ defused: !game?.bombPlanted });
-});
-
-app.get('/api/state/:gameId', (req, res) => {
-  const game = games.get(req.params.gameId);
-  if (!game) return res.status(404).json({ error: 'Game not found' });
   
-  const gamePlayers = Array.from(players.values()).filter(p => p.gameId === req.params.gameId);
+  if (user.banned) {
+    return res.status(403).json({ error: 'Account is banned' });
+  }
   
-  // Respawn logic
-  gamePlayers.forEach(p => {
-    if (!p.alive && p.respawnTime === 0) {
-      p.respawnTime = Date.now() + 3000;
-    }
-    
-    if (!p.alive && Date.now() > p.respawnTime) {
-      const spawn = getPlayerSpawn(p.team, gamePlayers);
-      p.x = spawn.x;
-      p.y = spawn.y;
-      p.z = spawn.z;
-      p.health = 100;
-      p.alive = true;
-      p.respawnTime = 0;
-      p.weapon = 'pistol';
-      p.ammo = WEAPONS.pistol.ammo;
-    }
+  user.lastLogin = new Date().toISOString();
+  
+  const sessionId = generateId();
+  sessions.set(sessionId, { userId: user.id, createdAt: new Date().toISOString() });
+  onlineUsers++;
+  
+  createLog('login', user.id, `User ${user.username} logged in`);
+  
+  res.json({ 
+    success: true, 
+    sessionId, 
+    user: { ...user, password: undefined }
   });
+});
 
-  // Bomb timer
-  if (game.bombPlanted) {
-    game.bombTimer--;
-    if (game.bombTimer <= 0) {
-      game.bombPlanted = false;
-      game.teamAScore++;
-    }
+app.post('/api/auth/logout', (req, res) => {
+  const { sessionId } = req.body;
+  if (sessions.has(sessionId)) {
+    sessions.delete(sessionId);
+    onlineUsers = Math.max(0, onlineUsers - 1);
   }
+  res.json({ success: true });
+});
 
-  const teamAPlayers = gamePlayers.filter(p => p.team === 'A');
-  const teamBPlayers = gamePlayers.filter(p => p.team === 'B');
-  const teamAAlive = teamAPlayers.filter(p => p.alive).length;
-  const teamBAlive = teamBPlayers.filter(p => p.alive).length;
+function authMiddleware(req, res, next) {
+  const sessionId = req.headers['x-session-id'];
+  const session = sessions.get(sessionId);
+  
+  if (!session) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+  
+  const user = users.get(session.userId);
+  if (!user) {
+    return res.status(401).json({ error: 'User not found' });
+  }
+  
+  if (user.banned) {
+    return res.status(403).json({ error: 'Account is banned' });
+  }
+  
+  req.user = user;
+  next();
+}
 
-  if (teamAAlive === 0 && !game.bombPlanted) game.teamBScore++;
-  if (teamBAlive === 0) game.teamAScore++;
+app.get('/api/user/profile', authMiddleware, (req, res) => {
+  res.json({ user: { ...req.user, password: undefined } });
+});
 
+app.put('/api/user/profile', authMiddleware, (req, res) => {
+  const { bio, socialLinks, avatar } = req.body;
+  const user = req.user;
+  
+  if (bio !== undefined) user.bio = bio;
+  if (socialLinks) user.socialLinks = { ...user.socialLinks, ...socialLinks };
+  if (avatar !== undefined) user.avatar = avatar;
+  
+  res.json({ success: true, user: { ...user, password: undefined } });
+});
+
+app.get('/api/stats', (req, res) => {
   res.json({
-    game,
-    players: gamePlayers,
-    teamAPlayers,
-    teamBPlayers,
-    bombPlanted: game.bombPlanted,
-    bombPos: { x: game.bombX, y: game.bombY, z: game.bombZ },
-    bombTimer: game.bombTimer
+    totalUsers: users.size,
+    onlineUsers: Math.max(1, onlineUsers),
+    totalBots: bots.size,
+    botsOnline: botsOnline,
+    visitorCount,
+    recentVisitors: Array.from(visitors.values()).slice(-10).reverse()
   });
+});
+
+app.get('/api/bots', authMiddleware, (req, res) => {
+  const userBots = Array.from(bots.values()).filter(b => b.ownerId === req.user.id);
+  res.json({ bots: userBots });
+});
+
+app.post('/api/bots', authMiddleware, (req, res) => {
+  const { name, server, version, behavior } = req.body;
+  
+  const botId = 'bot_' + generateId();
+  const bot = {
+    id: botId,
+    name: name || 'ZeyBot_' + Math.floor(Math.random() * 1000),
+    server: server || 'play.hypixel.net',
+    version: version || '1.20.4',
+    behavior: behavior || 'idle',
+    status: 'offline',
+    ownerId: req.user.id,
+    createdAt: new Date().toISOString(),
+    lastActive: null,
+    uptime: 0,
+    ping: 0,
+    playerCount: 0,
+    logs: []
+  };
+  
+  bots.set(botId, bot);
+  req.user.stats.botSessions++;
+  createLog('bot_create', req.user.id, `Created bot ${bot.name}`);
+  
+  res.json({ success: true, bot });
+});
+
+app.post('/api/bots/:botId/start', authMiddleware, (req, res) => {
+  const bot = bots.get(req.params.botId);
+  
+  if (!bot) {
+    return res.status(404).json({ error: 'Bot not found' });
+  }
+  
+  if (bot.ownerId !== req.user.id && req.user.role === 'member') {
+    return res.status(403).json({ error: 'Not authorized' });
+  }
+  
+  bot.status = 'online';
+  bot.lastActive = new Date().toISOString();
+  bot.ping = Math.floor(Math.random() * 50) + 20;
+  bot.playerCount = Math.floor(Math.random() * 100) + 10;
+  bot.logs.push({ time: new Date().toISOString(), message: 'Bot connected to ' + bot.server });
+  botsOnline++;
+  
+  createLog('bot_start', req.user.id, `Started bot ${bot.name}`);
+  
+  res.json({ success: true, bot });
+});
+
+app.post('/api/bots/:botId/stop', authMiddleware, (req, res) => {
+  const bot = bots.get(req.params.botId);
+  
+  if (!bot) {
+    return res.status(404).json({ error: 'Bot not found' });
+  }
+  
+  if (bot.ownerId !== req.user.id && req.user.role === 'member') {
+    return res.status(403).json({ error: 'Not authorized' });
+  }
+  
+  bot.status = 'offline';
+  bot.logs.push({ time: new Date().toISOString(), message: 'Bot disconnected' });
+  botsOnline = Math.max(0, botsOnline - 1);
+  
+  createLog('bot_stop', req.user.id, `Stopped bot ${bot.name}`);
+  
+  res.json({ success: true, bot });
+});
+
+app.post('/api/bots/:botId/command', authMiddleware, (req, res) => {
+  const bot = bots.get(req.params.botId);
+  const { command } = req.body;
+  
+  if (!bot) {
+    return res.status(404).json({ error: 'Bot not found' });
+  }
+  
+  if (req.user.role === 'member') {
+    return res.status(403).json({ error: 'Only admin/owner can send commands' });
+  }
+  
+  bot.logs.push({ time: new Date().toISOString(), message: `Command sent: ${command}` });
+  
+  res.json({ success: true, message: 'Command sent' });
+});
+
+app.delete('/api/bots/:botId', authMiddleware, (req, res) => {
+  const bot = bots.get(req.params.botId);
+  
+  if (!bot) {
+    return res.status(404).json({ error: 'Bot not found' });
+  }
+  
+  if (bot.ownerId !== req.user.id && req.user.role !== 'owner') {
+    return res.status(403).json({ error: 'Not authorized' });
+  }
+  
+  if (bot.status === 'online') botsOnline--;
+  bots.delete(req.params.botId);
+  
+  createLog('bot_delete', req.user.id, `Deleted bot ${bot.name}`);
+  
+  res.json({ success: true });
+});
+
+app.get('/api/admin/users', authMiddleware, (req, res) => {
+  if (req.user.role !== 'admin' && req.user.role !== 'owner') {
+    return res.status(403).json({ error: 'Not authorized' });
+  }
+  
+  const userList = Array.from(users.values()).map(u => ({ ...u, password: undefined }));
+  res.json({ users: userList });
+});
+
+app.post('/api/admin/ban/:userId', authMiddleware, (req, res) => {
+  if (req.user.role !== 'admin' && req.user.role !== 'owner') {
+    return res.status(403).json({ error: 'Not authorized' });
+  }
+  
+  const user = users.get(req.params.userId);
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+  
+  if (user.role === 'owner') {
+    return res.status(403).json({ error: 'Cannot ban owner' });
+  }
+  
+  user.banned = true;
+  createLog('ban', req.user.id, `Banned user ${user.username}`);
+  
+  res.json({ success: true });
+});
+
+app.post('/api/admin/unban/:userId', authMiddleware, (req, res) => {
+  if (req.user.role !== 'admin' && req.user.role !== 'owner') {
+    return res.status(403).json({ error: 'Not authorized' });
+  }
+  
+  const user = users.get(req.params.userId);
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+  
+  user.banned = false;
+  createLog('unban', req.user.id, `Unbanned user ${user.username}`);
+  
+  res.json({ success: true });
+});
+
+app.post('/api/admin/hwid-reset/:userId', authMiddleware, (req, res) => {
+  if (req.user.role !== 'admin' && req.user.role !== 'owner') {
+    return res.status(403).json({ error: 'Not authorized' });
+  }
+  
+  const user = users.get(req.params.userId);
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+  
+  user.hwid = null;
+  user.hwidResetCount++;
+  createLog('hwid_reset', req.user.id, `Reset HWID for ${user.username}`);
+  
+  res.json({ success: true });
+});
+
+app.post('/api/admin/invite', authMiddleware, (req, res) => {
+  if (req.user.role !== 'admin' && req.user.role !== 'owner') {
+    return res.status(403).json({ error: 'Not authorized' });
+  }
+  
+  const code = generateInviteCode();
+  invites.set(code, { 
+    code, 
+    createdBy: req.user.id, 
+    usedBy: null, 
+    createdAt: new Date().toISOString() 
+  });
+  
+  createLog('invite_create', req.user.id, `Created invite code ${code}`);
+  
+  res.json({ success: true, code });
+});
+
+app.get('/api/admin/invites', authMiddleware, (req, res) => {
+  if (req.user.role !== 'admin' && req.user.role !== 'owner') {
+    return res.status(403).json({ error: 'Not authorized' });
+  }
+  
+  res.json({ invites: Array.from(invites.values()) });
+});
+
+app.post('/api/owner/create-admin', authMiddleware, (req, res) => {
+  if (req.user.role !== 'owner') {
+    return res.status(403).json({ error: 'Only owner can create admins' });
+  }
+  
+  const { userId } = req.body;
+  const user = users.get(userId);
+  
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+  
+  user.role = 'admin';
+  user.achievements.push('admin');
+  createLog('admin_create', req.user.id, `Made ${user.username} an admin`);
+  
+  res.json({ success: true });
+});
+
+app.post('/api/owner/remove-admin', authMiddleware, (req, res) => {
+  if (req.user.role !== 'owner') {
+    return res.status(403).json({ error: 'Only owner can remove admins' });
+  }
+  
+  const { userId } = req.body;
+  const user = users.get(userId);
+  
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+  
+  user.role = 'member';
+  user.achievements = user.achievements.filter(a => a !== 'admin');
+  createLog('admin_remove', req.user.id, `Removed admin from ${user.username}`);
+  
+  res.json({ success: true });
+});
+
+app.post('/api/owner/add-time', authMiddleware, (req, res) => {
+  if (req.user.role !== 'owner') {
+    return res.status(403).json({ error: 'Only owner can add time' });
+  }
+  
+  const { userId, days } = req.body;
+  const user = users.get(userId);
+  
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+  
+  const currentExpiry = user.expiresAt ? new Date(user.expiresAt) : new Date();
+  user.expiresAt = new Date(currentExpiry.getTime() + days * 24 * 60 * 60 * 1000).toISOString();
+  createLog('add_time', req.user.id, `Added ${days} days to ${user.username}`);
+  
+  res.json({ success: true });
+});
+
+app.get('/api/owner/logs', authMiddleware, (req, res) => {
+  if (req.user.role !== 'owner') {
+    return res.status(403).json({ error: 'Only owner can view logs' });
+  }
+  
+  const logList = Array.from(logs.values()).sort((a, b) => 
+    new Date(b.timestamp) - new Date(a.timestamp)
+  ).slice(0, 100);
+  
+  res.json({ logs: logList });
+});
+
+app.get('/api/tickets', authMiddleware, (req, res) => {
+  let userTickets;
+  if (req.user.role === 'admin' || req.user.role === 'owner') {
+    userTickets = Array.from(tickets.values());
+  } else {
+    userTickets = Array.from(tickets.values()).filter(t => t.userId === req.user.id);
+  }
+  res.json({ tickets: userTickets });
+});
+
+app.post('/api/tickets', authMiddleware, (req, res) => {
+  const { subject, message } = req.body;
+  
+  const ticketId = 'ticket_' + generateId();
+  const ticket = {
+    id: ticketId,
+    userId: req.user.id,
+    username: req.user.username,
+    subject,
+    status: 'open',
+    createdAt: new Date().toISOString(),
+    messages: [{
+      from: req.user.username,
+      message,
+      timestamp: new Date().toISOString()
+    }]
+  };
+  
+  tickets.set(ticketId, ticket);
+  createLog('ticket_create', req.user.id, `Created ticket: ${subject}`);
+  
+  res.json({ success: true, ticket });
+});
+
+app.post('/api/tickets/:ticketId/reply', authMiddleware, (req, res) => {
+  const ticket = tickets.get(req.params.ticketId);
+  const { message } = req.body;
+  
+  if (!ticket) {
+    return res.status(404).json({ error: 'Ticket not found' });
+  }
+  
+  if (ticket.userId !== req.user.id && req.user.role === 'member') {
+    return res.status(403).json({ error: 'Not authorized' });
+  }
+  
+  ticket.messages.push({
+    from: req.user.username,
+    message,
+    timestamp: new Date().toISOString(),
+    isAdmin: req.user.role === 'admin' || req.user.role === 'owner'
+  });
+  
+  res.json({ success: true, ticket });
+});
+
+app.post('/api/tickets/:ticketId/close', authMiddleware, (req, res) => {
+  const ticket = tickets.get(req.params.ticketId);
+  
+  if (!ticket) {
+    return res.status(404).json({ error: 'Ticket not found' });
+  }
+  
+  if (req.user.role === 'member' && ticket.userId !== req.user.id) {
+    return res.status(403).json({ error: 'Not authorized' });
+  }
+  
+  ticket.status = 'closed';
+  
+  res.json({ success: true });
 });
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+app.use((req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🎮 CS2 Mobile - Port ${PORT}`);
+  console.log(`🎮 ZeySense Hub - Port ${PORT}`);
+  console.log(`👑 Owner: karos`);
+  console.log(`🔐 Available invite codes: ${Array.from(invites.keys()).join(', ')}`);
 });

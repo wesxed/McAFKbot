@@ -7,7 +7,10 @@
   <meta name="description" content="ZeySense Hub - Premium Minecraft AFK Bot sistemi ve gelişmiş hesap yönetimi. GameSense tarzı premium panel deneyimi.">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
   <style>
-    :root {
+    /* ===== THEME SYSTEM - 15 PREMIUM THEMES ===== */
+    
+    /* 1. Dark Theme (Default) - Siyah ve koyu gri */
+    :root, [data-theme="dark"] {
       --bg-primary: #0a0a0f;
       --bg-secondary: #12121a;
       --bg-card: #1a1a24;
@@ -25,6 +28,619 @@
       --owner-gold: #ffd700;
       --admin-green: #00ff88;
       --member-gray: #808090;
+      --glass-bg: rgba(26, 26, 36, 0.8);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --gradient-start: #0a0a0f;
+      --gradient-end: #12121a;
+      --animation-speed: 0.2s;
+      --card-scale: 1;
+      --card-padding: 24px;
+      --font-size-base: 14px;
+    }
+
+    /* 2. Light Theme - Beyaz ve açık tonlar */
+    [data-theme="light"] {
+      --bg-primary: #f5f5f7;
+      --bg-secondary: #ffffff;
+      --bg-card: #ffffff;
+      --bg-hover: #e8e8ec;
+      --accent: #00b368;
+      --accent-dim: #009955;
+      --accent-glow: rgba(0, 179, 104, 0.2);
+      --text-primary: #1a1a2e;
+      --text-secondary: #5a5a6e;
+      --text-muted: #8a8a9e;
+      --border: #d0d0dc;
+      --danger: #dc3545;
+      --warning: #f0a000;
+      --success: #00b368;
+      --owner-gold: #c9a000;
+      --admin-green: #00b368;
+      --member-gray: #6a6a7e;
+      --glass-bg: rgba(255, 255, 255, 0.9);
+      --glass-border: rgba(0, 0, 0, 0.1);
+      --gradient-start: #f5f5f7;
+      --gradient-end: #e0e0e5;
+    }
+
+    /* 3. Neon Theme - Mor, mavi ve neon vurgular */
+    [data-theme="neon"] {
+      --bg-primary: #0d001a;
+      --bg-secondary: #150028;
+      --bg-card: #1f0038;
+      --bg-hover: #2a004d;
+      --accent: #ff00ff;
+      --accent-dim: #cc00cc;
+      --accent-glow: rgba(255, 0, 255, 0.4);
+      --text-primary: #ffffff;
+      --text-secondary: #c0a0d0;
+      --text-muted: #8060a0;
+      --border: #4a0080;
+      --danger: #ff0066;
+      --warning: #ffcc00;
+      --success: #00ffcc;
+      --owner-gold: #ffcc00;
+      --admin-green: #00ffcc;
+      --member-gray: #9080a0;
+      --glass-bg: rgba(31, 0, 56, 0.85);
+      --glass-border: rgba(255, 0, 255, 0.2);
+      --gradient-start: #0d001a;
+      --gradient-end: #1a0033;
+    }
+
+    /* 4. Cyber Theme - Matrix tarzı yeşil */
+    [data-theme="cyber"] {
+      --bg-primary: #000a00;
+      --bg-secondary: #001400;
+      --bg-card: #002000;
+      --bg-hover: #003000;
+      --accent: #00ff00;
+      --accent-dim: #00cc00;
+      --accent-glow: rgba(0, 255, 0, 0.4);
+      --text-primary: #00ff00;
+      --text-secondary: #00cc00;
+      --text-muted: #008800;
+      --border: #004400;
+      --danger: #ff0000;
+      --warning: #ffff00;
+      --success: #00ff00;
+      --owner-gold: #ffff00;
+      --admin-green: #00ff00;
+      --member-gray: #00aa00;
+      --glass-bg: rgba(0, 32, 0, 0.9);
+      --glass-border: rgba(0, 255, 0, 0.2);
+      --gradient-start: #000a00;
+      --gradient-end: #001a00;
+    }
+
+    /* 5. Glassmorphism Theme - Cam efekti */
+    [data-theme="glass"] {
+      --bg-primary: #1a1a2e;
+      --bg-secondary: rgba(30, 30, 60, 0.6);
+      --bg-card: rgba(40, 40, 80, 0.4);
+      --bg-hover: rgba(60, 60, 100, 0.5);
+      --accent: #667eea;
+      --accent-dim: #5a67d8;
+      --accent-glow: rgba(102, 126, 234, 0.4);
+      --text-primary: #ffffff;
+      --text-secondary: #b0b8d0;
+      --text-muted: #7080a0;
+      --border: rgba(255, 255, 255, 0.15);
+      --danger: #fc5c65;
+      --warning: #fed330;
+      --success: #26de81;
+      --owner-gold: #fed330;
+      --admin-green: #26de81;
+      --member-gray: #8090a0;
+      --glass-bg: rgba(40, 40, 80, 0.3);
+      --glass-border: rgba(255, 255, 255, 0.2);
+      --gradient-start: #1a1a2e;
+      --gradient-end: #2d2d5e;
+    }
+
+    /* 6. Minimal Theme - Düz renkler, az animasyon */
+    [data-theme="minimal"] {
+      --bg-primary: #1c1c1c;
+      --bg-secondary: #242424;
+      --bg-card: #2c2c2c;
+      --bg-hover: #363636;
+      --accent: #ffffff;
+      --accent-dim: #e0e0e0;
+      --accent-glow: rgba(255, 255, 255, 0.1);
+      --text-primary: #ffffff;
+      --text-secondary: #b0b0b0;
+      --text-muted: #707070;
+      --border: #404040;
+      --danger: #e74c3c;
+      --warning: #f1c40f;
+      --success: #2ecc71;
+      --owner-gold: #f1c40f;
+      --admin-green: #2ecc71;
+      --member-gray: #808080;
+      --glass-bg: rgba(44, 44, 44, 0.95);
+      --glass-border: rgba(255, 255, 255, 0.05);
+      --gradient-start: #1c1c1c;
+      --gradient-end: #1c1c1c;
+      --animation-speed: 0s;
+    }
+
+    /* 7. Red Gaming Theme - Kırmızı-siyah e-spor */
+    [data-theme="red-gaming"] {
+      --bg-primary: #0a0a0a;
+      --bg-secondary: #121212;
+      --bg-card: #1a1a1a;
+      --bg-hover: #2a1515;
+      --accent: #ff0040;
+      --accent-dim: #cc0033;
+      --accent-glow: rgba(255, 0, 64, 0.4);
+      --text-primary: #ffffff;
+      --text-secondary: #c0a0a0;
+      --text-muted: #806060;
+      --border: #3a1a1a;
+      --danger: #ff0040;
+      --warning: #ff8800;
+      --success: #00ff88;
+      --owner-gold: #ffd700;
+      --admin-green: #00ff88;
+      --member-gray: #908080;
+      --glass-bg: rgba(26, 26, 26, 0.9);
+      --glass-border: rgba(255, 0, 64, 0.2);
+      --gradient-start: #0a0a0a;
+      --gradient-end: #1a0a0a;
+    }
+
+    /* 8. Blue Tech Theme - Mavi tonlar, yazılım paneli */
+    [data-theme="blue-tech"] {
+      --bg-primary: #0a0f1a;
+      --bg-secondary: #0d1520;
+      --bg-card: #141e2d;
+      --bg-hover: #1a2840;
+      --accent: #0080ff;
+      --accent-dim: #0066cc;
+      --accent-glow: rgba(0, 128, 255, 0.3);
+      --text-primary: #e0f0ff;
+      --text-secondary: #8090b0;
+      --text-muted: #506080;
+      --border: #203050;
+      --danger: #ff4060;
+      --warning: #ffaa00;
+      --success: #00dd88;
+      --owner-gold: #ffc800;
+      --admin-green: #00dd88;
+      --member-gray: #607090;
+      --glass-bg: rgba(20, 30, 45, 0.9);
+      --glass-border: rgba(0, 128, 255, 0.15);
+      --gradient-start: #0a0f1a;
+      --gradient-end: #0f1828;
+    }
+
+    /* 9. Gradient Theme - Yumuşak geçişli renkler */
+    [data-theme="gradient"] {
+      --bg-primary: #1a1a2e;
+      --bg-secondary: #16213e;
+      --bg-card: #0f3460;
+      --bg-hover: #1a4080;
+      --accent: #e94560;
+      --accent-dim: #c93050;
+      --accent-glow: rgba(233, 69, 96, 0.3);
+      --text-primary: #ffffff;
+      --text-secondary: #b0c0d0;
+      --text-muted: #6080a0;
+      --border: #2a4a6a;
+      --danger: #e94560;
+      --warning: #ffcc00;
+      --success: #00d4aa;
+      --owner-gold: #ffcc00;
+      --admin-green: #00d4aa;
+      --member-gray: #7090a0;
+      --glass-bg: rgba(15, 52, 96, 0.8);
+      --glass-border: rgba(233, 69, 96, 0.2);
+      --gradient-start: #1a1a2e;
+      --gradient-end: #16213e;
+    }
+
+    /* 10. Custom Theme - Kullanıcı seçimli */
+    [data-theme="custom"] {
+      --bg-primary: var(--custom-bg-primary, #0a0a0f);
+      --bg-secondary: var(--custom-bg-secondary, #12121a);
+      --bg-card: var(--custom-bg-card, #1a1a24);
+      --bg-hover: var(--custom-bg-hover, #22222e);
+      --accent: var(--custom-accent, #ff6b00);
+      --accent-dim: var(--custom-accent-dim, #cc5500);
+      --accent-glow: var(--custom-accent-glow, rgba(255, 107, 0, 0.3));
+      --text-primary: #ffffff;
+      --text-secondary: #a0a0b0;
+      --text-muted: #606070;
+      --border: #2a2a3a;
+      --danger: #ff4444;
+      --warning: #ffaa00;
+      --success: var(--custom-accent, #ff6b00);
+      --owner-gold: #ffd700;
+      --admin-green: var(--custom-accent, #ff6b00);
+      --member-gray: #808090;
+      --glass-bg: rgba(26, 26, 36, 0.85);
+      --glass-border: var(--custom-accent-glow, rgba(255, 107, 0, 0.2));
+      --gradient-start: #0a0a0f;
+      --gradient-end: #12121a;
+    }
+
+    /* 11. Animated Theme - Hover ve geçiş animasyonları */
+    [data-theme="animated"] {
+      --bg-primary: #0f0f1a;
+      --bg-secondary: #15152a;
+      --bg-card: #1c1c35;
+      --bg-hover: #252545;
+      --accent: #00d4ff;
+      --accent-dim: #00a8cc;
+      --accent-glow: rgba(0, 212, 255, 0.4);
+      --text-primary: #ffffff;
+      --text-secondary: #a0b0c0;
+      --text-muted: #607080;
+      --border: #303050;
+      --danger: #ff4466;
+      --warning: #ffcc00;
+      --success: #00ffaa;
+      --owner-gold: #ffd700;
+      --admin-green: #00ffaa;
+      --member-gray: #8090a0;
+      --glass-bg: rgba(28, 28, 53, 0.9);
+      --glass-border: rgba(0, 212, 255, 0.2);
+      --gradient-start: #0f0f1a;
+      --gradient-end: #1a1a30;
+      --animation-speed: 0.4s;
+    }
+
+    /* 12. Mobile Theme - Telefon uyumlu responsive */
+    [data-theme="mobile"] {
+      --bg-primary: #0d0d12;
+      --bg-secondary: #14141c;
+      --bg-card: #1a1a24;
+      --bg-hover: #22222e;
+      --accent: #00cc88;
+      --accent-dim: #00aa70;
+      --accent-glow: rgba(0, 204, 136, 0.3);
+      --text-primary: #ffffff;
+      --text-secondary: #a8a8b8;
+      --text-muted: #686878;
+      --border: #2a2a3a;
+      --danger: #ff5050;
+      --warning: #ffaa00;
+      --success: #00cc88;
+      --owner-gold: #ffd700;
+      --admin-green: #00cc88;
+      --member-gray: #888898;
+      --glass-bg: rgba(26, 26, 36, 0.9);
+      --glass-border: rgba(0, 204, 136, 0.15);
+      --gradient-start: #0d0d12;
+      --gradient-end: #14141c;
+      --card-padding: 16px;
+      --font-size-base: 15px;
+    }
+
+    /* 13. Compact Theme - Daha küçük kartlar */
+    [data-theme="compact"] {
+      --bg-primary: #08080c;
+      --bg-secondary: #0c0c12;
+      --bg-card: #101018;
+      --bg-hover: #18181f;
+      --accent: #00dd77;
+      --accent-dim: #00bb66;
+      --accent-glow: rgba(0, 221, 119, 0.25);
+      --text-primary: #e8e8f0;
+      --text-secondary: #909098;
+      --text-muted: #505058;
+      --border: #202028;
+      --danger: #ff4040;
+      --warning: #ffaa00;
+      --success: #00dd77;
+      --owner-gold: #ffd700;
+      --admin-green: #00dd77;
+      --member-gray: #707078;
+      --glass-bg: rgba(16, 16, 24, 0.95);
+      --glass-border: rgba(0, 221, 119, 0.1);
+      --gradient-start: #08080c;
+      --gradient-end: #0c0c12;
+      --card-scale: 0.9;
+      --card-padding: 16px;
+      --font-size-base: 13px;
+    }
+
+    /* 14. Classic Theme - Eski panel tarzı nostaljik */
+    [data-theme="classic"] {
+      --bg-primary: #2c2c34;
+      --bg-secondary: #34343c;
+      --bg-card: #3c3c44;
+      --bg-hover: #44444c;
+      --accent: #4a90d9;
+      --accent-dim: #3a80c9;
+      --accent-glow: rgba(74, 144, 217, 0.2);
+      --text-primary: #e0e0e8;
+      --text-secondary: #a8a8b0;
+      --text-muted: #707078;
+      --border: #50505a;
+      --danger: #c94040;
+      --warning: #c9a040;
+      --success: #40c980;
+      --owner-gold: #c9a040;
+      --admin-green: #40c980;
+      --member-gray: #888890;
+      --glass-bg: rgba(60, 60, 68, 0.95);
+      --glass-border: rgba(74, 144, 217, 0.15);
+      --gradient-start: #2c2c34;
+      --gradient-end: #34343c;
+    }
+
+    /* 15. Transparent Theme - Yarı saydam paneller */
+    [data-theme="transparent"] {
+      --bg-primary: rgba(10, 10, 15, 0.85);
+      --bg-secondary: rgba(18, 18, 26, 0.75);
+      --bg-card: rgba(26, 26, 36, 0.65);
+      --bg-hover: rgba(34, 34, 46, 0.75);
+      --accent: #a855f7;
+      --accent-dim: #9333ea;
+      --accent-glow: rgba(168, 85, 247, 0.35);
+      --text-primary: #ffffff;
+      --text-secondary: #c0b0d0;
+      --text-muted: #8070a0;
+      --border: rgba(168, 85, 247, 0.25);
+      --danger: #f472b6;
+      --warning: #fbbf24;
+      --success: #34d399;
+      --owner-gold: #fbbf24;
+      --admin-green: #34d399;
+      --member-gray: #a090b0;
+      --glass-bg: rgba(26, 26, 36, 0.5);
+      --glass-border: rgba(168, 85, 247, 0.3);
+      --gradient-start: rgba(10, 10, 15, 0.9);
+      --gradient-end: rgba(30, 15, 45, 0.9);
+    }
+
+    /* ===== THEME-SPECIFIC ENHANCEMENTS ===== */
+    
+    /* Glass theme specific styles */
+    [data-theme="glass"] .card,
+    [data-theme="glass"] .modal,
+    [data-theme="glass"] .navbar,
+    [data-theme="glass"] .sidebar-nav,
+    [data-theme="transparent"] .card,
+    [data-theme="transparent"] .modal,
+    [data-theme="transparent"] .navbar,
+    [data-theme="transparent"] .sidebar-nav {
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
+    /* Cyber theme font override */
+    [data-theme="cyber"] {
+      font-family: 'JetBrains Mono', 'Courier New', monospace !important;
+    }
+    [data-theme="cyber"] .font-display {
+      font-family: 'JetBrains Mono', monospace !important;
+      text-shadow: 0 0 10px var(--accent);
+    }
+    [data-theme="cyber"] .hero-title {
+      text-shadow: 0 0 30px var(--accent), 0 0 60px var(--accent);
+    }
+
+    /* Neon theme glow effects */
+    [data-theme="neon"] .btn-primary,
+    [data-theme="neon"] .accent,
+    [data-theme="neon"] .navbar-logo {
+      box-shadow: 0 0 20px var(--accent-glow), 0 0 40px var(--accent-glow);
+    }
+    [data-theme="neon"] .hero-title {
+      text-shadow: 0 0 30px var(--accent), 0 0 60px rgba(0, 255, 255, 0.5);
+      animation: neonPulse 2s ease-in-out infinite;
+    }
+    @keyframes neonPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.85; }
+    }
+
+    /* Animated theme transitions */
+    [data-theme="animated"] * {
+      transition: all var(--animation-speed, 0.4s) cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+    [data-theme="animated"] .card:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 20px 40px rgba(0, 212, 255, 0.2);
+    }
+    [data-theme="animated"] .btn:hover {
+      transform: translateY(-2px) scale(1.05);
+    }
+    [data-theme="animated"] .hero-title {
+      animation: floatTitle 3s ease-in-out infinite;
+    }
+    @keyframes floatTitle {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    /* Minimal theme - remove animations */
+    [data-theme="minimal"] * {
+      transition: none !important;
+      animation: none !important;
+    }
+    [data-theme="minimal"] .btn:hover {
+      transform: none;
+    }
+
+    /* Compact theme sizing */
+    [data-theme="compact"] .card {
+      padding: var(--card-padding, 16px);
+    }
+    [data-theme="compact"] .bot-grid {
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 12px;
+    }
+    [data-theme="compact"] .hero-title {
+      font-size: 48px;
+    }
+    [data-theme="compact"] .page-title {
+      font-size: 28px;
+    }
+    [data-theme="compact"] body {
+      font-size: var(--font-size-base, 13px);
+    }
+
+    /* Mobile theme responsive */
+    [data-theme="mobile"] .card {
+      padding: var(--card-padding, 16px);
+      border-radius: 16px;
+    }
+    [data-theme="mobile"] .btn {
+      padding: 14px 24px;
+      font-size: 15px;
+    }
+    [data-theme="mobile"] body {
+      font-size: var(--font-size-base, 15px);
+    }
+
+    /* Gradient theme background */
+    [data-theme="gradient"] body {
+      background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 50%, #0f3460 100%);
+    }
+    [data-theme="gradient"] .hero::before {
+      background: 
+        radial-gradient(circle at 20% 50%, rgba(233, 69, 96, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 50%, rgba(0, 212, 170, 0.2) 0%, transparent 50%);
+    }
+
+    /* Red Gaming theme effects */
+    [data-theme="red-gaming"] .hero::before {
+      background: 
+        radial-gradient(circle at 30% 40%, rgba(255, 0, 64, 0.25) 0%, transparent 50%),
+        radial-gradient(circle at 70% 60%, rgba(255, 100, 0, 0.15) 0%, transparent 50%);
+    }
+    [data-theme="red-gaming"] .btn-primary {
+      background: linear-gradient(135deg, #ff0040, #cc0033);
+    }
+
+    /* Blue Tech theme effects */
+    [data-theme="blue-tech"] .hero::before {
+      background: 
+        radial-gradient(circle at 25% 45%, rgba(0, 128, 255, 0.25) 0%, transparent 50%),
+        radial-gradient(circle at 75% 55%, rgba(0, 200, 255, 0.15) 0%, transparent 50%);
+    }
+    [data-theme="blue-tech"] .navbar-logo,
+    [data-theme="blue-tech"] .auth-logo {
+      background: linear-gradient(135deg, #0080ff, #00c8ff);
+    }
+
+    /* Transparent theme background */
+    [data-theme="transparent"] body {
+      background: linear-gradient(135deg, #0a0a0f 0%, #1a0a20 50%, #0a1020 100%);
+      background-attachment: fixed;
+    }
+
+    /* ===== THEME SELECTOR STYLES ===== */
+    .theme-selector-wrapper {
+      position: relative;
+    }
+
+    .theme-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+
+    .theme-btn:hover {
+      border-color: var(--accent);
+      background: var(--bg-hover);
+    }
+
+    .theme-dropdown {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      margin-top: 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 8px;
+      min-width: 220px;
+      max-height: 400px;
+      overflow-y: auto;
+      z-index: 1001;
+      display: none;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    }
+
+    .theme-dropdown.show {
+      display: block;
+    }
+
+    .theme-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .theme-option:hover {
+      background: var(--bg-hover);
+    }
+
+    .theme-option.active {
+      background: rgba(0, 255, 136, 0.1);
+      border-left: 3px solid var(--accent);
+    }
+
+    .theme-preview {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      border: 2px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .theme-name {
+      font-size: 13px;
+      color: var(--text-primary);
+    }
+
+    .theme-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* Custom color picker */
+    .custom-color-section {
+      padding: 12px;
+      border-top: 1px solid var(--border);
+      margin-top: 8px;
+    }
+
+    .color-picker-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .color-picker-row input[type="color"] {
+      width: 40px;
+      height: 32px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      background: transparent;
+    }
+
+    .color-picker-row span {
+      font-size: 12px;
+      color: var(--text-secondary);
     }
 
     * {
@@ -1182,6 +1798,129 @@
         <a href="#" class="nav-link" data-page="downloads" onclick="navigateTo('downloads')">Downloads</a>
       </div>
       <div class="navbar-user" id="navbarUser">
+        <div class="theme-selector-wrapper">
+          <button class="theme-btn" data-testid="button-theme-toggle" onclick="toggleThemeDropdown()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="4"></circle>
+              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+            </svg>
+            <span id="currentThemeName">Dark</span>
+          </button>
+          <div class="theme-dropdown" id="themeDropdown">
+            <div class="theme-option active" data-theme="dark" onclick="setTheme('dark')">
+              <div class="theme-preview" style="background: linear-gradient(135deg, #0a0a0f, #00ff88);"></div>
+              <div>
+                <div class="theme-name">Dark Tema</div>
+                <div class="theme-desc">Koyu ve modern</div>
+              </div>
+            </div>
+            <div class="theme-option" data-theme="light" onclick="setTheme('light')">
+              <div class="theme-preview" style="background: linear-gradient(135deg, #f5f5f7, #00b368);"></div>
+              <div>
+                <div class="theme-name">Light Tema</div>
+                <div class="theme-desc">Aydınlık ve temiz</div>
+              </div>
+            </div>
+            <div class="theme-option" data-theme="neon" onclick="setTheme('neon')">
+              <div class="theme-preview" style="background: linear-gradient(135deg, #0d001a, #ff00ff);"></div>
+              <div>
+                <div class="theme-name">Neon Tema</div>
+                <div class="theme-desc">Oyuncu tarzı</div>
+              </div>
+            </div>
+            <div class="theme-option" data-theme="cyber" onclick="setTheme('cyber')">
+              <div class="theme-preview" style="background: linear-gradient(135deg, #000a00, #00ff00);"></div>
+              <div>
+                <div class="theme-name">Cyber Tema</div>
+                <div class="theme-desc">Matrix tarzı</div>
+              </div>
+            </div>
+            <div class="theme-option" data-theme="glass" onclick="setTheme('glass')">
+              <div class="theme-preview" style="background: linear-gradient(135deg, #1a1a2e, #667eea);"></div>
+              <div>
+                <div class="theme-name">Glassmorphism</div>
+                <div class="theme-desc">Cam efekti</div>
+              </div>
+            </div>
+            <div class="theme-option" data-theme="minimal" onclick="setTheme('minimal')">
+              <div class="theme-preview" style="background: linear-gradient(135deg, #1c1c1c, #ffffff);"></div>
+              <div>
+                <div class="theme-name">Minimal Tema</div>
+                <div class="theme-desc">Sade ve hızlı</div>
+              </div>
+            </div>
+            <div class="theme-option" data-theme="red-gaming" onclick="setTheme('red-gaming')">
+              <div class="theme-preview" style="background: linear-gradient(135deg, #0a0a0a, #ff0040);"></div>
+              <div>
+                <div class="theme-name">Red Gaming</div>
+                <div class="theme-desc">E-spor tarzı</div>
+              </div>
+            </div>
+            <div class="theme-option" data-theme="blue-tech" onclick="setTheme('blue-tech')">
+              <div class="theme-preview" style="background: linear-gradient(135deg, #0a0f1a, #0080ff);"></div>
+              <div>
+                <div class="theme-name">Blue Tech</div>
+                <div class="theme-desc">Yazılım paneli</div>
+              </div>
+            </div>
+            <div class="theme-option" data-theme="gradient" onclick="setTheme('gradient')">
+              <div class="theme-preview" style="background: linear-gradient(135deg, #1a1a2e, #e94560);"></div>
+              <div>
+                <div class="theme-name">Gradient Tema</div>
+                <div class="theme-desc">Yumuşak geçişler</div>
+              </div>
+            </div>
+            <div class="theme-option" data-theme="animated" onclick="setTheme('animated')">
+              <div class="theme-preview" style="background: linear-gradient(135deg, #0f0f1a, #00d4ff);"></div>
+              <div>
+                <div class="theme-name">Animated Tema</div>
+                <div class="theme-desc">Animasyonlu</div>
+              </div>
+            </div>
+            <div class="theme-option" data-theme="mobile" onclick="setTheme('mobile')">
+              <div class="theme-preview" style="background: linear-gradient(135deg, #0d0d12, #00cc88);"></div>
+              <div>
+                <div class="theme-name">Mobile Tema</div>
+                <div class="theme-desc">Telefon uyumlu</div>
+              </div>
+            </div>
+            <div class="theme-option" data-theme="compact" onclick="setTheme('compact')">
+              <div class="theme-preview" style="background: linear-gradient(135deg, #08080c, #00dd77);"></div>
+              <div>
+                <div class="theme-name">Compact Tema</div>
+                <div class="theme-desc">Daha fazla bilgi</div>
+              </div>
+            </div>
+            <div class="theme-option" data-theme="classic" onclick="setTheme('classic')">
+              <div class="theme-preview" style="background: linear-gradient(135deg, #2c2c34, #4a90d9);"></div>
+              <div>
+                <div class="theme-name">Classic Tema</div>
+                <div class="theme-desc">Nostaljik panel</div>
+              </div>
+            </div>
+            <div class="theme-option" data-theme="transparent" onclick="setTheme('transparent')">
+              <div class="theme-preview" style="background: linear-gradient(135deg, rgba(10, 10, 15, 0.85), #a855f7);"></div>
+              <div>
+                <div class="theme-name">Transparent Tema</div>
+                <div class="theme-desc">Yarı saydam</div>
+              </div>
+            </div>
+            <div class="theme-option" data-theme="custom" onclick="setTheme('custom')">
+              <div class="theme-preview" id="customThemePreview" style="background: linear-gradient(135deg, #0a0a0f, #ff6b00);"></div>
+              <div>
+                <div class="theme-name">Custom Tema</div>
+                <div class="theme-desc">Kendi rengini seç</div>
+              </div>
+            </div>
+            <div class="custom-color-section" id="customColorSection" style="display: none;">
+              <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">Ana Renk Seç:</div>
+              <div class="color-picker-row">
+                <input type="color" id="customAccentColor" value="#ff6b00" onchange="updateCustomColor(this.value)">
+                <span>Accent rengi</span>
+              </div>
+            </div>
+          </div>
+        </div>
         <button class="btn btn-secondary btn-small" data-testid="button-login" onclick="navigateTo('login')">Login</button>
         <button class="btn btn-primary btn-small" data-testid="button-register" onclick="navigateTo('register')">Register</button>
       </div>
@@ -1207,6 +1946,129 @@
     let stats = { totalUsers: 0, onlineUsers: 0, totalBots: 0, botsOnline: 0, visitorCount: 0, recentVisitors: [] };
     let userBots = [];
     let tickets = [];
+    let currentTheme = localStorage.getItem('theme') || 'dark';
+
+    // ===== THEME SYSTEM =====
+    const themeNames = {
+      'dark': 'Dark',
+      'light': 'Light',
+      'neon': 'Neon',
+      'cyber': 'Cyber',
+      'glass': 'Glass',
+      'minimal': 'Minimal',
+      'red-gaming': 'Red Gaming',
+      'blue-tech': 'Blue Tech',
+      'gradient': 'Gradient',
+      'custom': 'Custom',
+      'animated': 'Animated',
+      'mobile': 'Mobile',
+      'compact': 'Compact',
+      'classic': 'Classic',
+      'transparent': 'Transparent'
+    };
+
+    function initTheme() {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      const savedCustomColor = localStorage.getItem('customAccentColor') || '#ff6b00';
+      setTheme(savedTheme, false);
+      if (savedTheme === 'custom') {
+        updateCustomColor(savedCustomColor, false);
+        document.getElementById('customAccentColor').value = savedCustomColor;
+      }
+    }
+
+    function toggleThemeDropdown() {
+      const dropdown = document.getElementById('themeDropdown');
+      dropdown.classList.toggle('show');
+      
+      // Close dropdown when clicking outside
+      if (dropdown.classList.contains('show')) {
+        setTimeout(() => {
+          document.addEventListener('click', closeThemeDropdownOnOutsideClick);
+        }, 10);
+      }
+    }
+
+    function closeThemeDropdownOnOutsideClick(e) {
+      const dropdown = document.getElementById('themeDropdown');
+      const wrapper = document.querySelector('.theme-selector-wrapper');
+      if (!wrapper.contains(e.target)) {
+        dropdown.classList.remove('show');
+        document.removeEventListener('click', closeThemeDropdownOnOutsideClick);
+      }
+    }
+
+    function setTheme(theme, save = true) {
+      currentTheme = theme;
+      document.documentElement.setAttribute('data-theme', theme);
+      
+      // Update active state in dropdown
+      document.querySelectorAll('.theme-option').forEach(opt => {
+        opt.classList.toggle('active', opt.dataset.theme === theme);
+      });
+      
+      // Update button text
+      const themeNameEl = document.getElementById('currentThemeName');
+      if (themeNameEl) {
+        themeNameEl.textContent = themeNames[theme] || theme;
+      }
+      
+      // Show/hide custom color picker
+      const customSection = document.getElementById('customColorSection');
+      if (customSection) {
+        customSection.style.display = theme === 'custom' ? 'block' : 'none';
+      }
+      
+      // Save to localStorage
+      if (save) {
+        localStorage.setItem('theme', theme);
+      }
+      
+      // Close dropdown after selection
+      const dropdown = document.getElementById('themeDropdown');
+      if (dropdown && save) {
+        dropdown.classList.remove('show');
+      }
+    }
+
+    function updateCustomColor(color, save = true) {
+      const root = document.documentElement;
+      
+      // Calculate dimmed and glow versions
+      const dimColor = adjustColorBrightness(color, -20);
+      const glowColor = hexToRgba(color, 0.3);
+      
+      root.style.setProperty('--custom-accent', color);
+      root.style.setProperty('--custom-accent-dim', dimColor);
+      root.style.setProperty('--custom-accent-glow', glowColor);
+      
+      // Update preview
+      const preview = document.getElementById('customThemePreview');
+      if (preview) {
+        preview.style.background = `linear-gradient(135deg, #0a0a0f, ${color})`;
+      }
+      
+      if (save) {
+        localStorage.setItem('customAccentColor', color);
+      }
+    }
+
+    function adjustColorBrightness(hex, percent) {
+      const num = parseInt(hex.replace('#', ''), 16);
+      const amt = Math.round(2.55 * percent);
+      const R = Math.max(0, Math.min(255, (num >> 16) + amt));
+      const G = Math.max(0, Math.min(255, ((num >> 8) & 0x00FF) + amt));
+      const B = Math.max(0, Math.min(255, (num & 0x0000FF) + amt));
+      return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
+    }
+
+    function hexToRgba(hex, alpha) {
+      const num = parseInt(hex.replace('#', ''), 16);
+      const r = num >> 16;
+      const g = (num >> 8) & 0x00FF;
+      const b = num & 0x0000FF;
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
 
     const achievementData = {
       verified: { name: 'Verified User', icon: '✓', desc: 'Email verified' },
@@ -1219,6 +2081,7 @@
     };
 
     async function init() {
+      initTheme();
       await fetchStats();
       if (sessionId) {
         await checkAuth();

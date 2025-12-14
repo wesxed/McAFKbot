@@ -1,0 +1,124 @@
+Bu proje, Replit üzerinde çalışacak şekilde tasarlanmış, tüm Minecraft sürümleriyle uyumlu, her türlü sunucuya bağlanabilen, yapay zekâ destekli, komut anlayan ve oyuncularla doğal sohbet edebilen gelişmiş bir Minecraft AFK bot sistemidir. Sistem, klasik AFK botlardan farklı olarak sadece sunucuya girip beklemez; oyuncularla iletişim kurar, görev alır ve oyun içinde aktif davranışlar sergiler.
+
+Bot, sunucu IP ve PORT girilmesi zorunlu olacak şekilde çalışır. Bu sayede:
+– Premium sunucular
+– Cracked (offline) sunucular
+– Survival, Skyblock, Lifesteal, RPG, Faction
+– Whitelist’li veya whitelist’siz sunucular
+– Özel port kullanan sunucular
+
+dahil olmak üzere her tür Minecraft sunucusuna bağlanabilir.
+
+Sürüm Uyumluluğu:
+
+Bot, Minecraft’ın:
+– Eski sürümler (1.8.x – 1.12.x)
+– Orta sürümler (1.13 – 1.16)
+– Yeni sürümler (1.17 – 1.20+)
+
+olmak üzere tüm sürümlerine otomatik uyum sağlar. Sürüm seçimi kullanıcı tarafından yapılabilir veya bot, sunucu sürümünü otomatik algılar. Böylece “sürüm uyuşmazlığı” hatası oluşmaz.
+
+Bağlantı Sistemi:
+
+– Sunucu IP girilir
+– Port girilmesi zorunludur
+– Premium / cracked modu seçilir
+– Gerekirse versiyon manuel seçilir
+– Bağlantı koparsa otomatik yeniden bağlanır
+
+Replit ortamında yaşanan kopmalar düşünülerek bot, bağlantıyı sürekli kontrol eder.
+
+⸻
+
+Yapay Zekâ Sohbet ve Komut Sistemi
+
+Bot, Minecraft sohbetini sürekli dinler. Bir oyuncu sohbetten botun ismini yazdığı anda bot devreye girer.
+
+Örnek:
+Karos maden kaz
+Karos wood farm yap
+Karos make nether portal
+
+Bot:
+– Mesajın dilini otomatik algılar
+– Yapay zekâya gönderir
+– Aynı dilde cevap üretir
+– Komut içeriyorsa oyun içi aksiyon başlatır
+
+Bot cevap verirken kim olduğunu açıkça belirtir:
+“Ben Karos tarafından yazılan yapay zekâ destekli bir Minecraft botuyum.”
+
+⸻
+
+Doğal Dil ile Görev Verme (Komut Ezberi Yok)
+
+Bot sadece sabit komutlarla çalışmaz. Oyuncu nasıl isterse öyle yazabilir.
+
+Örnek görevler:
+– Maden kaz
+– Odun topla
+– Ev yap
+– Nether portalı yap
+– Spawn’a git
+– Beni takip et
+– Dur
+– Eşyaları sandığa koy
+
+Bot, cümlenin amacını yapay zekâ ile çözer ve uygun davranışı uygular.
+
+⸻
+
+Oyun İçi Davranışlar
+
+– Yürür, döner
+– Blok kırar
+– Eşya toplar
+– Sandık kullanır
+– Portal yapar
+– AFK düşmemek için rastgele hareket eder
+– Görev durumunu sohbetten bildirir
+
+⸻
+
+Çok Dilli Otomatik Cevap Sistemi
+
+Bot, karşıdaki oyuncunun yazdığı dili otomatik algılar ve aynı dilde cevap verir. Dil ayarı gerekmez.
+
+⸻
+
+Otomatik Tanıtım Mesajı
+
+Bot, her 30 dakikada bir sohbetten otomatik olarak şu mesajı gönderir:
+
+“Ben Karos tarafından yazılan bir yapay zekâyım.”
+
+Bu mesaj zamanlıdır ve spam yapmaz.
+
+⸻
+
+Tema ve Panel Entegrasyonu
+
+Bot, yönetim paneline entegredir. Panel üzerinden:
+– Sunucu IP
+– Port
+– Sürüm
+– Bot adı
+– AI sohbet açık / kapalı
+– Komut sistemi açık / kapalı
+
+ayarları yapılabilir. Panel, çoklu tema desteğine sahiptir.
+
+⸻
+
+Amaç
+
+Bu sistemin amacı:
+– Her sürümde çalışan
+– Her sunucuya bağlanabilen
+– Port destekli
+– Yapay zekâ kullanan
+– Oyuncularla konuşabilen
+– Görev yapabilen
+üst düzey bir Minecraft botu oluşturmaktır.
+
+Bot, sunucuda gerçek bir oyuncu gibi davranır ve klasik AFK bot kavramını tamamen aşar.
